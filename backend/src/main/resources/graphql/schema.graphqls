@@ -1,0 +1,140 @@
+# ===== SCALAR TYPES =====
+scalar UUID
+scalar DateTime
+scalar BigDecimal
+
+# ===== INPUT TYPES =====
+input RegisterInput {
+    fullName: String!
+    email: String!
+    password: String!
+}
+
+input LoginInput {
+    email: String!
+    password: String!
+}
+
+input UpdateProfileInput {
+    fullName: String
+    bio: String
+    avatarUrl: String
+}
+
+input UpdateProgressInput {
+    watchedSeconds: Int
+    progressPercent: Float
+}
+
+# ===== TYPES =====
+type AuthResponse {
+    token: String!
+    refreshToken: String!
+    user: User!
+}
+
+type User {
+    userId: UUID!
+    fullName: String!
+    email: String!
+    avatarUrl: String
+    bio: String
+    roleName: String!
+    createdAt: DateTime!
+    isActive: Boolean!
+}
+
+type Instructor {
+    userId: UUID!
+    fullName: String!
+    email: String!
+    avatarUrl: String
+    bio: String
+}
+
+type Course {
+    courseId: UUID!
+    title: String!
+    slug: String!
+    description: String
+    thumbnailUrl: String
+    level: String
+    price: BigDecimal
+    categoryName: String
+    instructor: Instructor
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    isPublished: Boolean!
+    modules: [Module!]
+    totalLessons: Int
+    totalDuration: Int
+}
+
+type Module {
+    moduleId: UUID!
+    title: String!
+    order: Int!
+    lessons: [Lesson!]
+}
+
+type Lesson {
+    lessonId: UUID!
+    title: String!
+    videoUrl: String
+    content: String
+    durationSeconds: Int
+    order: Int!
+    userProgress: Float
+}
+
+type Enrollment {
+    enrollmentId: UUID!
+    course: Course!
+    enrolledAt: DateTime!
+    progressPercent: Float!
+}
+
+type Progress {
+    progressId: UUID!
+    lessonId: UUID!
+    lessonTitle: String!
+    watchedSeconds: Int!
+    progressPercent: Float!
+    lastWatchedAt: DateTime!
+}
+
+# ===== ROOT TYPE - QUERY =====
+type Query {
+    # Auth & User
+    me: User!
+    getUserById(userId: UUID!): User!
+
+    # Courses
+    getAllCourses(categoryId: UUID): [Course!]!
+    getCourseById(courseId: UUID!): Course!
+    getCourseBySlug(slug: String!): Course!
+
+    # Enrollments
+    myEnrollments: [Enrollment!]!
+    isEnrolled(courseId: UUID!): Boolean!
+
+    # Progress
+    myProgress(courseId: UUID): [Progress!]!
+    getLessonProgress(lessonId: UUID!): Progress
+}
+
+# ===== ROOT TYPE - MUTATIONS =====
+type Mutation {
+    # Auth
+    register(input: RegisterInput!): AuthResponse!
+    login(input: LoginInput!): AuthResponse!
+
+    # User
+    updateProfile(input: UpdateProfileInput!): User!
+
+    # Enrollment
+    enrollCourse(courseId: UUID!): Enrollment!
+
+    # Progress
+    updateProgress(lessonId: UUID!, input: UpdateProgressInput!): Progress!
+}

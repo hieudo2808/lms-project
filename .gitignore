@@ -3,6 +3,9 @@
 /frontend/.env
 /frontend/.next
 /frontend/package-lock.json
+/frontend/dist
 
 /backend/target
 /backend/.idea
+/backend/src/main/resources/application.properties
+/backend/.vscode
