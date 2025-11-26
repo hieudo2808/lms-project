@@ -4,11 +4,18 @@ import type { Progress } from '../types';
 interface VideoPlayerProps {
   videoUrl: string;
   title: string;
-  duration: number;
+  durationSeconds: number;   
+  lessonId: string;
   onProgress?: (progress: Progress) => void;
 }
 
-export const VideoPlayer = ({ videoUrl, title, duration, onProgress }: VideoPlayerProps) => {
+export const VideoPlayer = ({
+  videoUrl,
+  title,
+  durationSeconds,
+  lessonId,
+  onProgress,
+}: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -16,21 +23,28 @@ export const VideoPlayer = ({ videoUrl, title, duration, onProgress }: VideoPlay
     if (!video) return;
 
     const handleTimeUpdate = () => {
-      if (onProgress) {
-        onProgress({
-          lessonId: '',
-          courseId: '',
-          completed: video.currentTime >= duration * 0.95,
-          watchedDuration: video.currentTime,
-          totalDuration: duration,
-          lastWatched: new Date().toISOString(),
-        });
-      }
+      if (!onProgress) return;
+
+      const watchedSeconds = video.currentTime;
+      const totalSeconds = durationSeconds || video.duration || 1;
+      const progressPercent = (watchedSeconds / totalSeconds) * 100;
+      const completed = progressPercent >= 90;
+
+      onProgress({
+        lessonId,
+        watchedSeconds,
+        totalSeconds,
+        progressPercent,
+        completed,
+        lastWatchedAt: new Date().toISOString(),
+      });
     };
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-  }, [duration, onProgress]);
+  }, [durationSeconds, lessonId, onProgress]);
+
+  const minutes = Math.round(durationSeconds / 60);
 
   return (
     <div className="w-full bg-black rounded-lg overflow-hidden">
@@ -47,7 +61,7 @@ export const VideoPlayer = ({ videoUrl, title, duration, onProgress }: VideoPlay
       </div>
       <div className="p-4 bg-gray-50">
         <h3 className="font-semibold text-gray-800">{title}</h3>
-        <p className="text-sm text-gray-500">⏱ {duration} phút</p>
+        <p className="text-sm text-gray-500">⏱ {minutes} phút</p>
       </div>
     </div>
   );

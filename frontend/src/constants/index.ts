@@ -12,22 +12,26 @@ export const COURSE_LEVEL_LABELS = {
 
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
+    LOGIN: '/v1/auth/login',
+    REGISTER: '/v1/auth/register',
+    LOGOUT: '/v1/auth/logout',
   },
+
   COURSES: {
-    LIST: '/courses',
-    DETAIL: (slug: string) => `/courses/${slug}`,
-    SEARCH: '/courses/search',
+    LIST: '/v1/courses',
+    DETAIL: (slug: string) => `/v1/courses/${slug}`,
+    SEARCH: '/v1/courses/search',
   },
+
   PROGRESS: {
-    GET: (lessonId: string) => `/progress/${lessonId}`,
-    SAVE: '/progress',
+    GET: (lessonId: string) => `/v1/progress/${lessonId}`,
+    SAVE: '/v1/progress',
   },
+
   USER: {
-    PROFILE: '/me',
-    COURSES: '/me/courses',
-    ENROLL: '/me/courses',
+    PROFILE: '/v1/me',
+    COURSES: '/v1/me/courses',
+    ENROLL: '/v1/me/courses',
   },
 } as const;
 

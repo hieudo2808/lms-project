@@ -5,10 +5,14 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { useAuthStore } from '../lib/store';
 import { authAPI } from '../services/api';
+import type { AuthResponse } from '../types';
+import { FcGoogle } from 'react-icons/fc';
+import { FaGithub } from 'react-icons/fa';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,13 +20,13 @@ export const LoginPage = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!email) {
       newErrors.email = 'Email không được để trống';
     } else if (!email.includes('@')) {
       newErrors.email = 'Email không hợp lệ';
     }
-    
+
     if (!password) {
       newErrors.password = 'Mật khẩu không được để trống';
     } else if (password.length < 6) {
@@ -35,18 +39,17 @@ export const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
     try {
       const response = await authAPI.login(email, password);
-      const { token, user } = response.data;
-      
+      const { token, user } = response.data as AuthResponse;
+
       setAuth(token, user);
       navigate('/dashboard/my-courses');
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch {
       setErrors({ form: 'Đăng nhập thất bại. Vui lòng thử lại.' });
     } finally {
       setIsLoading(false);
@@ -71,7 +74,7 @@ export const LoginPage = () => {
             <Input
               type="email"
               label="Email"
-              placeholder="your@email.com"
+              placeholder="Nhập email của bạn"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={errors.email}
@@ -80,7 +83,7 @@ export const LoginPage = () => {
             <Input
               type="password"
               label="Mật khẩu"
-              placeholder="••••••••"
+              placeholder="Nhập mật khẩu"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={errors.password}
@@ -99,7 +102,10 @@ export const LoginPage = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Chưa có tài khoản?{' '}
-              <Link to="/register" className="text-blue-600 font-semibold hover:underline">
+              <Link
+                to="/register"
+                className="text-blue-600 font-semibold hover:underline"
+              >
                 Đăng ký ngay
               </Link>
             </p>
@@ -110,11 +116,13 @@ export const LoginPage = () => {
               Hoặc đăng nhập bằng
             </p>
             <div className="grid grid-cols-2 gap-4 mt-4">
-              <button className="border border-gray-300 rounded-lg py-2 hover:bg-gray-50">
-                Google
+              <button className="border border-gray-300 rounded-lg py-2 hover:bg-gray-50 flex items-center justify-center gap-2">
+                <FcGoogle className="text-xl" />
+                <span className="font-medium text-gray-700">Google</span>
               </button>
-              <button className="border border-gray-300 rounded-lg py-2 hover:bg-gray-50">
-                GitHub
+              <button className="border border-gray-300 rounded-lg py-2 hover:bg-gray-50 flex items-center justify-center gap-2">
+                <FaGithub className="text-xl" />
+                <span className="font-medium text-gray-700">GitHub</span>
               </button>
             </div>
           </div>
