@@ -34,16 +34,13 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
 
-        // Get STUDENT role
         Roles studentRole = roleRepository.findByRoleName("STUDENT")
                 .orElseThrow(() -> new RuntimeException("Student role not found"));
 
-        // Create new user
         Users user = Users.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
@@ -53,23 +50,21 @@ public class AuthService {
                 .isActive(true)
                 .build();
 
-        userRepository.save(user);
+        Users savedUser = userRepository.save(user);
 
-        // Generate tokens
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(savedUser.getEmail());
         String token = jwtUtil.generateToken(userDetails);
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
         return AuthResponse.builder()
                 .token(token)
                 .refreshToken(refreshToken)
-                .user(mapToUserResponse(user))
+                .user(mapToUserResponse(savedUser)) 
                 .build();
     }
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        // Authenticate
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -77,7 +72,6 @@ public class AuthService {
                 )
         );
 
-        // Get user
         Users user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -85,7 +79,6 @@ public class AuthService {
             throw new RuntimeException("User account is inactive");
         }
 
-        // Generate tokens
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String token = jwtUtil.generateToken(userDetails);
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
@@ -99,6 +92,7 @@ public class AuthService {
 
     private UserResponse mapToUserResponse(Users user) {
         return UserResponse.builder()
+                .userId(user.getUserId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .avatarUrl(user.getAvatarUrl())

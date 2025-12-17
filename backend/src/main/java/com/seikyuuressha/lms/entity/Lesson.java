@@ -34,8 +34,8 @@ public class Lesson {
 
     Integer durationSeconds;
 
-    @Column(name = "order", nullable = false)
-    int order;
+    @Column(name = "sort_order", nullable = false)
+    int sortOrder;
 
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL)
     List<Progress> progresses;

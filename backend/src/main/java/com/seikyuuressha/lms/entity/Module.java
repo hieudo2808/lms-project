@@ -26,8 +26,8 @@ public class Module {
     @Column(nullable = false, length = 200)
     String title;
 
-    @Column(name = "[order]", nullable = false)
-    int order;
+    @Column(name = "[sort_order]", nullable = false)
+    int sortOrder;
 
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
     List<Lesson> lessons;

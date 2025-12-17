@@ -5,6 +5,7 @@ import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.repository.CourseRepository;
 import com.seikyuuressha.lms.repository.EnrollmentRepository;
 import com.seikyuuressha.lms.repository.ProgressRepository;
+import com.seikyuuressha.lms.repository.UserRepository; 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,7 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ProgressRepository progressRepository;
+    private final UserRepository userRepository; // Inject User Repo
 
     @Transactional(readOnly = true)
     public List<CourseResponse> getAllPublishedCourses(UUID categoryId) {
@@ -59,14 +61,20 @@ public class CourseService {
 
     private UUID getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            authentication.getPrincipal();
+        if (authentication != null && authentication.isAuthenticated() 
+                && !authentication.getPrincipal().equals("anonymousUser")) {
+            String email = authentication.getName();
+            // Lấy ID từ DB thay vì ép kiểu Principal
+            return userRepository.findByEmail(email)
+                    .map(Users::getUserId)
+                    .orElse(null);
         }
-        return null; // Will be populated from user context
+        return null;
     }
 
     private CourseResponse mapToCourseResponseWithoutModules(Course course) {
         return CourseResponse.builder()
+                .courseId(course.getCourseId()) // Thêm dòng này nếu DTO có ID
                 .title(course.getTitle())
                 .slug(course.getSlug())
                 .description(course.getDescription())
@@ -94,13 +102,17 @@ public class CourseService {
             progresses.forEach(p -> progressMap.put(p.getLesson().getLessonId(), p.getProgressPercent()));
         }
 
-        List<ModuleResponse> modules = course.getModules().stream()
-                .sorted(Comparator.comparingInt(com.seikyuuressha.lms.entity.Module::getOrder))
-                .map(module -> mapToModuleResponse(module, isEnrolled, progressMap))
-                .collect(Collectors.toList());
+        // [FIX NULL] Kiểm tra modules có null không trước khi stream
+        List<ModuleResponse> modules = new ArrayList<>();
+        if (course.getModules() != null) {
+            modules = course.getModules().stream()
+                    .sorted(Comparator.comparingInt(com.seikyuuressha.lms.entity.Module::getSortOrder))
+                    .map(module -> mapToModuleResponse(module, isEnrolled, progressMap))
+                    .collect(Collectors.toList());
+        }
 
         return CourseResponse.builder()
-                .courseId(course.getCourseId())
+                .courseId(course.getCourseId()) // Thêm dòng này
                 .title(course.getTitle())
                 .slug(course.getSlug())
                 .description(course.getDescription())
@@ -121,15 +133,19 @@ public class CourseService {
     private ModuleResponse mapToModuleResponse(com.seikyuuressha.lms.entity.Module module, 
                                                boolean isEnrolled, 
                                                Map<UUID, Double> progressMap) {
-        List<LessonResponse> lessons = module.getLessons().stream()
-                .sorted(Comparator.comparingInt(Lesson::getOrder))
-                .map(lesson -> mapToLessonResponse(lesson, isEnrolled, progressMap))
-                .collect(Collectors.toList());
+        List<LessonResponse> lessons = new ArrayList<>();
+        // [FIX NULL] Kiểm tra lessons trong module
+        if (module.getLessons() != null) {
+            lessons = module.getLessons().stream()
+                    .sorted(Comparator.comparingInt(Lesson::getSortOrder))
+                    .map(lesson -> mapToLessonResponse(lesson, isEnrolled, progressMap))
+                    .collect(Collectors.toList());
+        }
 
         return ModuleResponse.builder()
                 .moduleId(module.getModuleId())
                 .title(module.getTitle())
-                .order(module.getOrder())
+                .order(module.getSortOrder())
                 .lessons(lessons)
                 .build();
     }
@@ -139,10 +155,10 @@ public class CourseService {
         return LessonResponse.builder()
                 .lessonId(lesson.getLessonId())
                 .title(lesson.getTitle())
-                .videoUrl(isEnrolled ? lesson.getVideoUrl() : null) // Hide video URL for non-enrolled
+                .videoUrl(isEnrolled ? lesson.getVideoUrl() : null)
                 .content(lesson.getContent())
                 .durationSeconds(lesson.getDurationSeconds())
-                .order(lesson.getOrder())
+                .order(lesson.getSortOrder())
                 .userProgress(progressMap.getOrDefault(lesson.getLessonId(), 0.0))
                 .build();
     }
@@ -159,14 +175,18 @@ public class CourseService {
                 .build();
     }
 
+    // [FIX NULL] Sửa logic tính toán an toàn hơn
     private Integer calculateTotalLessons(Course course) {
+        if (course.getModules() == null) return 0;
         return course.getModules().stream()
-                .mapToInt(module -> module.getLessons().size())
+                .mapToInt(module -> (module.getLessons() != null) ? module.getLessons().size() : 0)
                 .sum();
     }
 
     private Integer calculateTotalDuration(Course course) {
+        if (course.getModules() == null) return 0;
         return course.getModules().stream()
+                .filter(m -> m.getLessons() != null)
                 .flatMap(module -> module.getLessons().stream())
                 .mapToInt(lesson -> lesson.getDurationSeconds() != null ? lesson.getDurationSeconds() : 0)
                 .sum();

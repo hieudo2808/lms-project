@@ -40,7 +40,6 @@ public class EnrollmentService {
             throw new RuntimeException("Cannot enroll in unpublished course");
         }
 
-        // Check if already enrolled
         if (enrollmentRepository.existsByUser_UserIdAndCourse_CourseId(user.getUserId(), courseId)) {
             throw new RuntimeException("Already enrolled in this course");
         }
@@ -74,6 +73,10 @@ public class EnrollmentService {
     @Transactional(readOnly = true)
     public boolean isEnrolled(UUID courseId) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (email == null || email.equals("anonymousUser")) {
+            return false;
+        }
+
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -84,9 +87,10 @@ public class EnrollmentService {
         CourseResponse courseResponse = courseService.getCourseById(enrollment.getCourse().getCourseId());
         
         return EnrollmentResponse.builder()
+                .enrollmentId(enrollment.getEnrollmentId()) 
                 .course(courseResponse)
                 .enrolledAt(enrollment.getEnrolledAt())
-                .progressPercent(enrollment.getProgressPercent())
+                .progressPercent(enrollment.getProgressPercent() != null ? enrollment.getProgressPercent() : 0.0)
                 .build();
     }
 }
