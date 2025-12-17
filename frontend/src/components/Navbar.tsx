@@ -1,126 +1,180 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@apollo/client/react/hooks';
 import { useAuthStore } from '../lib/store';
+import { ME_QUERY } from '../graphql/queries/user';
+import type { User } from '../types';
 
 export const Navbar = () => {
-  const { user, token, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const { token, user, setAuth, logout } = useAuthStore();
+
   const isAuthenticated = !!token;
-  const [showExploreMenu, setShowExploreMenu] = useState(false);
+
+  // Chỉ fetch me khi có token nhưng chưa có user trong store
+  const shouldFetchMe = !!token && !user;
+
+  const { data, error } = useQuery(ME_QUERY, {
+    skip: !shouldFetchMe,
+    fetchPolicy: 'network-only',
+  });
+
+  // Nếu token không hợp lệ / hết hạn → logout
+  useEffect(() => {
+    if (!error) return;
+    // GraphQL backend của bạn sẽ trả UNAUTHORIZED nếu token sai
+    console.error('me() error:', error);
+    logout();
+  }, [error, logout]);
+
+  // Khi có dữ liệu me lần đầu → đồng bộ vào Zustand
+  useEffect(() => {
+    if (!data?.me || !token || user) return;
+
+    const gUser = data.me;
+
+    const mappedUser: User = {
+      id: gUser.userId,
+      email: gUser.email,
+      fullName: gUser.fullName,
+      avatarUrl: gUser.avatarUrl ?? undefined,
+      bio: gUser.bio ?? undefined,
+      role: gUser.roleName,
+    };
+
+    // Giữ nguyên token hiện tại, chỉ cập nhật user
+    setAuth(token, mappedUser);
+  }, [data, token, user, setAuth]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const handleExplore = (level?: string) => {
-    setShowExploreMenu(false);
+  const handleFilterLevel = (level: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
     if (level) {
-      navigate(`/?level=${level}`);
+      params.set('level', level);
     } else {
-      navigate('/');
+      params.delete('level');
+    }
+    setSearchParams(params);
+
+    if (location.pathname !== '/') {
+      navigate(`/?${params.toString()}`);
     }
   };
 
+  const shortName =
+    user?.fullName?.trim().split(' ').slice(-1)[0] ?? 'Học viên';
+  const firstLetter = shortName.charAt(0).toUpperCase();
+
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            🎓 LMS
+    <nav className="bg-white shadow-sm">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex justify-between h-16 items-center">
+          {/* Logo + tên */}
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                LMS
+              </div>
+              <span className="font-semibold text-gray-800 hidden sm:inline-block">
+                LMS Platform
+              </span>
+            </Link>
           </div>
-          <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-            Platform
-          </span>
-        </Link>
-        
-        {/* Navigation Links */}
-        <div className="flex items-center gap-8">
-          {/* Explore Dropdown */}
-          <div className="relative group">
-            <button 
-              onClick={() => setShowExploreMenu(!showExploreMenu)}
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-2"
+
+          {/* Menu giữa */}
+          <div className="hidden md:flex items-center gap-6">
+            <button
+              type="button"
+              onClick={() => handleFilterLevel(null)}
+              className="text-gray-700 hover:text-blue-600 text-sm font-medium"
             >
               🔍 Khám phá
-              <span className={`text-sm transition-transform ${showExploreMenu ? 'rotate-180' : ''}`}>▼</span>
             </button>
-            
-            {/* Dropdown Menu */}
-            {showExploreMenu && (
-              <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-                <button
-                  onClick={() => handleExplore()}
-                  className="w-full text-left px-4 py-3 hover:bg-blue-50 text-gray-700 font-medium transition-colors border-b border-gray-100"
+            <button
+              type="button"
+              onClick={() => handleFilterLevel('beginner')}
+              className="text-gray-600 hover:text-blue-500 text-xs"
+            >
+              Beginner
+            </button>
+            <button
+              type="button"
+              onClick={() => handleFilterLevel('intermediate')}
+              className="text-gray-600 hover:text-blue-500 text-xs"
+            >
+              Intermediate
+            </button>
+            <button
+              type="button"
+              onClick={() => handleFilterLevel('advanced')}
+              className="text-gray-600 hover:text-blue-500 text-xs"
+            >
+              Advanced
+            </button>
+          </div>
+
+          {/* Phần bên phải: login / user */}
+          <div className="flex items-center gap-4">
+            {isAuthenticated && user ? (
+              <>
+                <NavLink
+                  to="/dashboard/my-courses"
+                  className={({ isActive }) =>
+                    `text-sm font-medium ${
+                      isActive ? 'text-blue-600' : 'text-gray-700'
+                    } hover:text-blue-600`
+                  }
                 >
-                  📚 Tất cả khóa học
-                </button>
+                  📖 Khóa học của tôi
+                </NavLink>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-sm">
+                    {firstLetter}
+                  </div>
+                  <span className="text-sm text-gray-700 max-w-[120px] truncate">
+                    {shortName}
+                  </span>
+                </div>
                 <button
-                  onClick={() => handleExplore('beginner')}
-                  className="w-full text-left px-4 py-3 hover:bg-green-50 text-gray-700 font-medium transition-colors border-b border-gray-100"
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-sm text-gray-600 hover:text-red-500"
                 >
-                  🌱 Cơ bản
+                  Đăng xuất
                 </button>
-                <button
-                  onClick={() => handleExplore('intermediate')}
-                  className="w-full text-left px-4 py-3 hover:bg-yellow-50 text-gray-700 font-medium transition-colors border-b border-gray-100"
+              </>
+            ) : (
+              <>
+                <NavLink
+                  to="/login"
+                  className={({ isActive }) =>
+                    `text-sm font-medium ${
+                      isActive ? 'text-blue-600' : 'text-gray-700'
+                    } hover:text-blue-600`
+                  }
                 >
-                  📈 Trung bình
-                </button>
-                <button
-                  onClick={() => handleExplore('advanced')}
-                  className="w-full text-left px-4 py-3 hover:bg-purple-50 text-gray-700 font-medium transition-colors"
+                  Đăng nhập
+                </NavLink>
+                <NavLink
+                  to="/register"
+                  className={({ isActive }) =>
+                    `text-sm font-medium ${
+                      isActive ? 'text-blue-600' : 'text-gray-700'
+                    } hover:text-blue-600`
+                  }
                 >
-                  🚀 Nâng cao
-                </button>
-              </div>
+                  Đăng ký
+                </NavLink>
+              </>
             )}
           </div>
-          
-          {isAuthenticated && (
-            <Link 
-              to="/dashboard/my-courses" 
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-            >
-              📖 Khóa học của tôi
-            </Link>
-          )}
-          
-          {/* Auth Section */}
-          {isAuthenticated ? (
-            <div className="flex items-center gap-4 pl-4 border-l border-gray-200">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                  {user?.fullName?.[0] || 'U'}
-                </div>
-                <span className="text-sm font-medium text-gray-700">
-                  {user?.fullName?.split(' ')[0] || 'User'}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-gray-600 hover:text-red-600 font-medium transition-colors"
-              >
-                🚪 Đăng xuất
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link 
-                to="/login" 
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
-              >
-                🔑 Đăng nhập
-              </Link>
-              <Link 
-                to="/register" 
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
-              >
-                ✨ Đăng ký
-              </Link>
-            </div>
-          )}
         </div>
       </div>
     </nav>

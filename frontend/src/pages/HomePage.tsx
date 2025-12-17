@@ -1,18 +1,45 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useQuery } from '@apollo/client';
 import { CourseList } from '../components/CourseList';
 import { Layout } from '../components/Layout';
-import { courseAPI } from '../services/api';
+import { GET_ALL_COURSES } from '../graphql/queries/course';
 import type { Course } from '../types';
 
 export const HomePage = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Gọi API Backend 
+  const { data, loading, error } = useQuery(GET_ALL_COURSES);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLevel, setFilterLevel] = useState<string>('');
   const [searchParams] = useSearchParams();
   const coursesRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
+
+  // Map dữ liệu từ Backend sang Frontend 
+  const courses: Course[] = data?.getAllCourses?.map((c: any) => ({
+    id: c.courseId,
+    courseId: c.courseId,
+    
+    title: c.title,
+    slug: c.slug,
+    description: c.description,
+    thumbnailUrl: c.thumbnailUrl || 'https://via.placeholder.com/400x300',
+    
+    instructor: c.instructor ? {
+        userId: c.instructor.userId,
+        fullName: c.instructor.fullName,
+        avatarUrl: c.instructor.avatarUrl || null
+    } : null,
+
+    level: c.level,
+    price: c.price,
+    totalDuration: c.totalDuration || 0, 
+    totalLessons: c.totalLessons || 0,   
+    isPublished: true, 
+    rating: 5.0,
+    enrolledCount: 0
+  })) || [];
 
   const scrollToCourses = () => {
     coursesRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -21,94 +48,6 @@ export const HomePage = () => {
   const scrollToStats = () => {
     statsRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  // Mock data; backend sẽ trả về danh sách Course thật
-  const mockCourses: Course[] = [
-    {
-      id: '1',
-      title: 'React + TypeScript từ Zero đến Hero',
-      slug: 'react-typescript-zero-hero',
-      description: 'Học React và TypeScript từ cơ bản đến nâng cao',
-      thumbnailUrl:
-        'https://via.placeholder.com/400x300?text=React+Course',
-      instructorId: 'instructor-1',
-      instructorName: 'Nguyễn Văn A',
-      level: 'beginner',
-      price: 0,
-      categoryId: undefined,
-      categoryName: undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isPublished: true,
-      lessonsCount: 25,
-      totalDurationSeconds: 450 * 60,
-      rating: 4.8,
-      enrolledCount: 2500,
-    },
-    {
-      id: '2',
-      title: 'Node.js Express API Development',
-      slug: 'nodejs-express-api',
-      description: 'Xây dựng API RESTful với Node.js và Express',
-      thumbnailUrl:
-        'https://via.placeholder.com/400x300?text=Node.js+Course',
-      instructorId: 'instructor-2',
-      instructorName: 'Trần Thị B',
-      level: 'intermediate',
-      price: 0,
-      categoryId: undefined,
-      categoryName: undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isPublished: true,
-      lessonsCount: 20,
-      totalDurationSeconds: 380 * 60,
-      rating: 4.6,
-      enrolledCount: 1800,
-    },
-    {
-      id: '3',
-      title: 'Python cho Data Science',
-      slug: 'python-data-science',
-      description: 'Khám phá Data Science với Python',
-      thumbnailUrl:
-        'https://via.placeholder.com/400x300?text=Python+Course',
-      instructorId: 'instructor-3',
-      instructorName: 'Lê Hoàng C',
-      level: 'intermediate',
-      price: 0,
-      categoryId: undefined,
-      categoryName: undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isPublished: true,
-      lessonsCount: 28,
-      totalDurationSeconds: 520 * 60,
-      rating: 4.7,
-      enrolledCount: 3200,
-    },
-    {
-      id: '4',
-      title: 'Docker & Kubernetes Mastery',
-      slug: 'docker-kubernetes-mastery',
-      description: 'Nắm vững Docker và Kubernetes cho DevOps',
-      thumbnailUrl:
-        'https://via.placeholder.com/400x300?text=Docker+Course',
-      instructorId: 'instructor-4',
-      instructorName: 'Phạm Minh D',
-      level: 'advanced',
-      price: 0,
-      categoryId: undefined,
-      categoryName: undefined,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isPublished: true,
-      lessonsCount: 32,
-      totalDurationSeconds: 600 * 60,
-      rating: 4.9,
-      enrolledCount: 1200,
-    },
-  ];
 
   useEffect(() => {
     const levelFromParams = searchParams.get('level');
@@ -120,28 +59,10 @@ export const HomePage = () => {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        // TODO: dùng dữ liệu thật từ backend
-        const response = await courseAPI.getAll();
-        setCourses((response.data as Course[]) || mockCourses);
-      } catch (err) {
-        console.error('Failed to fetch courses:', err);
-        // fallback mock khi backend lỗi / chưa có
-        setCourses(mockCourses);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCourses();
-  }, []);
-
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchTerm.toLowerCase());
+      course.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesLevel = !filterLevel || course.level === filterLevel;
 
@@ -176,7 +97,6 @@ export const HomePage = () => {
                 </button>
               </div>
             </div>
-
             <div className="flex justify-center">
               <div className="w-64 h-64 bg-gradient-to-br from-purple-400 to-blue-500 rounded-3xl opacity-80 animate-pulse" />
             </div>
@@ -184,31 +104,27 @@ export const HomePage = () => {
         </div>
       </section>
 
+      {/* Stats Section */}
       <section ref={statsRef} className="bg-white py-12 border-b">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-blue-600 mb-2">
-                5000+
-              </div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">5+</div>
               <p className="text-gray-600 font-medium">Khóa học</p>
             </div>
             <div>
-              <div className="text-4xl font-bold text-purple-600 mb-2">
-                100k+
-              </div>
+              <div className="text-4xl font-bold text-purple-600 mb-2">100+</div>
               <p className="text-gray-600 font-medium">Học viên</p>
             </div>
             <div>
-              <div className="text-4xl font-bold text-green-600 mb-2">
-                500+
-              </div>
+              <div className="text-4xl font-bold text-green-600 mb-2">10+</div>
               <p className="text-gray-600 font-medium">Giáo viên</p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Filter Section */}
       <section className="bg-gray-50 py-8 sticky top-16 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -221,7 +137,6 @@ export const HomePage = () => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
               />
             </div>
-
             <div>
               <select
                 value={filterLevel}
@@ -229,33 +144,31 @@ export const HomePage = () => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm bg-white"
               >
                 <option value="">📚 Tất cả cấp độ</option>
-                <option value="beginner">🌱 Cơ bản</option>
-                <option value="intermediate">📈 Trung bình</option>
-                <option value="advanced">🚀 Nâng cao</option>
+                <option value="Beginner">🌱 Cơ bản</option>
+                <option value="Intermediate">📈 Trung bình</option>
+                <option value="Advanced">🚀 Nâng cao</option>
               </select>
             </div>
-
             <div className="flex items-center justify-center">
               <span className="text-sm font-semibold text-gray-700 bg-white px-4 py-3 rounded-lg shadow-sm">
-                ✨ Tìm thấy{' '}
-                <span className="text-blue-600">
-                  {filteredCourses.length}
-                </span>{' '}
-                khóa học
+                ✨ Tìm thấy <span className="text-blue-600">{filteredCourses.length}</span> khóa học
               </span>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Course List */}
       <section ref={coursesRef} className="max-w-7xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
-          Khóa học phổ biến
-        </h2>
-        <p className="text-gray-600 mb-8">
-          Các khóa học được yêu thích nhất bởi học viên
-        </p>
-        <CourseList courses={filteredCourses} isLoading={isLoading} />
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Khóa học phổ biến</h2>
+        {error ? (
+           <div className="text-red-500 text-center border p-4 rounded bg-red-50">
+             <p className="font-bold">Không thể tải khóa học</p>
+             <p className="text-sm">{error.message}</p>
+           </div>
+        ) : (
+           <CourseList courses={filteredCourses} isLoading={loading} />
+        )}
       </section>
     </Layout>
   );

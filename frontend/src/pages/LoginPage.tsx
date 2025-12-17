@@ -1,13 +1,22 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useMutation } from '@apollo/client'; 
 import { Layout } from '../components/Layout';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { useAuthStore } from '../lib/store';
-import { authAPI } from '../services/api';
-import type { AuthResponse } from '../types';
+import { LOGIN_MUTATION } from '../graphql/mutations/auth';
+import type { User, LoginInput, AuthResponse } from '../types';
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub } from 'react-icons/fa';
+
+interface LoginMutationData {
+  login: AuthResponse;
+}
+
+interface LoginMutationVariables {
+  input: LoginInput;
+}
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -17,6 +26,10 @@ export const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [loginMutation] = useMutation<LoginMutationData, LoginMutationVariables>(
+    LOGIN_MUTATION
+  );
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -43,14 +56,35 @@ export const LoginPage = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({}); 
+
     try {
-      const response = await authAPI.login(email, password);
-      const { token, user } = response.data as AuthResponse;
+      const { data } = await loginMutation({
+        variables: {
+          input: {
+            email,
+            password,
+          },
+        },
+      });
+
+      if (!data?.login) {
+        setErrors({ form: 'Đăng nhập thất bại. Không nhận được phản hồi.' });
+        return;
+      }
+
+      const { token, user, refreshToken } = data.login;
+      
+      localStorage.setItem('refresh_token', refreshToken);
 
       setAuth(token, user);
-      navigate('/dashboard/my-courses');
-    } catch {
-      setErrors({ form: 'Đăng nhập thất bại. Vui lòng thử lại.' });
+      
+      navigate('/');
+
+    } catch (error: any) {
+      console.error('Login error:', error);
+      const message = error.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+      setErrors({ form: message });
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +98,9 @@ export const LoginPage = () => {
             Đăng nhập
           </h1>
 
+          {/* Hiển thị lỗi form tổng quát */}
           {errors.form && (
-            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
               {errors.form}
             </div>
           )}
@@ -74,10 +109,11 @@ export const LoginPage = () => {
             <Input
               type="email"
               label="Email"
-              placeholder="Nhập email của bạn"
+              placeholder="admin@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={errors.email}
+              disabled={isLoading}
             />
 
             <Input
@@ -87,6 +123,7 @@ export const LoginPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={errors.password}
+              disabled={isLoading}
             />
 
             <Button
@@ -116,11 +153,17 @@ export const LoginPage = () => {
               Hoặc đăng nhập bằng
             </p>
             <div className="grid grid-cols-2 gap-4 mt-4">
-              <button className="border border-gray-300 rounded-lg py-2 hover:bg-gray-50 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                className="border border-gray-300 rounded-lg py-2 hover:bg-gray-50 flex items-center justify-center gap-2"
+              >
                 <FcGoogle className="text-xl" />
                 <span className="font-medium text-gray-700">Google</span>
               </button>
-              <button className="border border-gray-300 rounded-lg py-2 hover:bg-gray-50 flex items-center justify-center gap-2">
+              <button
+                type="button"
+                className="border border-gray-300 rounded-lg py-2 hover:bg-gray-50 flex items-center justify-center gap-2"
+              >
                 <FaGithub className="text-xl" />
                 <span className="font-medium text-gray-700">GitHub</span>
               </button>

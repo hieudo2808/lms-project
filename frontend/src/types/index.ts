@@ -1,70 +1,93 @@
-export type UserRole = 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
-
 export interface User {
-  id: string;
-  email: string;
+  userId: string;      
   fullName: string;
-  avatarUrl?: string;
-  bio?: string;
-  role: UserRole;
+  email: string;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  roleName: string; 
+  createdAt?: string;
+  isActive: boolean;
 }
 
-export interface AuthRequest {
-  email: string;
-  password: string;
+export interface Instructor {
+  userId: string;
+  fullName: string;
+  email?: string;
+  avatarUrl?: string | null;
+  bio?: string | null;
 }
 
 export interface AuthResponse {
   token: string;
+  refreshToken: string; 
   user: User;
 }
 
-export type CourseLevel = 'beginner' | 'intermediate' | 'advanced';
+export interface LoginInput {
+  email: string;
+  password: string;
+}
 
-export interface Course {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  thumbnailUrl: string;
-  instructorId: string;
-  instructorName: string;
-  level: CourseLevel;
-  price: number;
-  categoryId?: string;
-  categoryName?: string;
-  createdAt: string;
-  updatedAt: string;
-  isPublished: boolean;
-  lessonsCount: number;
-  totalDurationSeconds: number;
-  rating: number;
-  enrolledCount: number;
+export interface RegisterInput {
+  fullName: string;
+  email: string;
+  password: string;
 }
 
 export interface Lesson {
-  id: string;
-  moduleId?: string;
+  lessonId: string;         
   title: string;
-  videoUrl: string;
-  content?: string;
-  durationSeconds: number;
+  videoUrl?: string | null;
+  content?: string | null;
+  durationSeconds?: number | null;
   order: number;
+  userProgress?: number | null; 
 }
 
-export interface CourseDetail extends Course {
+export interface Module {
+  moduleId: string;
+  title: string;
+  order: number;
   lessons: Lesson[];
-  fullDescription?: string;
-  isEnrolled?: boolean;
+}
+
+export interface Course {
+  courseId: string;         
+  title: string;
+  slug: string;
+  description?: string | null;
+  thumbnailUrl?: string | null;
+  level?: string | null;
+  price?: number | null;   
+  categoryName?: string | null;
+  
+
+  instructor?: Instructor | null; 
+  
+  createdAt?: string;
+  updatedAt?: string;
+  isPublished: boolean;
+  
+  modules?: Module[]; 
+  
+  totalLessons?: number | null;
+  totalDuration?: number | null;
+}
+
+export interface Enrollment {
+  enrollmentId: string;
+  course: Course;
+  enrolledAt: string;
+  progressPercent: number;
 }
 
 export interface Progress {
+  progressId: string;
   lessonId: string;
+  lessonTitle?: string;
   watchedSeconds: number;
-  totalSeconds: number;
   progressPercent: number;
-  completed: boolean;
-  lastWatchedAt: string;
+  lastWatchedAt?: string;
 }
 
 export interface Review {
@@ -72,80 +95,24 @@ export interface Review {
   courseId: string;
   userId: string;
   userName: string;
-  userAvatarUrl?: string;
   rating: number;
   comment: string;
   createdAt: string;
 }
 
-export interface LessonComment {
-  id: string;
-  lessonId: string;
-  userId: string;
-  userName: string;
-  userAvatarUrl?: string;
-  content: string;
-  createdAt: string;
-  parentId?: string | null;
-}
-
-export interface QuizAnswer {
-  id: string;
-  questionId: string;
-  text: string;
-}
-
-export interface QuizQuestion {
-  id: string;
-  quizId: string;
-  text: string;
-  answers: QuizAnswer[];
-}
-
 export interface Quiz {
   id: string;
-  lessonId: string;
   title: string;
-  questions: QuizQuestion[];
 }
 
-export interface LessonResource {
-  id: string;            
-  lessonId: string;
-  resourceUrl: string;
-  resourceType: string;  
+export interface UpdateProfileInput {
+  fullName?: string;
+  bio?: string;
+  avatarUrl?: string;
+}
+export interface UpdateProgressInput {
+  watchedSeconds?: number;
+  progressPercent?: number;
 }
 
-export interface QuizAttemptResult {
-  attemptId: string;
-  quizId: string;
-  lessonId: string;
-  score: number;          
-  correctCount: number;
-  totalQuestions: number;
-  createdAt: string;      
-}
-
-export interface QuizAttemptDetail extends QuizAttemptResult {
-  answersReview: {
-    questionId: string;
-    questionText: string;
-    answers: QuizAnswer[];
-    correctAnswerId: string;
-    selectedAnswerId?: string;
-  }[];
-}
-
-export type PaymentStatus = 'SUCCESS' | 'PENDING' | 'FAILED' | 'CANCELED';
-
-export interface PaymentHistoryItem {
-  id: string;              
-  userId: string;
-  courseId: string;
-  courseTitle: string;
-  amount: number;
-  paymentMethod: string;   
-  transactionId: string;
-  paymentStatus: PaymentStatus;
-  createdAt: string;
-}
+export type PaymentStatus = 'SUCCESS' | 'PENDING' | 'FAILED';

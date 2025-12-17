@@ -1,10 +1,36 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useMutation } from '@apollo/client/react/hooks';
 import { Layout } from '../components/Layout';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { useAuthStore } from '../lib/store';
-import { authAPI } from '../services/api';
+import { REGISTER_MUTATION } from '../graphql/mutations/auth';
+import type { User } from '../types';
+interface RegisterMutationData {
+  register: {
+    token: string;
+    refreshToken: string;
+    user: {
+      userId: string;
+      fullName: string;
+      email: string;
+      avatarUrl?: string | null;
+      bio?: string | null;
+      roleName: string;
+      createdAt: string;
+      isActive: boolean;
+    };
+  };
+}
+
+interface RegisterMutationVariables {
+  input: {
+    fullName: string;
+    email: string;
+    password: string;
+  };
+}
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
@@ -16,9 +42,14 @@ export const RegisterPage = () => {
     confirmPassword: '',
   });
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);      
+  const [showTerms, setShowTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [registerMutation] = useMutation<
+    RegisterMutationData,
+    RegisterMutationVariables
+  >(REGISTER_MUTATION);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -67,19 +98,36 @@ export const RegisterPage = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    try {
-      const res = await authAPI.register(
-        formData.fullName,
-        formData.email,
-        formData.password
-      );
+    setErrors({}); 
 
-      const { token, user } = res.data;
+    try {
+      const { data } = await registerMutation({
+        variables: {
+          input: {
+            fullName: formData.fullName,
+            email: formData.email,
+            password: formData.password,
+          },
+        },
+      });
+
+      if (!data?.register) {
+        setErrors({ form: 'Đăng ký thất bại. Vui lòng thử lại.' });
+        return;
+      }
+
+      const { token, refreshToken, user } = data.register;
+
+      localStorage.setItem('refresh_token', refreshToken);
+
       setAuth(token, user);
+
       navigate('/dashboard/my-courses');
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Register error:', error);
-      setErrors({ form: 'Đăng ký thất bại. Vui lòng thử lại.' });
+      const message = error.message || 'Đăng ký thất bại. Vui lòng thử lại.';
+      setErrors({ form: message });
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +200,7 @@ export const RegisterPage = () => {
                   Tôi đồng ý với{' '}
                   <button
                     type="button"
-                    onClick={() => setShowTerms(true)}        
+                    onClick={() => setShowTerms(true)}
                     className="text-blue-600 hover:underline"
                   >
                     điều khoản dịch vụ
