@@ -53,6 +53,11 @@ export const GET_COURSE_BY_SLUG = gql`
           durationSeconds
           order
           userProgress
+          quiz {
+            quizId
+            title
+            isPublished
+          }
         }
       }
     }

@@ -12,7 +12,6 @@ export const LOGIN_MUTATION = gql`
         avatarUrl
         bio
         roleName
-        createdAt 
         isActive
       }
     }
@@ -31,7 +30,6 @@ export const REGISTER_MUTATION = gql`
         avatarUrl
         bio
         roleName
-        createdAt
         isActive
       }
     }
