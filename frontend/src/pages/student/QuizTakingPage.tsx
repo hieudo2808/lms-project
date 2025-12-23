@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
-import { ArrowLeft, Clock, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Clock, AlertCircle, CheckCircle, XCircle, History } from 'lucide-react';
 import { Layout } from '../../components/common/Layout';
 import { GET_QUIZ_BY_ID } from '../../graphql/queries/quiz';
 import {
@@ -324,6 +324,12 @@ export const QuizTakingPage = () => {
               >
                 <ArrowLeft size={18} /> Quay lại
               </button>
+              <button
+                onClick={() => navigate(`/student/quizzes/${quizId}/history`)}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+              >
+                <History size={18} /> Xem lịch sử
+              </button>
               {quizResult.maxAttempts && quizResult.maxAttempts > 1 && (
                 <button
                   onClick={() => {
@@ -541,14 +547,22 @@ export const QuizTakingPage = () => {
             </ul>
           </div>
 
-          {/* Start Button */}
-          <button
-            onClick={handleStartQuiz}
-            disabled={loading}
-            className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold text-lg hover:shadow-lg transition-all disabled:opacity-50"
-          >
-            Bắt đầu làm bài
-          </button>
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <button
+              onClick={handleStartQuiz}
+              disabled={loading}
+              className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold text-lg hover:shadow-lg transition-all disabled:opacity-50"
+            >
+              Bắt đầu làm bài
+            </button>
+            <button
+              onClick={() => navigate(`/student/quizzes/${quizId}/history`)}
+              className="w-full py-2 px-6 bg-white border-2 border-purple-600 text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
+            >
+              <History size={20} /> Xem lịch sử làm bài
+            </button>
+          </div>
         </div>
       </div>
     </Layout>

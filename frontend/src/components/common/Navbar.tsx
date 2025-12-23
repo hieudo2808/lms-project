@@ -8,10 +8,18 @@ export const Navbar = () => {
   const { user: storedUser, token, logout, setAuth } = useAuthStore();
   
   // Query GET_ME để lấy user data mới nhất (bao gồm avatar)
-  const { data: meData } = useQuery(GET_ME_QUERY, {
+  const { data: meData, error: meError } = useQuery(GET_ME_QUERY, {
     skip: !token, // Chỉ query khi đã login
     fetchPolicy: 'cache-and-network', // Luôn fetch để có data mới nhất
   });
+  
+  // Auto-logout nếu token invalid (GET_ME fail)
+  useEffect(() => {
+    if (meError && token) {
+      console.error('Token invalid, auto logout:', meError);
+      logout();
+    }
+  }, [meError, token, logout]);
   
   // Sync user data từ GET_ME vào store
   useEffect(() => {
@@ -122,7 +130,19 @@ export const Navbar = () => {
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.fullName}
+                    className="w-8 h-8 rounded-full object-cover border-2 border-blue-200"
+                    onError={(e) => {
+                      // Fallback to initial if image fails to load
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm ${user?.avatarUrl ? 'hidden' : ''}`}>
                   {user?.fullName?.[0] || 'U'}
                 </div>
                 <span className="text-sm font-medium text-gray-700">

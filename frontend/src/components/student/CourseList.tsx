@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { Course } from '../../types';
+import { CourseRating } from './CourseRating';
 
 interface CourseListProps {
   courses: Course[];
@@ -71,12 +72,9 @@ export const CourseList = ({ courses, isLoading }: CourseListProps) => {
 
             {/* Footer */}
             <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-4">
-              <div className="flex items-center gap-1 text-yellow-500 text-sm font-bold">
-                <span>⭐ 5.0</span>
-                <span className="text-gray-400 font-normal">({course.enrolledCount})</span>
-              </div>
+              <CourseRating courseId={course.courseId} />
               <div className="font-bold text-blue-600">
-                {course.price === 0 ? 'Miễn phí' : `${course.price?.toLocaleString()} đ`}
+                {course.price === 0 || !course.price ? 'Miễn phí' : `${course.price?.toLocaleString()} đ`}
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@apollo/client'; 
 import { toast } from 'react-toastify'; // Import thêm toast để thông báo đẹp hơn
@@ -21,7 +21,18 @@ interface LoginMutationVariables {
 
 export const LoginPage = () => {
   const navigate = useNavigate();
-  const { setAuth } = useAuthStore();
+  const { setAuth, token, user } = useAuthStore();
+
+  // Redirect nếu đã đăng nhập
+  useEffect(() => {
+    if (token && user) {
+      if (user.roleName === 'INSTRUCTOR' || user.roleName === 'ADMIN') {
+        navigate('/instructor/dashboard', { replace: true });
+      } else {
+        navigate('/courses', { replace: true });
+      }
+    }
+  }, [token, user, navigate]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

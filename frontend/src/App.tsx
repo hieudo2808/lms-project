@@ -19,18 +19,21 @@ import {
   QuizTakingPage,
   CertificatesPage,
   CourseProgressPage,
-  ProfileSettingsPage
+  ProfileSettingsPage,
+  QuizHistoryPage
 } from './pages';
 
 // Import Layout và Trang Dashboard
 import { InstructorLayout } from './layouts/InstructorLayout';
 import { DashboardPage } from './pages/instructor/DashboardPage';
+import { CacheClearBanner } from './components/common';
 
 import './index.css';
 
 function App() {
   return (
     <BrowserRouter>
+      <CacheClearBanner />
       <Routes>
         {/* ================= PUBLIC ROUTES ================= */}
         <Route path="/" element={<LandingPage />} />
@@ -57,6 +60,9 @@ function App() {
         
         {/* Làm bài quiz */}
         <Route path="/student/quizzes/:quizId" element={<QuizTakingPage />} />
+        
+        {/* Lịch sử làm quiz */}
+        <Route path="/student/quizzes/:quizId/history" element={<QuizHistoryPage />} />
 
         {/* ================= INSTRUCTOR ROUTES (DÀNH CHO GIẢNG VIÊN) ================= */}
         {/* InstructorLayout cung cấp Sidebar và Header chứa thông tin thật từ Backend */}

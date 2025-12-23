@@ -35,8 +35,8 @@ export const MyCoursesPage = () => {
     progressPercent: e.progressPercent || 0,
     
     price: 0,
-    rating: 5,
-    enrolledCount: 0,
+    rating: undefined,
+    reviewCount: undefined,
     description: '',
     isPublished: true
   })) || [];

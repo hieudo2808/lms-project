@@ -35,8 +35,8 @@ export const StudentDashboardPage = () => {
       totalLessons: e.course.totalLessons || 0,
       progressPercent: e.progressPercent || 0,
       price: 0,
-      rating: 5,
-      enrolledCount: 0,
+      rating: undefined,
+      reviewCount: undefined,
       description: '',
       isPublished: true,
     })) || [];

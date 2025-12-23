@@ -39,9 +39,10 @@ export const HomePage = () => {
     price: c.price,
     totalDuration: c.totalDuration || 0, 
     totalLessons: c.totalLessons || 0,   
-    isPublished: true, 
-    rating: 5.0,
-    enrolledCount: 0
+    isPublished: true,
+    // Rating sẽ được fetch riêng nếu cần
+    rating: undefined,
+    reviewCount: undefined,
   })) || [];
 
   const scrollToCourses = () => {

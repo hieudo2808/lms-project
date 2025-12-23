@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { Course } from '../../types';
+import { CourseRatingBadge } from './CourseRatingBadge';
 
 interface CourseCardProps {
   course: Course;
@@ -43,22 +44,18 @@ export const CourseCard = ({ course }: CourseCardProps) => {
         {/* Thumbnail */}
         <div className="relative bg-gradient-to-br from-blue-400 to-purple-500 h-48 overflow-hidden">
           <img 
-            src={course.thumbnail} 
+            src={course.thumbnailUrl || 'https://via.placeholder.com/400x300'} 
             alt={course.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
           {/* Badge Overlay */}
           <div className="absolute top-3 right-3">
-            <span className={`text-xs font-bold px-3 py-1 rounded-full ${getLevelColor(course.level)}`}>
-              {getLevelLabel(course.level)}
+            <span className={`text-xs font-bold px-3 py-1 rounded-full ${getLevelColor(course.level || '')}`}>
+              {getLevelLabel(course.level || '')}
             </span>
           </div>
-          {/* Rating Badge */}
-          <div className="absolute bottom-3 left-3 bg-white bg-opacity-95 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1">
-            <span className="text-yellow-400">⭐</span>
-            <span className="font-bold text-gray-800">{course.rating.toFixed(1)}</span>
-            <span className="text-xs text-gray-600">({course.enrolledCount})</span>
-          </div>
+          {/* Rating Badge - Dynamically fetched */}
+          <CourseRatingBadge courseId={course.courseId} />
         </div>
 
         {/* Content */}
@@ -80,8 +77,8 @@ export const CourseCard = ({ course }: CourseCardProps) => {
 
           {/* Stats */}
           <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
-            <span className="flex items-center gap-1">📚 {course.lessonsCount} bài</span>
-            <span className="flex items-center gap-1">⏱ {Math.floor(course.duration / 60)}h</span>
+            <span className="flex items-center gap-1">📚 {course.totalLessons || 0} bài</span>
+            <span className="flex items-center gap-1">⏱ {Math.floor((course.totalDuration || 0) / 3600)}h</span>
           </div>
 
           {/* CTA Button */}

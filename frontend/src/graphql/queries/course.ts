@@ -21,6 +21,13 @@ export const GET_ALL_COURSES = gql`
   }
 `;
 
+// Lấy rating cho một khóa học
+export const GET_COURSE_RATING = gql`
+  query GetCourseRating($courseId: UUID!) {
+    getCourseAverageRating(courseId: $courseId)
+  }
+`;
+
 // Lấy chi tiết khóa học + Modules + Lessons (cho Detail & Lesson Page)
 
 export const GET_COURSE_BY_SLUG = gql`
