@@ -186,7 +186,7 @@ type QuizAttempt {
 type QuizAnswer {
     answerId: UUID!
     attempt: QuizAttempt!
-    question: Question!
+    question: Question
     selectedAnswerId: UUID
     userAnswer: String
     isCorrect: Boolean!
