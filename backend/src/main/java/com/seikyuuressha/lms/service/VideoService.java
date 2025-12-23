@@ -42,9 +42,6 @@ public class VideoService {
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    @Value("${aws.s3.cloudfront-domain:}")
-    private String cloudfrontDomain;
-
     @Value("${aws.s3.presigned-url-expiration:3600}")
     private Long presignedUrlExpiration;
 
@@ -97,16 +94,11 @@ public class VideoService {
 
         video = videoRepository.save(video);
 
-        // Generate pre-signed URL
+        // Generate pre-signed URL (minimal - no headers signed to avoid mismatch)
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(s3Key)
-                .contentType(request.getContentType())
-                .metadata(java.util.Map.of(
-                        "videoId", video.getVideoId().toString(),
-                        "lessonId", lesson.getLessonId().toString(),
-                        "instructorId", currentUser.getUserId().toString()
-                ))
+                // Don't set contentType here - let frontend decide
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
@@ -151,12 +143,12 @@ public class VideoService {
                 video.setFileSize(response.contentLength());
             }
 
-            // Update status to PROCESSING (will be handled by background job)
-            video.setProcessingStatus(Video.ProcessingStatus.PROCESSING);
+            // Direct streaming: set COMPLETED immediately (no transcoding needed)
+            video.setProcessingStatus(Video.ProcessingStatus.COMPLETED);
+            video.setProcessedAt(OffsetDateTime.now());
             video = videoRepository.save(video);
 
-            // TODO: Send to transcoding queue (e.g., AWS MediaConvert, or custom queue)
-            log.info("Video uploaded successfully. VideoId: {}, S3Key: {}", video.getVideoId(), video.getS3Key());
+            log.info("Video uploaded and ready for streaming. VideoId: {}, S3Key: {}", video.getVideoId(), video.getS3Key());
 
         } catch (S3Exception e) {
             video.setProcessingStatus(Video.ProcessingStatus.FAILED);
@@ -169,7 +161,7 @@ public class VideoService {
     }
 
     /**
-     * Get video stream URL
+     * Get video stream URL (using S3 Presigned URL)
      */
     @Transactional(readOnly = true)
     public String getVideoStreamUrl(UUID lessonId) {
@@ -180,14 +172,33 @@ public class VideoService {
             throw new RuntimeException("Video is not ready for streaming. Status: " + video.getProcessingStatus());
         }
 
-        // If CloudFront is configured, use it
-        if (cloudfrontDomain != null && !cloudfrontDomain.isEmpty()) {
-            String key = video.getHlsManifestKey() != null ? video.getHlsManifestKey() : video.getS3Key();
-            return String.format("https://%s/%s", cloudfrontDomain, key);
-        }
+        // Generate S3 Presigned GET URL
+        String key = video.getHlsManifestKey() != null ? video.getHlsManifestKey() : video.getS3Key();
+        return generatePresignedGetUrl(key);
+    }
 
-        // Otherwise, generate S3 URL
-        return String.format("https://%s.s3.amazonaws.com/%s", bucketName, video.getS3Key());
+    /**
+     * Generate a presigned GET URL for S3 object
+     */
+    private String generatePresignedGetUrl(String s3Key) {
+        // Add Cache-Control header for browser caching (24 hours)
+        software.amazon.awssdk.services.s3.model.GetObjectRequest getObjectRequest = 
+            software.amazon.awssdk.services.s3.model.GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(s3Key)
+                .responseCacheControl("public, max-age=86400") // Cache for 24 hours
+                .build();
+
+        software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest presignRequest = 
+            software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofSeconds(presignedUrlExpiration))
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+        software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest presignedRequest = 
+            s3Presigner.presignGetObject(presignRequest);
+
+        return presignedRequest.url().toString();
     }
 
     /**
@@ -319,11 +330,7 @@ public class VideoService {
             }
 
             if (video.getThumbnailS3Key() != null) {
-                if (cloudfrontDomain != null && !cloudfrontDomain.isEmpty()) {
-                    thumbnailUrl = String.format("https://%s/%s", cloudfrontDomain, video.getThumbnailS3Key());
-                } else {
-                    thumbnailUrl = String.format("https://%s.s3.amazonaws.com/%s", bucketName, video.getThumbnailS3Key());
-                }
+                thumbnailUrl = generatePresignedGetUrl(video.getThumbnailS3Key());
             }
         }
 

@@ -20,6 +20,7 @@ public class CourseResponse {
     private BigDecimal price;
     private String categoryName;
     private InstructorResponse instructor;
+    private List<CoInstructorResponse> coInstructors;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
     private boolean isPublished;

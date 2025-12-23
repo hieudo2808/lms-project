@@ -1,150 +1,109 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import "./index.css";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import './index.css';
 
-// Pages
 import {
-  LandingPage,
-  HomePage,
-  LoginPage,
-  RegisterPage,
-  CourseDetailPage,
-  NotFoundPage,
-  EditCoursePage,
-  CreateCoursePage,
-  MyCoursesPage,
-  AccountSettingsPage,
-  CreateQuizPage,
-  EditQuizPage,
-  StudentDashboardPage,
-  LessonDetailPage,
-  QuizTakingPage,
-  CertificatesPage,
-  CourseProgressPage,
-  ProfileSettingsPage,
-} from "./pages";
+    LandingPage,
+    HomePage,
+    LoginPage,
+    RegisterPage,
+    CourseDetailPage,
+    NotFoundPage,
+    EditCoursePage,
+    CreateCoursePage,
+    MyCoursesPage,
+    AccountSettingsPage,
+    CreateQuizPage,
+    EditQuizPage,
+    StudentDashboardPage,
+    LessonDetailPage,
+    QuizTakingPage,
+    CertificatesPage,
+    CourseProgressPage,
+    ProfileSettingsPage,
+} from './pages';
 
-// Layouts
-import { InstructorLayout } from "./layouts/InstructorLayout";
-import { AdminLayout } from "./layouts/AdminLayout";
-import { DashboardPage } from "./pages/instructor/DashboardPage";
-import { StudentsPage } from "./pages/instructor/StudentsPage";
-import { AnalyticsPage } from "./pages/instructor/AnalyticsPage";
-import { ReviewsPage } from "./pages/instructor/ReviewsPage";
+import { InstructorLayout } from './layouts/InstructorLayout';
+import { AdminLayout } from './layouts/AdminLayout';
+import { DashboardPage } from './pages/instructor/DashboardPage';
+import { StudentsPage } from './pages/instructor/StudentsPage';
+import { AnalyticsPage } from './pages/instructor/AnalyticsPage';
+import { ReviewsPage } from './pages/instructor/ReviewsPage';
 
-// Admin Pages
-import { AdminDashboardPage } from "./pages/admin/DashboardPage";
-import { UsersPage as AdminUsersPage } from "./pages/admin/UsersPage";
-import { CoursesPage as AdminCoursesPage } from "./pages/admin/CoursesPage";
-import { CategoriesPage } from "./pages/admin/CategoriesPage";
+import { AdminDashboardPage } from './pages/admin/DashboardPage';
+import { UsersPage as AdminUsersPage } from './pages/admin/UsersPage';
+import { CoursesPage as AdminCoursesPage } from './pages/admin/CoursesPage';
+import { CategoriesPage } from './pages/admin/CategoriesPage';
 
-// Auth Guards
-import { ProtectedRoute, RoleBasedRoute } from "./components/auth";
+import { ProtectedRoute, RoleBasedRoute } from './components/auth';
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        {/* ================= PUBLIC ================= */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/courses" element={<HomePage />} />
-        <Route path="/courses/:slug" element={<CourseDetailPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/courses" element={<HomePage />} />
+                <Route path="/courses/:slug" element={<CourseDetailPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
-        {/* ================= PROTECTED ================= */}
-        <Route element={<ProtectedRoute />}>
-          {/* ===== STUDENT ===== */}
-          <Route
-            path="/dashboard/my-courses"
-            element={<StudentDashboardPage />}
-          />
-          <Route path="/dashboard/settings" element={<ProfileSettingsPage />} />
-          <Route
-            path="/dashboard/certificates"
-            element={<CertificatesPage />}
-          />
+                {/* ================= PROTECTED ================= */}
+                <Route element={<ProtectedRoute />}>
+                    {/* ===== STUDENT ===== */}
+                    <Route path="/dashboard/my-courses" element={<StudentDashboardPage />} />
+                    <Route path="/dashboard/settings" element={<ProfileSettingsPage />} />
+                    <Route path="/dashboard/certificates" element={<CertificatesPage />} />
 
-          <Route
-            path="/courses/:slug/progress"
-            element={<CourseProgressPage />}
-          />
-          <Route
-            path="/courses/:slug/lesson/:lessonId"
-            element={<LessonDetailPage />}
-          />
-          <Route path="/student/quizzes/:quizId" element={<QuizTakingPage />} />
+                    <Route path="/courses/:slug/progress" element={<CourseProgressPage />} />
+                    <Route path="/courses/:slug/lesson/:lessonId" element={<LessonDetailPage />} />
+                    <Route path="/student/quizzes/:quizId" element={<QuizTakingPage />} />
 
-          {/* ===== INSTRUCTOR (Role-based) ===== */}
-          <Route
-            element={
-              <RoleBasedRoute
-                allowedRoles={["INSTRUCTOR", "ADMIN"]}
-                fallbackPath="/dashboard/my-courses"
-              />
-            }
-          >
-            <Route path="/instructor" element={<InstructorLayout />}>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="my-courses" element={<MyCoursesPage />} />
-              <Route path="create-course" element={<CreateCoursePage />} />
-              <Route path="courses/:slug/edit" element={<EditCoursePage />} />
-              <Route
-                path="lessons/:lessonId/quizzes/create"
-                element={<CreateQuizPage />}
-              />
-              <Route
-                path="lessons/:lessonId/quizzes/:quizId/edit"
-                element={<EditQuizPage />}
-              />
-              <Route path="settings" element={<AccountSettingsPage />} />
+                    {/* ===== INSTRUCTOR (Role-based) ===== */}
+                    <Route
+                        element={
+                            <RoleBasedRoute
+                                allowedRoles={['INSTRUCTOR', 'ADMIN']}
+                                fallbackPath="/dashboard/my-courses"
+                            />
+                        }
+                    >
+                        <Route path="/instructor" element={<InstructorLayout />}>
+                            <Route index element={<Navigate to="dashboard" replace />} />
+                            <Route path="dashboard" element={<DashboardPage />} />
+                            <Route path="my-courses" element={<MyCoursesPage />} />
+                            <Route path="create-course" element={<CreateCoursePage />} />
+                            <Route path="courses/:slug/edit" element={<EditCoursePage />} />
+                            <Route path="lessons/:lessonId/quizzes/create" element={<CreateQuizPage />} />
+                            <Route path="lessons/:lessonId/quizzes/:quizId/edit" element={<EditQuizPage />} />
+                            <Route path="settings" element={<AccountSettingsPage />} />
 
-              {/* Instructor Modules */}
-              <Route path="students" element={<StudentsPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
-              <Route path="reviews" element={<ReviewsPage />} />
-            </Route>
-          </Route>
+                            {/* Instructor Modules */}
+                            <Route path="students" element={<StudentsPage />} />
+                            <Route path="analytics" element={<AnalyticsPage />} />
+                            <Route path="reviews" element={<ReviewsPage />} />
+                        </Route>
+                    </Route>
 
-          {/* ===== ADMIN (Role-based) ===== */}
-          <Route
-            element={
-              <RoleBasedRoute
-                allowedRoles={["ADMIN"]}
-                fallbackPath="/dashboard/my-courses"
-              />
-            }
-          >
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<AdminDashboardPage />} />
-              <Route path="users" element={<AdminUsersPage />} />
-              <Route path="categories" element={<CategoriesPage />} />
-              <Route path="courses" element={<AdminCoursesPage />} />
-              <Route
-                path="payments"
-                element={<Placeholder text="Quản lý thanh toán" />}
-              />
-              <Route
-                path="settings"
-                element={<Placeholder text="Cài đặt hệ thống" />}
-              />
-            </Route>
-          </Route>
-        </Route>
-
-        {/* ================= 404 ================= */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </BrowserRouter>
-  );
+                    {/* ===== ADMIN (Role-based) ===== */}
+                    <Route element={<RoleBasedRoute allowedRoles={['ADMIN']} fallbackPath="/dashboard/my-courses" />}>
+                        <Route path="/admin" element={<AdminLayout />}>
+                            <Route index element={<Navigate to="dashboard" replace />} />
+                            <Route path="dashboard" element={<AdminDashboardPage />} />
+                            <Route path="users" element={<AdminUsersPage />} />
+                            <Route path="categories" element={<CategoriesPage />} />
+                            <Route path="courses" element={<AdminCoursesPage />} />
+                            <Route path="payments" element={<Placeholder text="Quản lý thanh toán" />} />
+                            <Route path="settings" element={<Placeholder text="Cài đặt hệ thống" />} />
+                        </Route>
+                    </Route>
+                </Route>
+                <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;
 
-/* Placeholder component for pages under development */
 const Placeholder = ({ text }: { text: string }) => (
-  <div className="p-10 text-center font-medium text-gray-500">
-    {text} (Đang phát triển)
-  </div>
+    <div className="p-10 text-center font-medium text-gray-500">{text} (Đang phát triển)</div>
 );

@@ -66,6 +66,9 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     List<Review> reviews;
 
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<CourseInstructor> courseInstructors;
+
     // Computed fields - giữ nguyên theo ý bạn
     @Transient
     Integer totalLessons;

@@ -1,24 +1,26 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuthStore } from "../../lib/store";
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuthStore } from '../../lib/store';
 
-type Role = "STUDENT" | "INSTRUCTOR" | "ADMIN";
+type Role = 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
 
 interface RoleBasedRouteProps {
-  allowedRoles: Role[];
-  fallbackPath?: string;
+    allowedRoles: Role[];
+    fallbackPath?: string;
 }
 
-export const RoleBasedRoute = ({
-  allowedRoles,
-  fallbackPath = "/",
-}: RoleBasedRouteProps) => {
-  const { user } = useAuthStore();
+export const RoleBasedRoute = ({ allowedRoles, fallbackPath = '/' }: RoleBasedRouteProps) => {
+    const { user, _hasHydrated } = useAuthStore();
 
-  const userRole = user?.roleName as Role | undefined;
+    // Chờ Zustand rehydrate xong từ localStorage
+    if (!_hasHydrated) {
+        return null; // hoặc Loading spinner
+    }
 
-  if (!userRole || !allowedRoles.includes(userRole)) {
-    return <Navigate to={fallbackPath} replace />;
-  }
+    const userRole = user?.roleName as Role | undefined;
 
-  return <Outlet />;
+    if (!userRole || !allowedRoles.includes(userRole)) {
+        return <Navigate to={fallbackPath} replace />;
+    }
+
+    return <Outlet />;
 };

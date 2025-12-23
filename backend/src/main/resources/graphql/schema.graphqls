@@ -53,6 +53,15 @@ type Instructor {
   bio: String
 }
 
+type CoInstructor {
+  userId: UUID!
+  fullName: String!
+  email: String!
+  avatarUrl: String
+  role: String! # OWNER or CO_INSTRUCTOR
+  addedAt: DateTime!
+}
+
 type Category {
   categoryId: UUID!
   name: String!
@@ -70,6 +79,7 @@ type Course {
   price: BigDecimal
   categoryName: String
   instructor: Instructor
+  coInstructors: [CoInstructor!]
   createdAt: DateTime!
   updatedAt: DateTime!
   isPublished: Boolean!
@@ -582,7 +592,6 @@ extend type Query {
   # Admin Dashboard
   getAllUsers(page: Int, limit: Int, roleName: String): [User!]!
   getAllCoursesAdmin(isPublished: Boolean, page: Int, limit: Int): [Course!]!
-  getAllCategories: [Category!]!
   getSystemStatistics: SystemStatistics!
   getRevenueReport(startDate: DateTime, endDate: DateTime): RevenueReport!
   getAllPayments(page: Int, limit: Int, status: String): [Payment!]!
@@ -601,6 +610,10 @@ extend type Mutation {
   deleteCourse(courseId: UUID!): Boolean!
   publishCourse(courseId: UUID!): Course!
   unpublishCourse(courseId: UUID!): Course!
+
+  # Instructor - Co-Instructor Management
+  addCoInstructor(courseId: UUID!, email: String!): CoInstructor!
+  removeCoInstructor(courseId: UUID!, userId: UUID!): Boolean!
 
   # Instructor - Module Management
   createModule(input: CreateModuleInput!): Module!

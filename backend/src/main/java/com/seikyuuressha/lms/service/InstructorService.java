@@ -31,6 +31,8 @@ public class InstructorService {
     private final PaymentRepository paymentRepository;
     private final ProgressRepository progressRepository;
     private final UserRepository userRepository;
+    private final CourseInstructorRepository courseInstructorRepository;
+    private final RoleRepository roleRepository;
 
     // ==================== COURSE MANAGEMENT ====================
 
@@ -520,6 +522,109 @@ public class InstructorService {
         }
 
         return lesson;
+    }
+
+    // ==================== CO-INSTRUCTOR MANAGEMENT ====================
+
+    /**
+     * Add a co-instructor to a course (only owner can add)
+     */
+    @Transactional
+    public CoInstructorResponse addCoInstructor(UUID courseId, String email) {
+        Course course = getCourseByIdAndVerifyOwnership(courseId);
+        Users currentUser = getCurrentInstructor();
+
+        // Only course owner can add co-instructors
+        if (!course.getInstructor().getUserId().equals(currentUser.getUserId())) {
+            throw new RuntimeException("Chỉ chủ khóa học mới có thể thêm giảng viên phụ");
+        }
+
+        // Find user by email
+        Users coInstructor = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với email: " + email));
+
+        // Check if user is an instructor
+        if (!"INSTRUCTOR".equals(coInstructor.getRole().getRoleName()) &&
+            !"ADMIN".equals(coInstructor.getRole().getRoleName())) {
+            throw new RuntimeException("Người dùng không phải là giảng viên");
+        }
+
+        // Check if already a co-instructor
+        if (courseInstructorRepository.existsByCourseIdAndUserId(courseId, coInstructor.getUserId())) {
+            throw new RuntimeException("Người dùng đã là giảng viên của khóa học này");
+        }
+
+        // Cannot add yourself
+        if (coInstructor.getUserId().equals(currentUser.getUserId())) {
+            throw new RuntimeException("Không thể thêm chính mình làm giảng viên phụ");
+        }
+
+        CourseInstructor courseInstructor = CourseInstructor.builder()
+                .courseId(courseId)
+                .userId(coInstructor.getUserId())
+                .userRole(CourseInstructor.InstructorRole.CO_INSTRUCTOR)
+                .addedAt(java.time.OffsetDateTime.now())
+                .build();
+
+        courseInstructorRepository.save(courseInstructor);
+        log.info("Co-instructor added. CourseId: {}, CoInstructor: {}", courseId, email);
+
+        return mapToCoInstructorResponse(courseInstructor, coInstructor);
+    }
+
+    /**
+     * Remove a co-instructor from a course (only owner can remove)
+     */
+    @Transactional
+    public boolean removeCoInstructor(UUID courseId, UUID userId) {
+        Course course = getCourseByIdAndVerifyOwnership(courseId);
+        Users currentUser = getCurrentInstructor();
+
+        // Only course owner can remove co-instructors  
+        if (!course.getInstructor().getUserId().equals(currentUser.getUserId())) {
+            throw new RuntimeException("Chỉ chủ khóa học mới có thể xóa giảng viên phụ");
+        }
+
+        // Cannot remove the owner
+        if (course.getInstructor().getUserId().equals(userId)) {
+            throw new RuntimeException("Không thể xóa chủ khóa học");
+        }
+
+        CourseInstructor ci = courseInstructorRepository.findByCourseIdAndUserId(courseId, userId)
+                .orElseThrow(() -> new RuntimeException("Giảng viên không tồn tại trong khóa học này"));
+
+        courseInstructorRepository.delete(ci);
+        log.info("Co-instructor removed. CourseId: {}, UserId: {}", courseId, userId);
+
+        return true;
+    }
+
+    /**
+     * Check if current user has access to course (owner or co-instructor)
+     */
+    private boolean hasCourseAccess(Course course, Users user) {
+        // Check if owner
+        if (course.getInstructor().getUserId().equals(user.getUserId())) {
+            return true;
+        }
+        // Check if admin
+        if ("ADMIN".equals(user.getRole().getRoleName())) {
+            return true;
+        }
+        // Check if co-instructor
+        return courseInstructorRepository.existsByCourseIdAndUserId(
+            course.getCourseId(), user.getUserId());
+    }
+
+    private CoInstructorResponse mapToCoInstructorResponse(CourseInstructor ci, Users user) {
+        return CoInstructorResponse.builder()
+                .userId(user.getUserId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .avatarUrl(user.getAvatarUrl())
+                .role(ci.getUserRole().name())
+                .addedAt(ci.getAddedAt())
+                .build();
     }
 
     private Integer calculateTotalLessons(Course course) {

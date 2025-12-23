@@ -58,6 +58,20 @@ public class InstructorResolver {
         return instructorService.getMyCourses();
     }
 
+    // ==================== CO-INSTRUCTOR MANAGEMENT ====================
+
+    @MutationMapping
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    public CoInstructorResponse addCoInstructor(@Argument UUID courseId, @Argument String email) {
+        return instructorService.addCoInstructor(courseId, email);
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    public Boolean removeCoInstructor(@Argument UUID courseId, @Argument UUID userId) {
+        return instructorService.removeCoInstructor(courseId, userId);
+    }
+
     // ==================== MODULE MANAGEMENT ====================
 
     @MutationMapping

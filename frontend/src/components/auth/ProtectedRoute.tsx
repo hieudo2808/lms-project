@@ -1,16 +1,19 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuthStore } from "../../lib/store";
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuthStore } from '../../lib/store';
 
 export const ProtectedRoute = () => {
-  const { token } = useAuthStore();
-  const location = useLocation();
+    const { token, _hasHydrated } = useAuthStore();
+    const location = useLocation();
 
-  // Zustand persist rehydrate nhanh, không cần isLoading riêng
-  const isAuthenticated = !!token;
+    if (!_hasHydrated) {
+        return null;
+    }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+    const isAuthenticated = !!token;
 
-  return <Outlet />;
+    if (!isAuthenticated) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    return <Outlet />;
 };

@@ -5,7 +5,8 @@ import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.repository.CourseRepository;
 import com.seikyuuressha.lms.repository.EnrollmentRepository;
 import com.seikyuuressha.lms.repository.ProgressRepository;
-import com.seikyuuressha.lms.repository.UserRepository; 
+import com.seikyuuressha.lms.repository.UserRepository;
+import com.seikyuuressha.lms.repository.VideoRepository; 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,7 @@ public class CourseService {
     private final EnrollmentRepository enrollmentRepository;
     private final ProgressRepository progressRepository;
     private final UserRepository userRepository;
+    private final VideoRepository videoRepository;
 
     @Transactional(readOnly = true)
     public List<CourseResponse> getAllPublishedCourses(UUID categoryId) {
@@ -95,6 +97,7 @@ public class CourseService {
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
                 .instructor(mapToInstructorResponse(course.getInstructor()))
+                .coInstructors(mapToCoInstructorResponses(course))
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
                 .isPublished(course.isPublished())
@@ -132,6 +135,7 @@ public class CourseService {
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
                 .instructor(mapToInstructorResponse(course.getInstructor()))
+                .coInstructors(mapToCoInstructorResponses(course))
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
                 .isPublished(course.isPublished())
@@ -162,13 +166,26 @@ public class CourseService {
 
     private LessonResponse mapToLessonResponse(Lesson lesson, boolean isEnrolled, 
                                                Map<UUID, Double> progressMap) {
+        String videoUrl = null;
+        if (isEnrolled) {
+            // Check if video exists in Video table with COMPLETED status
+            var videoOpt = videoRepository.findByLesson_LessonId(lesson.getLessonId());
+            if (videoOpt.isPresent() && videoOpt.get().getProcessingStatus() == Video.ProcessingStatus.COMPLETED) {
+                // Return marker for frontend to call getVideoStreamUrl
+                videoUrl = "stream:" + lesson.getLessonId().toString();
+            } else {
+                // Fallback to old videoUrl field
+                videoUrl = lesson.getVideoUrl();
+            }
+        }
+        
         return LessonResponse.builder()
                 .lessonId(lesson.getLessonId())
                 .title(lesson.getTitle())
-                .videoUrl(isEnrolled ? lesson.getVideoUrl() : null)
+                .videoUrl(videoUrl)
                 .content(lesson.getContent())
                 .durationSeconds(lesson.getDurationSeconds())
-                .order(lesson.getSortOrder()) // [ĐÚNG: sortOrder]
+                .order(lesson.getSortOrder())
                 .userProgress(progressMap.getOrDefault(lesson.getLessonId(), 0.0))
                 .build();
     }
@@ -199,5 +216,21 @@ public class CourseService {
                 .flatMap(module -> module.getLessons().stream())
                 .mapToInt(lesson -> lesson.getDurationSeconds() != null ? lesson.getDurationSeconds() : 0)
                 .sum();
+    }
+
+    private List<CoInstructorResponse> mapToCoInstructorResponses(Course course) {
+        if (course.getCourseInstructors() == null) {
+            return Collections.emptyList();
+        }
+        return course.getCourseInstructors().stream()
+                .map(ci -> CoInstructorResponse.builder()
+                        .userId(ci.getUserId())
+                        .fullName(ci.getUser() != null ? ci.getUser().getFullName() : "")
+                        .email(ci.getUser() != null ? ci.getUser().getEmail() : "")
+                        .avatarUrl(ci.getUser() != null ? ci.getUser().getAvatarUrl() : null)
+                        .role(ci.getUserRole().name())
+                        .addedAt(ci.getAddedAt())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
