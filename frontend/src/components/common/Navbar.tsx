@@ -1,25 +1,25 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/client';
-import { useAuthStore } from '../../lib/store';
-import { GET_ME_QUERY } from '../../graphql/queries/user';
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useQuery } from "@apollo/client";
+import { useAuthStore } from "../../lib/store";
+import { GET_ME_QUERY } from "../../graphql/queries/user";
 
 export const Navbar = () => {
   const { user: storedUser, token, logout, setAuth } = useAuthStore();
-  
+
   // Query GET_ME để lấy user data mới nhất (bao gồm avatar)
   const { data: meData } = useQuery(GET_ME_QUERY, {
     skip: !token, // Chỉ query khi đã login
-    fetchPolicy: 'cache-and-network', // Luôn fetch để có data mới nhất
+    fetchPolicy: "cache-and-network", // Luôn fetch để có data mới nhất
   });
-  
+
   // Sync user data từ GET_ME vào store
   useEffect(() => {
     if (meData?.me && token) {
       setAuth(token, meData.me);
     }
   }, [meData, token, setAuth]);
-  
+
   const user = meData?.me || storedUser;
   const navigate = useNavigate();
   const isAuthenticated = !!token;
@@ -28,7 +28,7 @@ export const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const handleExplore = (level?: string) => {
@@ -38,7 +38,7 @@ export const Navbar = () => {
       const capitalizedLevel = level.charAt(0).toUpperCase() + level.slice(1);
       navigate(`/courses?level=${capitalizedLevel}`);
     } else {
-      navigate('/courses');
+      navigate("/courses");
     }
   };
 
@@ -54,19 +54,25 @@ export const Navbar = () => {
             Platform
           </span>
         </Link>
-        
+
         {/* Navigation Links */}
         <div className="flex items-center gap-8">
           {/* Explore Dropdown */}
           <div className="relative group">
-            <button 
+            <button
               onClick={() => setShowExploreMenu(!showExploreMenu)}
               className="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-2"
             >
               🔍 Khám phá
-              <span className={`text-sm transition-transform ${showExploreMenu ? 'rotate-180' : ''}`}>▼</span>
+              <span
+                className={`text-sm transition-transform ${
+                  showExploreMenu ? "rotate-180" : ""
+                }`}
+              >
+                ▼
+              </span>
             </button>
-            
+
             {/* Dropdown Menu */}
             {showExploreMenu && (
               <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
@@ -77,19 +83,19 @@ export const Navbar = () => {
                   📚 Tất cả khóa học
                 </button>
                 <button
-                  onClick={() => handleExplore('beginner')}
+                  onClick={() => handleExplore("beginner")}
                   className="w-full text-left px-4 py-3 hover:bg-green-50 text-gray-700 font-medium transition-colors border-b border-gray-100"
                 >
                   🌱 Cơ bản
                 </button>
                 <button
-                  onClick={() => handleExplore('intermediate')}
+                  onClick={() => handleExplore("intermediate")}
                   className="w-full text-left px-4 py-3 hover:bg-yellow-50 text-gray-700 font-medium transition-colors border-b border-gray-100"
                 >
                   📈 Trung bình
                 </button>
                 <button
-                  onClick={() => handleExplore('advanced')}
+                  onClick={() => handleExplore("advanced")}
                   className="w-full text-left px-4 py-3 hover:bg-purple-50 text-gray-700 font-medium transition-colors"
                 >
                   🚀 Nâng cao
@@ -97,24 +103,24 @@ export const Navbar = () => {
               </div>
             )}
           </div>
-          
+
           {isAuthenticated && (
             <>
-              <Link 
-                to="/dashboard/my-courses" 
+              <Link
+                to="/dashboard/my-courses"
                 className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
               >
                 📖 Khóa học của tôi
               </Link>
-              <Link 
-                to="/dashboard/certificates" 
+              <Link
+                to="/dashboard/certificates"
                 className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
               >
                 🏆 Chứng chỉ
               </Link>
             </>
           )}
-          
+
           {/* Auth Section */}
           {isAuthenticated ? (
             <div className="relative pl-4 border-l border-gray-200">
@@ -123,19 +129,27 @@ export const Navbar = () => {
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                  {user?.fullName?.[0] || 'U'}
+                  {user?.fullName?.[0] || "U"}
                 </div>
                 <span className="text-sm font-medium text-gray-700">
-                  {user?.fullName?.split(' ')[0] || 'User'}
+                  {user?.fullName?.split(" ")[0] || "User"}
                 </span>
-                <span className={`text-sm transition-transform ${showUserMenu ? 'rotate-180' : ''}`}>▼</span>
+                <span
+                  className={`text-sm transition-transform ${
+                    showUserMenu ? "rotate-180" : ""
+                  }`}
+                >
+                  ▼
+                </span>
               </button>
-              
+
               {/* User Dropdown Menu */}
               {showUserMenu && (
                 <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
                   <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <p className="text-sm font-semibold text-gray-900">{user?.fullName}</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {user?.fullName}
+                    </p>
                     <p className="text-xs text-gray-500">{user?.email}</p>
                   </div>
                   <Link
@@ -159,14 +173,14 @@ export const Navbar = () => {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
               >
                 🔑 Đăng nhập
               </Link>
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
               >
                 ✨ Đăng ký

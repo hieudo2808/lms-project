@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -52,7 +52,7 @@ public class ProgressService {
                         .lesson(lesson)
                         .watchedSeconds(0)
                         .progressPercent(0.0)
-                        .lastWatchedAt(LocalDateTime.now())
+                        .lastWatchedAt(OffsetDateTime.now())
                         .build());
 
         // Update progress
@@ -62,7 +62,7 @@ public class ProgressService {
         if (request.getProgressPercent() != null) {
             progress.setProgressPercent(request.getProgressPercent());
         }
-        progress.setLastWatchedAt(LocalDateTime.now());
+        progress.setLastWatchedAt(OffsetDateTime.now());
 
         progressRepository.save(progress);
 

@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Data
@@ -24,7 +24,7 @@ public class VideoResponse {
     private String processingStatus;
     private String streamUrl;
     private String thumbnailUrl;
-    private LocalDateTime uploadedAt;
-    private LocalDateTime processedAt;
+    private OffsetDateTime uploadedAt;
+    private OffsetDateTime processedAt;
     private String errorMessage;
 }

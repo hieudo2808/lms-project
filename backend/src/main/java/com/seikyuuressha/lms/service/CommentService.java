@@ -16,11 +16,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.time.ZoneOffset;
 
 @Service
 @RequiredArgsConstructor
@@ -69,7 +68,7 @@ public class CommentService {
         }
 
         comment.setContent(request.getContent());
-        comment.setUpdatedAt(LocalDateTime.now()); // Explicitly set updatedAt
+        comment.setUpdatedAt(OffsetDateTime.now()); // Explicitly set updatedAt
 
         comment = commentRepository.save(comment);
         return mapToResponse(comment);
@@ -124,9 +123,7 @@ public class CommentService {
                 .avatarUrl(comment.getUser().getAvatarUrl())
                 .bio(comment.getUser().getBio())
                 .roleName(comment.getUser().getRole().getRoleName())
-                .createdAt(comment.getUser().getCreatedAt() != null
-                    ? comment.getUser().getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                .createdAt(comment.getUser().getCreatedAt())
                 .isActive(comment.getUser().isActive())
                 .build();
 
@@ -141,9 +138,7 @@ public class CommentService {
                     .avatarUrl(parent.getUser().getAvatarUrl())
                     .bio(parent.getUser().getBio())
                     .roleName(parent.getUser().getRole().getRoleName())
-                    .createdAt(parent.getUser().getCreatedAt() != null
-                    ? parent.getUser().getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                    .createdAt(parent.getUser().getCreatedAt())
                     .isActive(parent.getUser().isActive())
                     .build();
 
@@ -156,12 +151,8 @@ public class CommentService {
                             ? parent.getParentComment().getCommentId() : null)
                     .parentComment(null) // Don't recurse deeper
                     .isActive(parent.getIsActive())
-                    .createdAt(parent.getCreatedAt() != null
-                    ? parent.getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
-                    .updatedAt(parent.getUpdatedAt() != null
-                    ? parent.getUpdatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                    .createdAt(parent.getCreatedAt())
+                    .updatedAt(parent.getUpdatedAt())
                     .build();
         }
 
@@ -181,9 +172,7 @@ public class CommentService {
                                     .avatarUrl(reply.getUser().getAvatarUrl())
                                     .bio(reply.getUser().getBio())
                                     .roleName(reply.getUser().getRole().getRoleName())
-                                    .createdAt( reply.getUser().getCreatedAt() != null
-                                    ? reply.getUser().getCreatedAt().atOffset(ZoneOffset.UTC)
-                                    : null)
+                                    .createdAt(reply.getUser().getCreatedAt())
                                     .isActive(reply.getUser().isActive())
                                     .build();
 
@@ -196,12 +185,8 @@ public class CommentService {
                                     .parentComment(null) // Don't include full parent in replies
                                     .replies(null) // No nested replies
                                     .isActive(reply.getIsActive())
-                                    .createdAt(reply.getCreatedAt() != null
-                                    ? reply.getCreatedAt().atOffset(ZoneOffset.UTC)
-                                    : null)
-                                    .updatedAt(reply.getUpdatedAt() != null
-                                    ? reply.getUpdatedAt().atOffset(ZoneOffset.UTC)
-                                    : null)
+                                    .createdAt(reply.getCreatedAt())
+                                    .updatedAt(reply.getUpdatedAt())
                                     .build();
                         })
                         .collect(Collectors.toList());
@@ -218,12 +203,8 @@ public class CommentService {
                 .parentComment(parentCommentResponse)
                 .replies(replies)
                 .isActive(comment.getIsActive())
-                .createdAt(comment.getCreatedAt() != null
-                    ? comment.getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
-                .updatedAt(comment.getUpdatedAt() != null
-                    ? comment.getUpdatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                .createdAt(comment.getCreatedAt())
+                .updatedAt(comment.getUpdatedAt())
                 .build();
     }
 

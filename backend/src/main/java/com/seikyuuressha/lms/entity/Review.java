@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -40,9 +40,9 @@ public class Review {
     Boolean isActive;
 
     @Column(nullable = false)
-    LocalDateTime createdAt;
+    OffsetDateTime createdAt;
 
-    LocalDateTime updatedAt;
+    OffsetDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -50,7 +50,7 @@ public class Review {
             reviewId = UUID.randomUUID();
         }
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = OffsetDateTime.now();
         }
         if (isActive == null) {
             isActive = true;
@@ -63,6 +63,6 @@ public class Review {
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = OffsetDateTime.now();
     }
 }

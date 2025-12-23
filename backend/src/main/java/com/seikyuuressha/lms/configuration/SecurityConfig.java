@@ -68,7 +68,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .anyRequest().permitAll() // For Phase 1, allow all; will secure later
+                        .anyRequest().authenticated() // Require authentication for all other endpoints
                 )
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)

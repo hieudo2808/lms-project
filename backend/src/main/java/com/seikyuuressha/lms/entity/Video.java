@@ -3,7 +3,7 @@ package com.seikyuuressha.lms.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -55,17 +55,17 @@ public class Video {
     private String hlsManifestKey; // For HLS streaming
 
     @Column(name = "uploadedAt", nullable = false)
-    private LocalDateTime uploadedAt;
+    private OffsetDateTime uploadedAt;
 
     @Column(name = "processedAt")
-    private LocalDateTime processedAt;
+    private OffsetDateTime processedAt;
 
     @Column(name = "errorMessage", length = 1000)
     private String errorMessage;
 
     @PrePersist
     protected void onCreate() {
-        uploadedAt = LocalDateTime.now();
+        uploadedAt = OffsetDateTime.now();
         if (processingStatus == null) {
             processingStatus = ProcessingStatus.PENDING;
         }

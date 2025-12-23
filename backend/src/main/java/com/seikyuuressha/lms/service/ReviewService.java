@@ -16,12 +16,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.time.ZoneOffset;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +74,7 @@ public class ReviewService {
 
         review.setRating(request.getRating());
         review.setComment(request.getComment());
-        review.setUpdatedAt(LocalDateTime.now()); // Explicitly set updatedAt
+        review.setUpdatedAt(OffsetDateTime.now()); // Explicitly set updatedAt
 
         review = reviewRepository.save(review);
         return mapToResponse(review);
@@ -140,9 +139,7 @@ public class ReviewService {
                 .avatarUrl(review.getUser().getAvatarUrl())
                 .bio(review.getUser().getBio())
                 .roleName(review.getUser().getRole().getRoleName())
-                .createdAt(review.getUser().getCreatedAt() != null
-                     ? review.getUser().getCreatedAt().atOffset(ZoneOffset.UTC)
-                     : null)
+                .createdAt(review.getUser().getCreatedAt())
                 .isActive(review.getUser().isActive())
                 .build();
 
@@ -153,12 +150,8 @@ public class ReviewService {
                 .rating(review.getRating())
                 .comment(review.getComment())
                 .isActive(review.getIsActive())
-                .createdAt(review.getCreatedAt() != null
-                     ? review.getCreatedAt().atOffset(ZoneOffset.UTC)
-                     : null)
-                .updatedAt(review.getUpdatedAt() != null
-                     ? review.getUpdatedAt().atOffset(ZoneOffset.UTC)
-                     : null)
+                .createdAt(review.getCreatedAt())
+                .updatedAt(review.getUpdatedAt())
                 .build();
     }
 

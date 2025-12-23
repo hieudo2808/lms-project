@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -49,7 +49,7 @@ public class QuizAnswer {
     Integer pointsEarned;
 
     @Column(nullable = false)
-    LocalDateTime answeredAt;
+    OffsetDateTime answeredAt;
 
     @PrePersist
     protected void onCreate() {
@@ -57,7 +57,7 @@ public class QuizAnswer {
             quizAnswerId = UUID.randomUUID();
         }
         if (answeredAt == null) {
-            answeredAt = LocalDateTime.now();
+            answeredAt = OffsetDateTime.now();
         }
         if (isCorrect == null) {
             isCorrect = false;

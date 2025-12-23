@@ -12,8 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -103,7 +102,7 @@ public class PaymentService {
             payment.setPaymentStatus(vnPayService.getPaymentStatus(vnpResponseCode));
             
             if (payment.isSuccess()) {
-                payment.setPaidAt(LocalDateTime.now());
+                payment.setPaidAt(OffsetDateTime.now());
             }
         }
 
@@ -142,12 +141,8 @@ public class PaymentService {
                 .transactionId(payment.getTransactionId())
                 .vnpayResponseCode(payment.getVnpayResponseCode())
                 .paymentStatus(payment.getPaymentStatus())
-                .paidAt(payment.getPaidAt() != null
-                    ? payment.getPaidAt().atOffset(ZoneOffset.UTC)
-                    : null)
-                .createdAt(payment.getCreatedAt() != null
-                    ? payment.getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                .paidAt(payment.getPaidAt())
+                .createdAt(payment.getCreatedAt())
                 .build();
     }
 

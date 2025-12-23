@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -36,7 +36,7 @@ public class Progress {
     Double progressPercent;
 
     @Column(nullable = false)
-    LocalDateTime lastWatchedAt;
+    OffsetDateTime lastWatchedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -46,11 +46,11 @@ public class Progress {
         if (progressPercent == null) {
             progressPercent = 0.0;
         }
-        lastWatchedAt = LocalDateTime.now();
+        lastWatchedAt = OffsetDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        lastWatchedAt = LocalDateTime.now();
+        lastWatchedAt = OffsetDateTime.now();
     }
 }

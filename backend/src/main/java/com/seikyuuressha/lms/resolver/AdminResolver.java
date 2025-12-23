@@ -1,5 +1,7 @@
 package com.seikyuuressha.lms.resolver;
 
+import com.seikyuuressha.lms.dto.request.CreateCategoryRequest;
+import com.seikyuuressha.lms.dto.request.UpdateCategoryRequest;
 import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.service.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +12,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -95,8 +97,8 @@ public class AdminResolver {
     @QueryMapping
     @PreAuthorize("hasRole('ADMIN')")
     public RevenueReportResponse getRevenueReport(
-            @Argument @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @Argument @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+            @Argument @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime startDate,
+            @Argument @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime endDate) {
         return adminService.getRevenueReport(startDate, endDate);
     }
 
@@ -107,5 +109,33 @@ public class AdminResolver {
             @Argument Integer limit,
             @Argument String status) {
         return adminService.getAllPayments(page, limit, status);
+    }
+
+    // ==================== CATEGORY MANAGEMENT ====================
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<CategoryResponse> getAllCategories() {
+        return adminService.getAllCategories();
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public CategoryResponse createCategory(@Argument("input") CreateCategoryRequest input) {
+        return adminService.createCategory(input.getName(), input.getSlug(), input.getDescription());
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public CategoryResponse updateCategory(
+            @Argument UUID categoryId,
+            @Argument("input") UpdateCategoryRequest input) {
+        return adminService.updateCategory(categoryId, input.getName(), input.getSlug(), input.getDescription());
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public Boolean deleteCategory(@Argument UUID categoryId) {
+        return adminService.deleteCategory(categoryId);
     }
 }

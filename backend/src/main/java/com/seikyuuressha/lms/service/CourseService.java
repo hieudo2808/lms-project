@@ -12,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -96,12 +95,8 @@ public class CourseService {
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
                 .instructor(mapToInstructorResponse(course.getInstructor()))
-                .createdAt(course.getCreatedAt() != null
-                   ? course.getCreatedAt().atOffset(ZoneOffset.UTC)
-                   : null)
-                .updatedAt(course.getUpdatedAt() != null
-                   ? course.getUpdatedAt().atOffset(ZoneOffset.UTC)
-                   : null)
+                .createdAt(course.getCreatedAt())
+                .updatedAt(course.getUpdatedAt())
                 .isPublished(course.isPublished())
                 .totalLessons(calculateTotalLessons(course))
                 .totalDuration(calculateTotalDuration(course))
@@ -137,12 +132,8 @@ public class CourseService {
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
                 .instructor(mapToInstructorResponse(course.getInstructor()))
-                .createdAt(course.getCreatedAt() != null
-                    ? course.getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
-                .updatedAt(course.getUpdatedAt() != null
-                    ? course.getUpdatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                .createdAt(course.getCreatedAt())
+                .updatedAt(course.getUpdatedAt())
                 .isPublished(course.isPublished())
                 .modules(modules)
                 .totalLessons(calculateTotalLessons(course))

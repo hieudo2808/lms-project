@@ -1,7 +1,7 @@
 package com.seikyuuressha.lms.dto.response;
 
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Data
@@ -14,5 +14,5 @@ public class ProgressResponse {
     private String lessonTitle;
     private Integer watchedSeconds;
     private Double progressPercent;
-    private LocalDateTime lastWatchedAt;
+    private OffsetDateTime lastWatchedAt;
 }

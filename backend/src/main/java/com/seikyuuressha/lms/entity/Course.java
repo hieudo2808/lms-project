@@ -5,7 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,10 +49,10 @@ public class Course {
     Users instructor;
 
     @Column(nullable = false)
-    LocalDateTime createdAt;
+    OffsetDateTime createdAt;
 
     @Column(nullable = false)
-    LocalDateTime updatedAt;
+    OffsetDateTime updatedAt;
 
     @Column(nullable = false)
     boolean isPublished;
@@ -81,12 +81,12 @@ public class Course {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        createdAt = OffsetDateTime.now();
+        updatedAt = OffsetDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = OffsetDateTime.now();
     }
 }

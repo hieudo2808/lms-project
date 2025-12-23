@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -204,7 +204,7 @@ public class CertificateService {
         document.add(score);
 
         // Date
-        String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
+        String dateStr = OffsetDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
         Paragraph date = new Paragraph("Date: " + dateStr)
                 .setFont(regularFont)
                 .setFontSize(14)
@@ -226,7 +226,7 @@ public class CertificateService {
     }
 
     private String generateCertificateCode() {
-        String year = String.valueOf(LocalDateTime.now().getYear());
+        String year = String.valueOf(OffsetDateTime.now().getYear());
         String randomPart = String.format("%06d", (int) (Math.random() * 1000000));
         return "LMS-" + year + "-" + randomPart;
     }

@@ -9,14 +9,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,6 +25,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final CourseRepository courseRepository;
+    private final CategoryRepository categoryRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final PaymentRepository paymentRepository;
 
@@ -38,7 +36,6 @@ public class AdminService {
      */
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers(Integer page, Integer limit, String roleName) {
-        verifyAdmin();
 
         // Convert 1-based page to 0-based index
         int pageIndex = (page != null && page > 0) ? page - 1 : 0;
@@ -67,7 +64,7 @@ public class AdminService {
      */
     @Transactional
     public UserResponse updateUserRole(UUID userId, UUID roleId) {
-        verifyAdmin();
+        
 
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -87,7 +84,7 @@ public class AdminService {
      */
     @Transactional
     public Boolean lockUser(UUID userId, String reason) {
-        verifyAdmin();
+        
 
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -108,7 +105,7 @@ public class AdminService {
      */
     @Transactional
     public Boolean unlockUser(UUID userId) {
-        verifyAdmin();
+        
 
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -125,7 +122,7 @@ public class AdminService {
      */
     @Transactional
     public Boolean deleteUser(UUID userId) {
-        verifyAdmin();
+        
 
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -159,7 +156,7 @@ public class AdminService {
      */
     @Transactional(readOnly = true)
     public List<CourseResponse> getAllCoursesAdmin(Boolean isPublished, Integer page, Integer limit) {
-        verifyAdmin();
+        
 
         // Convert 1-based page to 0-based index
         int pageIndex = (page != null && page > 0) ? page - 1 : 0;
@@ -188,13 +185,13 @@ public class AdminService {
      */
     @Transactional
     public CourseResponse approveCourse(UUID courseId) {
-        verifyAdmin();
+        
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
         course.setPublished(true);
-        course.setUpdatedAt(LocalDateTime.now());
+        course.setUpdatedAt(OffsetDateTime.now());
         course = courseRepository.save(course);
 
         log.info("Course approved by admin. CourseId: {}", courseId);
@@ -206,13 +203,13 @@ public class AdminService {
      */
     @Transactional
     public CourseResponse rejectCourse(UUID courseId, String reason) {
-        verifyAdmin();
+        
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
         course.setPublished(false);
-        course.setUpdatedAt(LocalDateTime.now());
+        course.setUpdatedAt(OffsetDateTime.now());
         course = courseRepository.save(course);
 
         log.info("Course rejected by admin. CourseId: {}, Reason: {}", courseId, reason);
@@ -224,7 +221,7 @@ public class AdminService {
      */
     @Transactional
     public Boolean deleteCourseAdmin(UUID courseId) {
-        verifyAdmin();
+        
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
@@ -242,7 +239,7 @@ public class AdminService {
      */
     @Transactional(readOnly = true)
     public SystemStatisticsResponse getSystemStatistics() {
-        verifyAdmin();
+        
 
         long totalUsers = userRepository.count();
         long totalInstructors = userRepository.countByRole_RoleName("INSTRUCTOR");
@@ -282,14 +279,14 @@ public class AdminService {
      * Get revenue report
      */
     @Transactional(readOnly = true)
-    public RevenueReportResponse getRevenueReport(LocalDateTime startDate, LocalDateTime endDate) {
-        verifyAdmin();
+    public RevenueReportResponse getRevenueReport(OffsetDateTime startDate, OffsetDateTime endDate) {
+        
 
         if (startDate == null) {
-            startDate = LocalDateTime.now().minusMonths(1);
+            startDate = OffsetDateTime.now().minusMonths(1);
         }
         if (endDate == null) {
-            endDate = LocalDateTime.now();
+            endDate = OffsetDateTime.now();
         }
 
         List<Payment> allPayments = paymentRepository.findByCreatedAtBetween(startDate, endDate);
@@ -332,7 +329,7 @@ public class AdminService {
      */
     @Transactional(readOnly = true)
     public List<PaymentResponse> getAllPayments(Integer page, Integer limit, String status) {
-        verifyAdmin();
+        
 
         // Convert 1-based page to 0-based index
         int pageIndex = (page != null && page > 0) ? page - 1 : 0;
@@ -358,18 +355,95 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
-    // ==================== HELPER METHODS ====================
+    // ==================== CATEGORY MANAGEMENT ====================
 
-    private void verifyAdmin() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        Users user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (!"ADMIN".equals(user.getRole().getRoleName())) {
-            throw new RuntimeException("Access denied. Admin role required.");
-        }
+    /**
+     * Get all categories
+     */
+    @Transactional(readOnly = true)
+    public List<CategoryResponse> getAllCategories() {
+        return categoryRepository.findAll().stream()
+                .map(this::mapToCategoryResponse)
+                .collect(Collectors.toList());
     }
+
+    /**
+     * Create a new category
+     */
+    @Transactional
+    public CategoryResponse createCategory(String name, String slug, String description) {
+        // Check if slug already exists
+        if (categoryRepository.findBySlug(slug).isPresent()) {
+            throw new RuntimeException("Slug đã tồn tại: " + slug);
+        }
+
+        Categories category = Categories.builder()
+                .name(name)
+                .slug(slug)
+                .description(description)
+                .build();
+
+        category = categoryRepository.save(category);
+        log.info("Category created. CategoryId: {}, Name: {}", category.getCategoryId(), name);
+        return mapToCategoryResponse(category);
+    }
+
+    /**
+     * Update a category
+     */
+    @Transactional
+    public CategoryResponse updateCategory(UUID categoryId, String name, String slug, String description) {
+        Categories category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+
+        // Check slug uniqueness if changed
+        if (slug != null && !slug.equals(category.getSlug())) {
+            if (categoryRepository.findBySlug(slug).isPresent()) {
+                throw new RuntimeException("Slug đã tồn tại: " + slug);
+            }
+            category.setSlug(slug);
+        }
+
+        if (name != null) {
+            category.setName(name);
+        }
+        if (description != null) {
+            category.setDescription(description);
+        }
+
+        category = categoryRepository.save(category);
+        log.info("Category updated. CategoryId: {}", categoryId);
+        return mapToCategoryResponse(category);
+    }
+
+    /**
+     * Delete a category
+     */
+    @Transactional
+    public Boolean deleteCategory(UUID categoryId) {
+        Categories category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+
+        // Check if category has courses
+        if (category.getCourses() != null && !category.getCourses().isEmpty()) {
+            throw new RuntimeException("Không thể xóa danh mục đang có khóa học");
+        }
+
+        categoryRepository.delete(category);
+        log.info("Category deleted. CategoryId: {}", categoryId);
+        return true;
+    }
+
+    private CategoryResponse mapToCategoryResponse(Categories category) {
+        return CategoryResponse.builder()
+                .categoryId(category.getCategoryId())
+                .name(category.getName())
+                .slug(category.getSlug())
+                .description(category.getDescription())
+                .build();
+    }
+
+    // ==================== HELPER METHODS ====================
 
     private UserResponse mapToUserResponse(Users user) {
         return UserResponse.builder()
@@ -379,9 +453,7 @@ public class AdminService {
                 .avatarUrl(user.getAvatarUrl())
                 .bio(user.getBio())
                 .roleName(user.getRole().getRoleName())
-                .createdAt(user.getCreatedAt() != null
-                    ? user.getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                .createdAt(user.getCreatedAt())
                 .isActive(user.isActive())
                 .build();
     }
@@ -397,14 +469,8 @@ public class AdminService {
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
                 .instructor(mapToInstructorResponse(course.getInstructor()))
-                .createdAt(
-                    course.getCreatedAt() != null
-                    ? course.getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
-                .updatedAt(
-                    course.getUpdatedAt() != null
-                    ? course.getUpdatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                .createdAt(course.getCreatedAt())
+                .updatedAt(course.getUpdatedAt())
                 .isPublished(course.isPublished())
                 .build();
     }
@@ -429,12 +495,8 @@ public class AdminService {
                 .paymentProvider(payment.getPaymentMethod())
                 .transactionId(payment.getTransactionId())
                 .paymentStatus(payment.getPaymentStatus())
-                .paidAt(payment.getPaidAt() != null
-                    ? payment.getPaidAt().atOffset(ZoneOffset.UTC)
-                    : null)
-                .createdAt(payment.getCreatedAt() != null
-                    ? payment.getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                .paidAt(payment.getPaidAt())
+                .createdAt(payment.getCreatedAt())
                 .build();
     }
 }

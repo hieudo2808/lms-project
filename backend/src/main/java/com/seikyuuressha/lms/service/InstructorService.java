@@ -14,8 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -103,7 +102,7 @@ public class InstructorService {
             course.setCategory(category);
         }
 
-        course.setUpdatedAt(LocalDateTime.now());
+        course.setUpdatedAt(OffsetDateTime.now());
         course = courseRepository.save(course);
 
         return mapToCourseResponse(course);
@@ -146,7 +145,7 @@ public class InstructorService {
         }
 
         course.setPublished(true);
-        course.setUpdatedAt(LocalDateTime.now());
+        course.setUpdatedAt(OffsetDateTime.now());
         course = courseRepository.save(course);
 
         log.info("Course published. CourseId: {}", courseId);
@@ -161,7 +160,7 @@ public class InstructorService {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
 
         course.setPublished(false);
-        course.setUpdatedAt(LocalDateTime.now());
+        course.setUpdatedAt(OffsetDateTime.now());
         course = courseRepository.save(course);
 
         log.info("Course unpublished. CourseId: {}", courseId);
@@ -550,14 +549,8 @@ public class InstructorService {
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
                 .instructor(mapToInstructorResponse(course.getInstructor()))
-                .createdAt(
-                    course.getCreatedAt() != null
-                    ? course.getCreatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
-                .updatedAt(
-                    course.getUpdatedAt() != null
-                    ? course.getUpdatedAt().atOffset(ZoneOffset.UTC)
-                    : null)
+                .createdAt(course.getCreatedAt())
+                .updatedAt(course.getUpdatedAt())
                 .isPublished(course.isPublished())
                 .modules(modules)
                 .totalLessons(calculateTotalLessons(course))

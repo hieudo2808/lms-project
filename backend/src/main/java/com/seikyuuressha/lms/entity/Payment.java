@@ -5,7 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -52,9 +52,9 @@ public class Payment {
     String vnpayResponseCode;
 
     @Column(nullable = false)
-    LocalDateTime createdAt;
+    OffsetDateTime createdAt;
 
-    LocalDateTime paidAt;
+    OffsetDateTime paidAt;
 
     @PrePersist
     protected void onCreate() {
@@ -62,7 +62,7 @@ public class Payment {
             paymentId = UUID.randomUUID();
         }
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = OffsetDateTime.now();
         }
         if (currency == null) {
             currency = "VND";

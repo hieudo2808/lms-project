@@ -2,10 +2,9 @@ package com.seikyuuressha.lms.dto.response;
 
 import lombok.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.time.OffsetDateTime;
 
 @Data
 @Builder

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -35,7 +35,7 @@ public class Users {
     @Column(length = 500)
     String bio;
 
-    LocalDateTime createdAt;
+    OffsetDateTime createdAt;
 
     boolean isActive;
 

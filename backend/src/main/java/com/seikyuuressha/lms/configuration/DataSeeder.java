@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -29,7 +29,6 @@ public class DataSeeder implements CommandLineRunner {
         if (roleRepository.count() == 0) {
             log.info("Starting data seeding...");
             try {
-                seedRoles();
                 log.info("Roles seeded successfully. Count: " + roleRepository.count());
                 
                 seedUsers();
@@ -51,15 +50,6 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    private void seedRoles() {
-        Roles studentRole = Roles.builder().roleId(UUID.randomUUID()).roleName("STUDENT").build();
-        Roles instructorRole = Roles.builder().roleId(UUID.randomUUID()).roleName("INSTRUCTOR").build();
-        Roles adminRole = Roles.builder().roleId(UUID.randomUUID()).roleName("ADMIN").build();
-
-        roleRepository.saveAll(Arrays.asList(studentRole, instructorRole, adminRole));
-        log.info("Seeded Roles.");
-    }
-
     private void seedUsers() {
         Roles adminRole = roleRepository.findByRoleName("ADMIN").orElseThrow();
         Roles instructorRole = roleRepository.findByRoleName("INSTRUCTOR").orElseThrow();
@@ -72,7 +62,7 @@ public class DataSeeder implements CommandLineRunner {
                 .password(passwordEncoder.encode("password123"))
                 .role(adminRole)
                 .isActive(true)
-                .createdAt(LocalDateTime.now())
+                .createdAt(OffsetDateTime.now())
                 .build();
 
         Users instructor = Users.builder()
@@ -83,7 +73,7 @@ public class DataSeeder implements CommandLineRunner {
                 .role(instructorRole)
                 .isActive(true)
                 .bio("Expert Java Instructor with 10 years of experience.")
-                .createdAt(LocalDateTime.now())
+                .createdAt(OffsetDateTime.now())
                 .build();
 
         Users student = Users.builder()
@@ -93,7 +83,7 @@ public class DataSeeder implements CommandLineRunner {
                 .password(passwordEncoder.encode("password123"))
                 .role(studentRole)
                 .isActive(true)
-                .createdAt(LocalDateTime.now())
+                .createdAt(OffsetDateTime.now())
                 .build();
 
         userRepository.saveAll(Arrays.asList(admin, instructor, student));
@@ -136,8 +126,8 @@ public class DataSeeder implements CommandLineRunner {
                 .instructor(instructor)
                 .category(webDev)
                 .isPublished(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
                 .build();
 
         courseRepository.save(springBoot);

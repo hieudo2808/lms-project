@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -37,7 +37,7 @@ public class Certificate {
     String pdfUrl; // S3 or local path to PDF file
 
     @Column(nullable = false)
-    LocalDateTime issuedAt;
+    OffsetDateTime issuedAt;
 
     Double finalScore; // Final quiz score or course completion score
 
@@ -47,7 +47,7 @@ public class Certificate {
     @Column(nullable = false)
     Boolean isValid; // Can be revoked
 
-    LocalDateTime revokedAt;
+    OffsetDateTime revokedAt;
     String revokedReason;
 
     @PrePersist
@@ -56,7 +56,7 @@ public class Certificate {
             certificateId = UUID.randomUUID();
         }
         if (issuedAt == null) {
-            issuedAt = LocalDateTime.now();
+            issuedAt = OffsetDateTime.now();
         }
         if (isValid == null) {
             isValid = true;
@@ -69,7 +69,7 @@ public class Certificate {
     private String generateCertificateCode() {
         // Format: LMS-YYYY-XXXXXX
         return "LMS-" + 
-               LocalDateTime.now().getYear() + "-" + 
+               OffsetDateTime.now().getYear() + "-" + 
                String.format("%06d", (int)(Math.random() * 1000000));
     }
 }

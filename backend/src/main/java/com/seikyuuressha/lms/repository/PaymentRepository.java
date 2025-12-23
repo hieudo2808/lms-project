@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,5 +23,5 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     List<Payment> findByCourse_CourseIdAndPaymentStatus(UUID courseId, String paymentStatus);
     Page<Payment> findByPaymentStatus(String paymentStatus, Pageable pageable);
     
-    List<Payment> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    List<Payment> findByCreatedAtBetween(OffsetDateTime startDate, OffsetDateTime endDate);
 }

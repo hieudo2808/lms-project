@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequ
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -283,7 +283,7 @@ public class VideoService {
         video.setErrorMessage(errorMessage);
 
         if (status == Video.ProcessingStatus.COMPLETED || status == Video.ProcessingStatus.FAILED) {
-            video.setProcessedAt(LocalDateTime.now());
+            video.setProcessedAt(OffsetDateTime.now());
         }
 
         video = videoRepository.save(video);

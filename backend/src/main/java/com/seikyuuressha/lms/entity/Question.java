@@ -31,7 +31,7 @@ public class Question {
     @Column(nullable = false, columnDefinition = "TEXT")
     String questionText;
 
-    @Column(name = "[type]", nullable = false)
+    @Column(name = "question_type", nullable = false)
     @Enumerated(EnumType.STRING)
     QuestionType type;
 

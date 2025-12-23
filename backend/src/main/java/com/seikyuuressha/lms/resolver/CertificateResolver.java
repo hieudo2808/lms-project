@@ -11,6 +11,7 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -25,16 +26,19 @@ public class CertificateResolver {
     private final CourseRepository courseRepository;
 
     @QueryMapping
+    @PreAuthorize("isAuthenticated()")
     public List<CertificateResponse> getMyCertificates() {
         return certificateService.getMyCertificates();
     }
 
     @QueryMapping
+    @PreAuthorize("isAuthenticated()")
     public CertificateResponse getCertificateByCourse(@Argument UUID courseId) {
         return certificateService.getCertificateByCourse(courseId);
     }
 
     @MutationMapping
+    @PreAuthorize("isAuthenticated()")
     public CertificateResponse generateCertificate(@Argument UUID courseId) {
         return certificateService.generateCertificate(courseId);
     }

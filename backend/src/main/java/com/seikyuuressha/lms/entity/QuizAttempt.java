@@ -46,7 +46,7 @@ public class QuizAttempt {
 
     Double percentage; // Score percentage
 
-    @Column(name = "[status]", nullable = false)
+    @Column(name = "attempt_status", nullable = false)
     @Enumerated(EnumType.STRING)
     AttemptStatus status;
 

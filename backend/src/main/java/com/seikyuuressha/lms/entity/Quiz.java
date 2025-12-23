@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -63,9 +63,9 @@ public class Quiz {
     List<Question> questions = new ArrayList<>();
 
     @Column(nullable = false)
-    LocalDateTime createdAt;
+    OffsetDateTime createdAt;
 
-    LocalDateTime updatedAt;
+    OffsetDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -73,7 +73,7 @@ public class Quiz {
             quizId = UUID.randomUUID();
         }
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = OffsetDateTime.now();
         }
         if (isPublished == null) {
             isPublished = false;
@@ -85,6 +85,6 @@ public class Quiz {
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = OffsetDateTime.now();
     }
 }

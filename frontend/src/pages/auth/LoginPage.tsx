@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useMutation } from '@apollo/client'; 
-import { toast } from 'react-toastify'; // Import thêm toast để thông báo đẹp hơn
-import { Layout } from '../../components/common/Layout';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
-import { useAuthStore } from '../../lib/store';
-import { LOGIN_MUTATION } from '../../graphql/mutations/auth';
-import type { LoginInput, AuthResponse } from '../../types'; // User import từ type chung
-import { FcGoogle } from 'react-icons/fc';
-import { FaGithub } from 'react-icons/fa';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useMutation } from "@apollo/client";
+import { toast } from "react-toastify"; // Import thêm toast để thông báo đẹp hơn
+import { Layout } from "../../components/common/Layout";
+import { Input } from "../../components/common/Input";
+import { Button } from "../../components/common/Button";
+import { useAuthStore } from "../../lib/store";
+import { LOGIN_MUTATION } from "../../graphql/mutations/auth";
+import type { LoginInput, AuthResponse } from "../../types"; // User import từ type chung
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa";
 
 interface LoginMutationData {
   login: AuthResponse;
@@ -23,28 +23,29 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [loginMutation] = useMutation<LoginMutationData, LoginMutationVariables>(
-    LOGIN_MUTATION
-  );
+  const [loginMutation] = useMutation<
+    LoginMutationData,
+    LoginMutationVariables
+  >(LOGIN_MUTATION);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!email) {
-      newErrors.email = 'Email không được để trống';
-    } else if (!email.includes('@')) {
-      newErrors.email = 'Email không hợp lệ';
+      newErrors.email = "Email không được để trống";
+    } else if (!email.includes("@")) {
+      newErrors.email = "Email không hợp lệ";
     }
 
     if (!password) {
-      newErrors.password = 'Mật khẩu không được để trống';
+      newErrors.password = "Mật khẩu không được để trống";
     } else if (password.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
     }
 
     setErrors(newErrors);
@@ -57,7 +58,7 @@ export const LoginPage = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    setErrors({}); 
+    setErrors({});
 
     try {
       const { data } = await loginMutation({
@@ -70,30 +71,28 @@ export const LoginPage = () => {
       });
 
       if (!data?.login) {
-        setErrors({ form: 'Đăng nhập thất bại. Không nhận được phản hồi.' });
+        setErrors({ form: "Đăng nhập thất bại. Không nhận được phản hồi." });
         return;
       }
 
       const { token, user, refreshToken } = data.login;
-      
-      // 1. Lưu token
-      localStorage.setItem('refresh_token', refreshToken);
+
+      // 1. Lưu token và user vào Zustand store
+      localStorage.setItem("refresh_token", refreshToken);
       setAuth(token, user);
-      
-      // 2. Thông báo thành công
+
       toast.success(`Xin chào, ${user.fullName}!`);
 
-      // 3. 👇 PHÂN QUYỀN CHUYỂN HƯỚNG (Logic quan trọng mới thêm) 👇
-      // Kiểm tra roleName (khớp với interface User trong file index.ts)
-      if (user.roleName === 'INSTRUCTOR' || user.roleName === 'ADMIN') {
-          navigate('/instructor/dashboard'); // Vào Dashboard Giảng viên
+      if (user.roleName === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else if (user.roleName === "INSTRUCTOR") {
+        navigate("/instructor/dashboard");
       } else {
-          navigate('/'); // Học viên về Trang chủ
+        navigate("/");
       }
-
     } catch (error: any) {
-      console.error('Login error:', error);
-      const message = error.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+      console.error("Login error:", error);
+      const message = error.message || "Đăng nhập thất bại. Vui lòng thử lại.";
       setErrors({ form: message });
       toast.error(message);
     } finally {
@@ -149,7 +148,7 @@ export const LoginPage = () => {
 
           <div className="mt-6 text-center">
             <p className="text-gray-600">
-              Chưa có tài khoản?{' '}
+              Chưa có tài khoản?{" "}
               <Link
                 to="/register"
                 className="text-blue-600 font-semibold hover:underline"
