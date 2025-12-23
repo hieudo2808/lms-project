@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -30,14 +30,14 @@ public class Enrollment {
     Course course;
 
     @Column(nullable = false)
-    LocalDateTime enrolledAt;
+    OffsetDateTime enrolledAt;
 
     @Column(nullable = false)
     Double progressPercent;
 
     @PrePersist
     protected void onCreate() {
-        enrolledAt = LocalDateTime.now();
+        enrolledAt = OffsetDateTime.now();
         if (progressPercent == null) {
             progressPercent = 0.0;
         }

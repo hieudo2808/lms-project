@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.time.OffsetDateTime;
 
 @Data
 @Builder
@@ -20,8 +21,8 @@ public class CourseResponse {
     private BigDecimal price;
     private String categoryName;
     private InstructorResponse instructor;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private OffsetDateTime createdAt;
+    private OffsetDateTime updatedAt;
     private boolean isPublished;
     private List<ModuleResponse> modules;
     private Integer totalLessons;

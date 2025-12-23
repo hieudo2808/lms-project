@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Import các trang từ file index.ts
 import { 
+  LandingPage,
   HomePage, 
   LoginPage, 
   RegisterPage, 
@@ -12,7 +13,13 @@ import {
   MyCoursesPage,
   AccountSettingsPage,
   CreateQuizPage,
-  EditQuizPage
+  EditQuizPage,
+  StudentDashboardPage,
+  LessonDetailPage,
+  QuizTakingPage,
+  CertificatesPage,
+  CourseProgressPage,
+  ProfileSettingsPage
 } from './pages';
 
 // Import Layout và Trang Dashboard
@@ -26,14 +33,30 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* ================= PUBLIC ROUTES ================= */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/courses" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/courses/:slug" element={<CourseDetailPage />} />
         
         {/* ================= STUDENT ROUTES ================= */}
-        {/* Route dành cho học viên xem các khóa học đã mua */}
-        <Route path="/dashboard/my-courses" element={<div>Trang khóa học đã mua của Học viên</div>} />
+        {/* Dashboard - Các khóa học đã đăng ký */}
+        <Route path="/dashboard/my-courses" element={<StudentDashboardPage />} />
+        
+        {/* Cài đặt tài khoản */}
+        <Route path="/dashboard/settings" element={<ProfileSettingsPage />} />
+        
+        {/* Chứng chỉ */}
+        <Route path="/dashboard/certificates" element={<CertificatesPage />} />
+        
+        {/* Tiến độ học tập */}
+        <Route path="/courses/:slug/progress" element={<CourseProgressPage />} />
+        
+        {/* Xem chi tiết bài học */}
+        <Route path="/courses/:slug/lesson/:lessonId" element={<LessonDetailPage />} />
+        
+        {/* Làm bài quiz */}
+        <Route path="/student/quizzes/:quizId" element={<QuizTakingPage />} />
 
         {/* ================= INSTRUCTOR ROUTES (DÀNH CHO GIẢNG VIÊN) ================= */}
         {/* InstructorLayout cung cấp Sidebar và Header chứa thông tin thật từ Backend */}

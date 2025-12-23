@@ -9,11 +9,12 @@ import com.seikyuuressha.lms.repository.CourseRepository;
 import com.seikyuuressha.lms.repository.EnrollmentRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,8 +30,17 @@ public class EnrollmentService {
 
     @Transactional
     public EnrollmentResponse enrollCourse(UUID courseId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Users user = userRepository.findByEmail(email)
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        UUID userId = (UUID) authentication.getPrincipal();
+
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Course course = courseRepository.findById(courseId)
@@ -40,7 +50,7 @@ public class EnrollmentService {
             throw new RuntimeException("Cannot enroll in unpublished course");
         }
 
-        if (enrollmentRepository.existsByUser_UserIdAndCourse_CourseId(user.getUserId(), courseId)) {
+        if (enrollmentRepository.existsByUser_UserIdAndCourse_CourseId(userId, courseId)) {
             throw new RuntimeException("Already enrolled in this course");
         }
 
@@ -48,7 +58,7 @@ public class EnrollmentService {
                 .enrollmentId(UUID.randomUUID())
                 .user(user)
                 .course(course)
-                .enrolledAt(LocalDateTime.now())
+                .enrolledAt(OffsetDateTime.now())
                 .progressPercent(0.0)
                 .build();
 
@@ -59,12 +69,22 @@ public class EnrollmentService {
 
     @Transactional(readOnly = true)
     public List<EnrollmentResponse> getMyEnrollments() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Users user = userRepository.findByEmail(email)
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        UUID userId = (UUID) authentication.getPrincipal();
+
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<Enrollment> enrollments = enrollmentRepository.findByUser_UserId(user.getUserId());
-        
+        List<Enrollment> enrollments =
+                enrollmentRepository.findByUser_UserId(user.getUserId());
+
         return enrollments.stream()
                 .map(this::mapToEnrollmentResponse)
                 .collect(Collectors.toList());
@@ -72,25 +92,36 @@ public class EnrollmentService {
 
     @Transactional(readOnly = true)
     public boolean isEnrolled(UUID courseId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (email == null || email.equals("anonymousUser")) {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getPrincipal() == null) {
             return false;
         }
 
-        Users user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        UUID userId = (UUID) authentication.getPrincipal();
 
-        return enrollmentRepository.existsByUser_UserIdAndCourse_CourseId(user.getUserId(), courseId);
+        return enrollmentRepository
+                .existsByUser_UserIdAndCourse_CourseId(userId, courseId);
     }
 
     private EnrollmentResponse mapToEnrollmentResponse(Enrollment enrollment) {
-        CourseResponse courseResponse = courseService.getCourseById(enrollment.getCourse().getCourseId());
-        
+
+        CourseResponse courseResponse =
+                courseService.getCourseById(
+                        enrollment.getCourse().getCourseId()
+                );
+
         return EnrollmentResponse.builder()
-                .enrollmentId(enrollment.getEnrollmentId()) 
+                .enrollmentId(enrollment.getEnrollmentId())
                 .course(courseResponse)
                 .enrolledAt(enrollment.getEnrolledAt())
-                .progressPercent(enrollment.getProgressPercent() != null ? enrollment.getProgressPercent() : 0.0)
+                .progressPercent(
+                        enrollment.getProgressPercent() != null
+                                ? enrollment.getProgressPercent()
+                                : 0.0
+                )
                 .build();
     }
 }

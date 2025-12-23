@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useMutation } from '@apollo/client';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd'; 
+import { useNavigate } from 'react-router-dom';
 
 import { 
   Plus, Edit2, Trash2, ChevronDown, ChevronRight, 
@@ -41,6 +42,7 @@ interface CurriculumEditorProps {
 
 const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, refetch }) => {
   // State quản lý danh sách local để kéo thả mượt mà (Optimistic UI)
+  const navigate = useNavigate();
   const [localModules, setLocalModules] = useState<Module[]>([]);
 
   // Sync props với state local khi dữ liệu từ server thay đổi
@@ -304,17 +306,15 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
 
   {/* QUIZ BUTTON 🔥 */}
   <button
-    onClick={() =>
-      navigate(
-  lesson.quiz
-    ? `/instructor/lessons/${lesson.lessonId}/quizzes/${lesson.quiz.quizId}/edit`
-    : `/instructor/lessons/${lesson.lessonId}/quizzes/create`
-)
-    }
-    className="text-xs font-medium text-purple-600 hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-purple-50"
-  >
-    🧠 {lesson.quiz ? 'Sửa Quiz' : 'Tạo Quiz'}
-  </button>
+  onClick={() =>
+    navigate(`/instructor/lessons/${lesson.lessonId}/quizzes/create`, { 
+      state: { courseId: courseId } 
+    })
+  }
+  className="text-xs font-medium text-purple-600 hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-purple-50"
+>
+  🧠 Tạo Quiz
+</button>
 
   {/* DELETE */}
   <button

@@ -22,6 +22,7 @@ export const GET_ALL_COURSES = gql`
 `;
 
 // Lấy chi tiết khóa học + Modules + Lessons (cho Detail & Lesson Page)
+
 export const GET_COURSE_BY_SLUG = gql`
   query GetCourseBySlug($slug: String!) {
     getCourseBySlug(slug: $slug) {
@@ -44,20 +45,15 @@ export const GET_COURSE_BY_SLUG = gql`
       modules {
         moduleId
         title
-        order
+        order   
         lessons {
           lessonId
           title
           videoUrl
           content
           durationSeconds
-          order
-          userProgress
-          quiz {
-            quizId
-            title
-            isPublished
-          }
+          order  
+          userProgress 
         }
       }
     }
@@ -81,6 +77,44 @@ export const GET_MY_ENROLLMENTS = gql`
         totalLessons
         instructor {
           fullName
+        }
+      }
+    }
+  }
+`;
+
+// Get course with full lesson structure (for student learning)
+export const GET_COURSE_WITH_LESSONS = gql`
+  query GetCourseWithLessons($slug: String!) {
+    getCourseByCourseSlug(slug: $slug) {
+      courseId
+      title
+      slug
+      description
+      price
+      level
+      thumbnailUrl
+      totalDuration
+      totalLessons
+      isPublished
+      instructor {
+        userId
+        fullName
+        avatarUrl
+        bio
+      }
+      modules {
+        moduleId
+        title
+        order
+        lessons {
+          lessonId
+          title
+          description
+          videoUrl
+          durationSeconds
+          order
+          userProgress
         }
       }
     }

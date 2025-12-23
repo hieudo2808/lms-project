@@ -17,6 +17,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Module {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     UUID moduleId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,7 +27,7 @@ public class Module {
     @Column(nullable = false, length = 200)
     String title;
 
-    @Column(name = "[sort_order]", nullable = false)
+    @Column(name = "sort_order", nullable = false)
     int sortOrder;
 
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)

@@ -32,6 +32,11 @@ export const CourseCard = ({ course }: CourseCardProps) => {
     }
   };
 
+  // Support both legacy string instructor and Instructor object
+  const instructorName = typeof course.instructor === 'string'
+    ? course.instructor
+    : course.instructor?.fullName || 'Đang cập nhật';
+
   return (
     <Link to={`/courses/${course.slug}`}>
       <div className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 h-full transform hover:scale-105 cursor-pointer border border-gray-100">
@@ -60,7 +65,7 @@ export const CourseCard = ({ course }: CourseCardProps) => {
         <div className="p-4">
           {/* Instructor */}
           <p className="text-xs text-gray-500 font-medium mb-2 flex items-center gap-1">
-            👤 {course.instructor}
+            👤 {instructorName}
           </p>
 
           {/* Title */}

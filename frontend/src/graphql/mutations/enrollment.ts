@@ -8,3 +8,14 @@ export const ENROLL_COURSE_MUTATION = gql`
     }
   }
 `;
+
+export const UPDATE_PROGRESS_MUTATION = gql`
+  mutation UpdateProgress($lessonId: UUID!, $input: UpdateProgressInput!) {
+    updateProgress(lessonId: $lessonId, input: $input) {
+      progressId
+      watchedSeconds
+      progressPercent
+      completed
+    }
+  }
+`;

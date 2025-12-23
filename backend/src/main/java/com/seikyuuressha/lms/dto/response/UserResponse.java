@@ -1,7 +1,7 @@
 package com.seikyuuressha.lms.dto.response;
 
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Data
@@ -15,6 +15,6 @@ public class UserResponse {
     private String avatarUrl;
     private String bio;
     private String roleName;
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
     private boolean isActive;
 }

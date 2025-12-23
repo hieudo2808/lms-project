@@ -12,14 +12,13 @@ import com.seikyuuressha.lms.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.time.ZoneOffset;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +33,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
@@ -52,19 +52,19 @@ public class AuthService {
 
         Users savedUser = userRepository.save(user);
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(savedUser.getEmail());
-        String token = jwtUtil.generateToken(userDetails);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+        String token = jwtUtil.generateToken(savedUser);
+        String refreshToken = jwtUtil.generateRefreshToken(savedUser);
 
         return AuthResponse.builder()
                 .token(token)
                 .refreshToken(refreshToken)
-                .user(mapToUserResponse(savedUser)) 
+                .user(mapToUserResponse(savedUser))
                 .build();
     }
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -79,9 +79,8 @@ public class AuthService {
             throw new RuntimeException("User account is inactive");
         }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String token = jwtUtil.generateToken(userDetails);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+        String token = jwtUtil.generateToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
 
         return AuthResponse.builder()
                 .token(token)
@@ -98,7 +97,9 @@ public class AuthService {
                 .avatarUrl(user.getAvatarUrl())
                 .bio(user.getBio())
                 .roleName(user.getRole().getRoleName())
-                .createdAt(user.getCreatedAt())
+                .createdAt(user.getCreatedAt() != null
+                    ? user.getCreatedAt().atOffset(ZoneOffset.UTC)
+                    : null)
                 .isActive(user.isActive())
                 .build();
     }

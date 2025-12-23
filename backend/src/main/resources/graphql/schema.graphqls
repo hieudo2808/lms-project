@@ -2,6 +2,7 @@
 scalar UUID
 scalar DateTime
 scalar BigDecimal
+scalar Long
 
 # ===== INPUT TYPES =====
 input RegisterInput {
@@ -50,6 +51,13 @@ type Instructor {
     email: String!
     avatarUrl: String
     bio: String
+}
+
+type Category {
+    categoryId: UUID!
+    name: String!
+    slug: String!
+    description: String
 }
 
 type Course {
@@ -103,11 +111,248 @@ type Progress {
     lastWatchedAt: DateTime!
 }
 
+type Comment {
+    commentId: UUID!
+    lesson: Lesson!
+    user: User!
+    content: String!
+    parentComment: Comment
+    replies: [Comment!]
+    isActive: Boolean!
+    createdAt: DateTime!
+    updatedAt: DateTime
+}
+
+type Review {
+    reviewId: UUID!
+    course: Course!
+    user: User!
+    rating: Int!
+    comment: String
+    isActive: Boolean!
+    createdAt: DateTime!
+    updatedAt: DateTime
+}
+
+type Quiz {
+    quizId: UUID!
+    courseId: UUID!
+    moduleId: UUID
+    lessonId: UUID
+    title: String!
+    description: String
+    passingScore: Int!
+    timeLimit: Int
+    maxAttempts: Int
+    isPublished: Boolean!
+    orderIndex: Int!
+    questions: [Question!]
+}
+
+type Question {
+    questionId: UUID!
+    quiz: Quiz!
+    questionType: QuestionType!
+    questionText: String!
+    explanation: String
+    points: Int!
+    orderIndex: Int!
+    answers: [Answer!]
+}
+
+type Answer {
+    answerId: UUID!
+    question: Question!
+    answerText: String!
+    isCorrect: Boolean!
+    orderIndex: Int!
+}
+
+type QuizAttempt {
+    attemptId: UUID!
+    user: User!
+    quiz: Quiz!
+    attemptNumber: Int!
+    startTime: DateTime!
+    endTime: DateTime
+    totalScore: Int!
+    maxScore: Int!
+    percentage: Float
+    status: AttemptStatus!
+    passed: Boolean!
+    userAnswers: [QuizAnswer!]
+}
+
+type QuizAnswer {
+    answerId: UUID!
+    attempt: QuizAttempt!
+    question: Question!
+    selectedAnswerId: UUID
+    userAnswer: String
+    isCorrect: Boolean!
+    pointsAwarded: Int!
+}
+
+type Payment {
+    paymentId: UUID!
+    userId: UUID!
+    courseId: UUID!
+    enrollmentId: UUID
+    amount: BigDecimal!
+    paymentProvider: String!
+    transactionId: String!
+    vnpayResponseCode: String
+    paymentUrl: String
+    paymentStatus: String!
+    paidAt: DateTime
+    createdAt: DateTime!
+}
+
+type Certificate {
+    certificateId: UUID!
+    user: User!
+    course: Course!
+    certificateCode: String!
+    pdfUrl: String
+    finalScore: Float
+    issuedAt: DateTime!
+    isValid: Boolean!
+    revokedAt: DateTime
+    revokedReason: String
+}
+
+enum QuestionType {
+    MULTIPLE_CHOICE
+    MULTIPLE_SELECT
+    TRUE_FALSE
+    SHORT_ANSWER
+}
+
+enum AttemptStatus {
+    IN_PROGRESS
+    SUBMITTED
+    GRADED
+    EXPIRED
+}
+
+enum PaymentProvider {
+    VNPAY
+    MOMO
+    ZALOPAY
+    BANK_TRANSFER
+}
+
+enum PaymentStatus {
+    PENDING
+    COMPLETED
+    FAILED
+    CANCELLED
+    REFUNDED
+}
+
+# ===== INPUT TYPES FOR NEW FEATURES =====
+input CreateCategoryInput {
+    name: String!
+    slug: String!
+    description: String
+}
+
+input UpdateCategoryInput {
+    name: String
+    slug: String
+    description: String
+}
+
+input CreateCommentInput {
+    lessonId: UUID!
+    content: String!
+    parentCommentId: UUID
+}
+
+input UpdateCommentInput {
+    content: String!
+}
+
+input CreateReviewInput {
+    courseId: UUID!
+    rating: Int!
+    comment: String
+}
+
+input UpdateReviewInput {
+    rating: Int!
+    comment: String
+}
+
+input CreateQuizInput {
+    courseId: UUID!
+    moduleId: UUID
+    lessonId: UUID
+    title: String!
+    description: String
+    passingScore: Int!
+    timeLimit: Int
+    maxAttempts: Int
+}
+
+input UpdateQuizInput {
+    title: String!
+    description: String
+    passingScore: Int!
+    timeLimit: Int
+    maxAttempts: Int
+    isPublished: Boolean!
+}
+
+input CreateQuestionInput {
+    quizId: UUID!
+    questionType: QuestionType!
+    questionText: String!
+    explanation: String
+    points: Int!
+}
+
+input CreateAnswerInput {
+    questionId: UUID!
+    answerText: String!
+    isCorrect: Boolean!
+}
+
+input UpdateQuestionInput {
+    questionType: QuestionType!
+    questionText: String!
+    explanation: String
+    points: Int!
+}
+
+input UpdateAnswerInput {
+    answerId: UUID!
+    answerText: String!
+    isCorrect: Boolean!
+}
+
+input SubmitQuizAnswerInput {
+    questionId: UUID!
+    answerId: UUID
+    userAnswer: String
+}
+
+input InitiatePaymentInput {
+    courseId: UUID!
+    paymentProvider: PaymentProvider!
+    returnUrl: String!
+}
+
 # ===== ROOT TYPE - QUERY =====
 type Query {
     # Auth & User
     me: User!
     getUserById(userId: UUID!): User!
+
+    # Categories
+    getAllCategories: [Category!]!
+    getCategoryById(categoryId: UUID!): Category!
+    getCategoryBySlug(slug: String!): Category!
 
     # Courses
     getAllCourses(categoryId: UUID): [Course!]!
@@ -121,6 +366,28 @@ type Query {
     # Progress
     myProgress(courseId: UUID): [Progress!]!
     getLessonProgress(lessonId: UUID!): Progress
+
+    # Comments
+    getCommentsByLesson(lessonId: UUID!): [Comment!]!
+    getCommentReplies(commentId: UUID!): [Comment!]!
+
+    # Reviews
+    getReviewsByCourse(courseId: UUID!): [Review!]!
+    getCourseAverageRating(courseId: UUID!): Float
+    myReviewForCourse(courseId: UUID!): Review
+
+    # Quizzes
+    getQuizzesByLesson(lessonId: UUID!): [Quiz!]!
+    getQuizById(quizId: UUID!): Quiz!
+    getMyQuizAttempts(quizId: UUID!): [QuizAttempt!]!
+
+    # Payments
+    getMyPayments: [Payment!]!
+    getPaymentByTransaction(transactionId: String!): Payment
+
+    # Certificates
+    getMyCertificates: [Certificate!]!
+    getCertificateByCourse(courseId: UUID!): Certificate
 }
 
 # ===== ROOT TYPE - MUTATIONS =====
@@ -137,4 +404,231 @@ type Mutation {
 
     # Progress
     updateProgress(lessonId: UUID!, input: UpdateProgressInput!): Progress!
+
+    # Comments
+    createComment(input: CreateCommentInput!): Comment!
+    updateComment(commentId: UUID!, input: UpdateCommentInput!): Comment!
+    deleteComment(commentId: UUID!): Boolean!
+
+    # Reviews
+    createReview(input: CreateReviewInput!): Review!
+    updateReview(reviewId: UUID!, input: UpdateReviewInput!): Review!
+    deleteReview(reviewId: UUID!): Boolean!
+
+    # Quizzes (Admin/Instructor)
+    createQuiz(input: CreateQuizInput!): Quiz!
+    updateQuiz(quizId: UUID!, input: UpdateQuizInput!): Quiz!
+    deleteQuiz(quizId: UUID!): Boolean!
+    createQuestion(input: CreateQuestionInput!): Question!
+    deleteQuestion(questionId: UUID!): Boolean!
+    createAnswer(input: CreateAnswerInput!): Answer!
+    updateQuestion(questionId: UUID!, input: UpdateQuestionInput!): Question!
+    updateAnswer(answerId: UUID!, input: UpdateAnswerInput!): Answer!
+    publishQuiz(quizId: UUID!): Quiz!
+
+    # Quiz Attempts (Student)
+    startQuizAttempt(quizId: UUID!): QuizAttempt!
+    submitQuizAnswer(
+        attemptId: UUID!
+        input: SubmitQuizAnswerInput!
+    ): QuizAnswer!
+    finishQuizAttempt(attemptId: UUID!): QuizAttempt!
+
+    # Payments
+    initiatePayment(input: InitiatePaymentInput!): Payment!
+    confirmPayment(transactionId: String!): Payment!
+
+    # Certificates
+    generateCertificate(courseId: UUID!): Certificate!
+}
+
+# ===== NEW TYPES & INPUTS FOR MEDIA, INSTRUCTOR, ADMIN =====
+
+# ===== VIDEO/MEDIA SERVICE =====
+type Video {
+    videoId: UUID!
+    lessonId: UUID!
+    originalFilename: String!
+    fileSize: Long
+    mimeType: String
+    durationSeconds: Int
+    resolution: String
+    processingStatus: String!
+    streamUrl: String
+    thumbnailUrl: String
+    uploadedAt: DateTime!
+    processedAt: DateTime
+    errorMessage: String
+}
+
+type PresignedUrl {
+    videoId: UUID!
+    uploadUrl: String!
+    s3Key: String!
+    expiresIn: Long!
+}
+
+input VideoUploadInput {
+    lessonId: UUID!
+    filename: String!
+    contentType: String!
+    fileSize: Long
+}
+
+# ===== INSTRUCTOR MANAGEMENT =====
+input CreateCourseInput {
+    title: String!
+    slug: String!
+    description: String
+    thumbnailUrl: String
+    level: String
+    price: BigDecimal
+    categoryId: UUID!
+}
+
+input UpdateCourseInput {
+    title: String
+    slug: String
+    description: String
+    thumbnailUrl: String
+    level: String
+    price: BigDecimal
+    categoryId: UUID
+}
+
+input CreateModuleInput {
+    courseId: UUID!
+    title: String!
+    order: Int
+}
+
+input UpdateModuleInput {
+    title: String
+    order: Int
+}
+
+input CreateLessonInput {
+    moduleId: UUID!
+    title: String!
+    content: String
+    videoUrl: String
+    durationSeconds: Int
+    order: Int
+}
+
+input UpdateLessonInput {
+    title: String
+    content: String
+    videoUrl: String
+    durationSeconds: Int
+    order: Int
+}
+
+type CourseRevenue {
+    courseId: UUID!
+    totalRevenue: BigDecimal!
+    totalEnrollments: Long!
+    totalPayments: Long!
+    averagePrice: BigDecimal!
+}
+
+type StudentProgress {
+    userId: UUID!
+    fullName: String!
+    email: String!
+    enrolledAt: DateTime!
+    progressPercent: Float!
+    completedLessons: Long!
+    totalLessons: Int!
+}
+
+# ===== ADMIN DASHBOARD =====
+type SystemStatistics {
+    totalUsers: Long!
+    totalInstructors: Long!
+    totalStudents: Long!
+    totalCourses: Long!
+    publishedCourses: Long!
+    unpublishedCourses: Long!
+    totalEnrollments: Long!
+    totalPayments: Long!
+    totalRevenue: BigDecimal!
+    completedPayments: Long!
+    pendingPayments: Long!
+    failedPayments: Long!
+}
+
+type RevenueReport {
+    totalRevenue: BigDecimal!
+    totalPayments: Long!
+    completedPayments: Long!
+    pendingPayments: Long!
+    failedPayments: Long!
+    averagePayment: BigDecimal!
+    startDate: DateTime
+    endDate: DateTime
+}
+
+# ===== EXTENDED QUERIES =====
+extend type Query {
+    # Video/Media
+    getVideoStreamUrl(lessonId: UUID!): String!
+    getVideoByLesson(lessonId: UUID!): Video!
+    getMyVideos: [Video!]!
+
+    # Instructor Dashboard
+    getMyCourses: [Course!]!
+    getCourseEnrollments(courseId: UUID!): [Enrollment!]!
+    getCourseRevenue(courseId: UUID!): CourseRevenue!
+    getStudentProgress(courseId: UUID!): [StudentProgress!]!
+
+    # Admin Dashboard
+    getAllUsers(page: Int, limit: Int, roleName: String): [User!]!
+    getAllCoursesAdmin(isPublished: Boolean, page: Int, limit: Int): [Course!]!
+    getSystemStatistics: SystemStatistics!
+    getRevenueReport(startDate: DateTime, endDate: DateTime): RevenueReport!
+    getAllPayments(page: Int, limit: Int, status: String): [Payment!]!
+}
+
+# ===== EXTENDED MUTATIONS =====
+extend type Mutation {
+    # Video Upload
+    generateVideoUploadUrl(input: VideoUploadInput!): PresignedUrl!
+    confirmVideoUpload(videoId: UUID!): Video!
+    deleteVideo(videoId: UUID!): Boolean!
+
+    # Instructor - Course Management
+    createCourse(input: CreateCourseInput!): Course!
+    updateCourse(courseId: UUID!, input: UpdateCourseInput!): Course!
+    deleteCourse(courseId: UUID!): Boolean!
+    publishCourse(courseId: UUID!): Course!
+    unpublishCourse(courseId: UUID!): Course!
+
+    # Instructor - Module Management
+    createModule(input: CreateModuleInput!): Module!
+    updateModule(moduleId: UUID!, input: UpdateModuleInput!): Module!
+    deleteModule(moduleId: UUID!): Boolean!
+    reorderModules(courseId: UUID!, moduleIds: [UUID!]!): [Module!]!
+
+    # Instructor - Lesson Management
+    createLesson(input: CreateLessonInput!): Lesson!
+    updateLesson(lessonId: UUID!, input: UpdateLessonInput!): Lesson!
+    deleteLesson(lessonId: UUID!): Boolean!
+    reorderLessons(moduleId: UUID!, lessonIds: [UUID!]!): [Lesson!]!
+
+    # Admin - User Management
+    updateUserRole(userId: UUID!, roleId: UUID!): User!
+    lockUser(userId: UUID!, reason: String!): Boolean!
+    unlockUser(userId: UUID!): Boolean!
+    deleteUser(userId: UUID!): Boolean!
+
+    # Admin - Category Management
+    createCategory(input: CreateCategoryInput!): Category!
+    updateCategory(categoryId: UUID!, input: UpdateCategoryInput!): Category!
+    deleteCategory(categoryId: UUID!): Boolean!
+
+    # Admin - Course Moderation
+    approveCourse(courseId: UUID!): Course!
+    rejectCourse(courseId: UUID!, reason: String!): Course!
+    deleteCourseAdmin(courseId: UUID!): Boolean!
 }

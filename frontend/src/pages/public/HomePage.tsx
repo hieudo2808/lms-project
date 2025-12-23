@@ -67,7 +67,9 @@ export const HomePage = () => {
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesLevel = !filterLevel || course.level === filterLevel;
+    // Case-insensitive level comparison (backend: "Beginner", frontend param: "beginner")
+    const matchesLevel = !filterLevel || 
+      course.level?.toLowerCase() === filterLevel.toLowerCase();
 
     return matchesSearch && matchesLevel;
   });

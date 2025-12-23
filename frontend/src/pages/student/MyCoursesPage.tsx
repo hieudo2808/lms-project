@@ -54,78 +54,82 @@ export const MyCoursesPage = () => {
 
   return (
     <Layout>
-      <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-2">Khoá học của tôi</h1>
-          <p className="text-blue-100">Tiếp tục hành trình học tập của bạn</p>
+      <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
+        {/* Hero */}
+        <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white rounded-2xl p-8 shadow-lg flex flex-col gap-3">
+          <p className="text-sm uppercase tracking-widest text-blue-100">Học viên</p>
+          <h1 className="text-3xl md:text-4xl font-bold">Khoá học của tôi</h1>
+          <p className="text-blue-100">Tiếp tục hành trình học tập với giao diện đồng nhất, chuyên nghiệp.</p>
         </div>
-      </section>
 
-      {/* Stats Section */}
-      <section className="bg-white shadow-md py-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <p className="text-4xl font-bold text-blue-600">{totalCourses}</p>
-              <p className="text-gray-600">Khóa học đã tham gia</p>
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[ 
+            { label: 'Khóa học đã tham gia', value: totalCourses, color: 'text-blue-600', bg: 'bg-blue-500' },
+            { label: 'Tiến độ trung bình', value: `${avgProgress}%`, color: 'text-amber-600', bg: 'bg-amber-500' },
+            { label: 'Hoàn thành', value: completedCount, color: 'text-purple-600', bg: 'bg-purple-500' },
+          ].map((item) => (
+            <div key={item.label} className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-10 h-10 rounded-lg ${item.bg} opacity-90`}></div>
+              </div>
+              <p className="text-sm text-gray-500 font-medium">{item.label}</p>
+              <p className={`text-3xl font-bold mt-1 ${item.color}`}>{item.value}</p>
             </div>
-            <div className="text-center">
-              <p className="text-4xl font-bold text-yellow-600">{avgProgress}%</p>
-              <p className="text-gray-600">Tiến độ trung bình</p>
-            </div>
-            <div className="text-center">
-              <p className="text-4xl font-bold text-purple-600">{completedCount}</p>
-              <p className="text-gray-600">Khóa học hoàn thành</p>
-            </div>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex flex-wrap gap-3 items-center justify-between">
+          <div className="font-semibold text-gray-800">Lọc khóa học</div>
+          <div className="flex gap-3 flex-wrap">
+            {[
+              { key: 'all', label: 'Tất cả' },
+              { key: 'ongoing', label: 'Đang học' },
+              { key: 'completed', label: 'Hoàn thành' },
+            ].map((item) => (
+              <button
+                key={item.key}
+                onClick={() => setFilterStatus(item.key as 'all' | 'ongoing' | 'completed')}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
+                  filterStatus === item.key
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                    : 'bg-white text-gray-700 border-gray-200 hover:border-blue-400'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
-      </section>
 
-      {/* Filter Buttons */}
-      <section className="bg-gray-100 py-6">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-4">
-            <button
-              onClick={() => setFilterStatus('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatus === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}
-            >
-              Tất cả
-            </button>
-            <button
-              onClick={() => setFilterStatus('ongoing')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatus === 'ongoing' ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}
-            >
-              Đang học
-            </button>
-            <button
-              onClick={() => setFilterStatus('completed')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${filterStatus === 'completed' ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 hover:bg-gray-200'}`}
-            >
-              Hoàn thành
-            </button>
-          </div>
-        </div>
-      </section>
+        {/* Course List */}
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          {loading && (
+            <div className="text-center py-10 text-gray-500">Đang tải...</div>
+          )}
 
-      {/* Course List */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        {loading && <p>Đang tải...</p>}
-        {error && (
-            <div className="p-4 bg-red-100 text-red-700 rounded border border-red-300">
-                Lỗi tải dữ liệu: {error.message}. <br/>
-                <small>Nếu lỗi 500, vui lòng Đăng xuất và Đăng nhập lại.</small>
+          {error && (
+            <div className="p-4 bg-red-50 text-red-700 rounded border border-red-200">
+              Lỗi tải dữ liệu: {error.message}. <br />
+              <small>Nếu lỗi 500, vui lòng Đăng xuất và Đăng nhập lại.</small>
             </div>
-        )}
-        
-        {!loading && !error && filteredCourses.length === 0 && (
+          )}
+
+          {!loading && !error && filteredCourses.length === 0 && (
             <div className="text-center py-10">
-                <p className="text-gray-500 mb-4">Bạn chưa đăng ký khóa học nào.</p>
-                <a href="/" className="text-blue-600 hover:underline">Khám phá khóa học ngay</a>
+              <p className="text-gray-500 mb-4">Bạn chưa đăng ký khóa học nào.</p>
+              <a href="/" className="text-blue-600 hover:underline">Khám phá khóa học ngay</a>
             </div>
-        )}
-        
-        {!loading && !error && <CourseList courses={filteredCourses} isLoading={false} />}
-      </section>
+          )}
+
+          {!loading && !error && (
+            <div className="mt-4">
+              <CourseList courses={filteredCourses} isLoading={false} />
+            </div>
+          )}
+        </div>
+      </div>
     </Layout>
   );
 };

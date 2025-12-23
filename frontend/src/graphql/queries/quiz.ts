@@ -1,24 +1,77 @@
 import { gql } from '@apollo/client';
 
 export const GET_QUIZ_BY_LESSON = gql`
-  query GetQuizByLesson($lessonId: UUID!) {
-    getQuizByLesson(lessonId: $lessonId) {
+  query GetQuizzesByLesson($lessonId: UUID!) {
+    # Tên query chuẩn trong Schema là getQuizzesByLesson
+    getQuizzesByLesson(lessonId: $lessonId) {
       quizId
       title
       description
-      duration
+      timeLimit     
+      passingScore  
+      isPublished   
+      questions {
+        questionId
+        questionText 
+        questionType 
+        points      
+        answers {
+          answerId
+          answerText 
+          isCorrect 
+        }
+      }
+    }
+  }
+`;
+
+export const GET_QUIZ_BY_ID = gql`
+  query GetQuizById($quizId: UUID!) {
+    getQuizById(quizId: $quizId) {
+      quizId
+      title
+      description
+      timeLimit
       passingScore
+      maxAttempts
       isPublished
       questions {
         questionId
-        content
+        questionText
         questionType
-        score
+        points
         answers {
           answerId
-          content
+          answerText
           isCorrect
         }
+      }
+    }
+  }
+`;
+
+export const GET_MY_QUIZ_ATTEMPTS = gql`
+  query GetMyQuizAttempts($quizId: UUID!) {
+    getMyQuizAttempts(quizId: $quizId) {
+      attemptId
+      quizId
+      userId
+      attemptNumber
+      startTime
+      endTime
+      totalScore
+      maxScore
+      percentage
+      status
+      passed
+      userAnswers {
+        answerId
+        attemptId
+        questionId
+        selectedAnswerId
+        userAnswer
+        isCorrect
+        pointsAwarded
       }
     }
   }

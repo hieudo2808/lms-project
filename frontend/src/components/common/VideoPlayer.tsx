@@ -1,11 +1,10 @@
 import { useEffect, useRef } from 'react';
-import type { Progress } from '../types';
 
 interface VideoPlayerProps {
   videoUrl: string;
   title: string;
   duration: number;
-  onProgress?: (progress: Progress) => void;
+  onProgress?: (currentTime: number, totalDuration: number) => void;
 }
 
 export const VideoPlayer = ({ videoUrl, title, duration, onProgress }: VideoPlayerProps) => {
@@ -17,14 +16,7 @@ export const VideoPlayer = ({ videoUrl, title, duration, onProgress }: VideoPlay
 
     const handleTimeUpdate = () => {
       if (onProgress) {
-        onProgress({
-          lessonId: '',
-          courseId: '',
-          completed: video.currentTime >= duration * 0.95,
-          watchedDuration: video.currentTime,
-          totalDuration: duration,
-          lastWatched: new Date().toISOString(),
-        });
+        onProgress(video.currentTime, duration * 60); // Convert minutes to seconds
       }
     };
 

@@ -1,0 +1,90 @@
+package com.seikyuuressha.lms.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(name = "Quizzes")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Quiz {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    UUID quizId;
+
+    @Version
+    Long version;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "courseId", nullable = false)
+    Course course;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "moduleId")
+    Module module;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lessonId")
+    Lesson lesson;
+
+    @Column(nullable = false)
+    String title;
+
+    @Column(columnDefinition = "TEXT")
+    String description;
+
+    @Column(nullable = false)
+    Integer passingScore; // Minimum score to pass (e.g., 70)
+
+    @Column(nullable = false)
+    Integer timeLimit; // Time limit in minutes (0 = unlimited)
+
+    @Column(nullable = false)
+    Integer maxAttempts; // Maximum attempts allowed (0 = unlimited)
+
+    @Column(nullable = false)
+    Boolean isPublished;
+
+    @Column(nullable = false)
+    Integer orderIndex;
+
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    List<Question> questions = new ArrayList<>();
+
+    @Column(nullable = false)
+    LocalDateTime createdAt;
+
+    LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (quizId == null) {
+            quizId = UUID.randomUUID();
+        }
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (isPublished == null) {
+            isPublished = false;
+        }
+        if (orderIndex == null) {
+            orderIndex = 0;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}

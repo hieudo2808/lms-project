@@ -1,5 +1,6 @@
 package com.seikyuuressha.lms.util;
 
+import com.seikyuuressha.lms.entity.Users;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -36,6 +37,14 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public String extractUserId(String token) {
+        return extractAllClaims(token).get("userId", String.class);
+    }
+
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
@@ -65,6 +74,21 @@ public class JwtUtil {
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, userDetails.getUsername(), refreshExpiration);
+    }
+
+    public String generateToken(Users user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getUserId().toString());
+        claims.put("role", user.getRole().getRoleName());
+
+        return createToken(claims, user.getEmail(), expiration);
+    }
+
+    public String generateRefreshToken(Users user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getUserId().toString());
+
+        return createToken(claims, user.getEmail(), refreshExpiration);
     }
 
     private String createToken(Map<String, Object> claims, String subject, Long expirationTime) {

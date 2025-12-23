@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,7 +23,7 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ProgressRepository progressRepository;
-    private final UserRepository userRepository; // Inject User Repo
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<CourseResponse> getAllPublishedCourses(UUID categoryId) {
@@ -40,9 +41,8 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        if (!course.isPublished()) {
-            throw new RuntimeException("Course is not published");
-        }
+        // [FIX QUAN TRỌNG] Kiểm tra quyền xem khóa học chưa xuất bản
+        checkCourseAccess(course);
 
         return mapToCourseResponse(course, getCurrentUserId());
     }
@@ -52,29 +52,42 @@ public class CourseService {
         Course course = courseRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        if (!course.isPublished()) {
-            throw new RuntimeException("Course is not published");
-        }
+        // [FIX QUAN TRỌNG] Kiểm tra quyền xem khóa học chưa xuất bản
+        checkCourseAccess(course);
 
         return mapToCourseResponse(course, getCurrentUserId());
     }
 
-    private UUID getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated() 
-                && !authentication.getPrincipal().equals("anonymousUser")) {
-            String email = authentication.getName();
-            // Lấy ID từ DB thay vì ép kiểu Principal
-            return userRepository.findByEmail(email)
-                    .map(Users::getUserId)
-                    .orElse(null);
+    // === HÀM PHỤ ĐỂ CHECK QUYỀN (Logic mới) ===
+    private void checkCourseAccess(Course course) {
+        if (!course.isPublished()) {
+            UUID currentUserId = getCurrentUserId();
+            // Nếu là giảng viên của khóa học này thì cho phép xem
+            boolean isOwner = currentUserId != null && course.getInstructor().getUserId().equals(currentUserId);
+            
+            if (!isOwner) {
+                throw new RuntimeException("Course is not published");
+            }
         }
+    }
+
+    private UUID getCurrentUserId() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication == null || authentication.getPrincipal() == null) {
         return null;
     }
 
+    if (authentication.getPrincipal() instanceof UUID) {
+        return (UUID) authentication.getPrincipal(); // ✅ ĐÚNG
+    }
+
+    return null;
+}
+
     private CourseResponse mapToCourseResponseWithoutModules(Course course) {
         return CourseResponse.builder()
-                .courseId(course.getCourseId()) // Thêm dòng này nếu DTO có ID
+                .courseId(course.getCourseId())
                 .title(course.getTitle())
                 .slug(course.getSlug())
                 .description(course.getDescription())
@@ -83,8 +96,12 @@ public class CourseService {
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
                 .instructor(mapToInstructorResponse(course.getInstructor()))
-                .createdAt(course.getCreatedAt())
-                .updatedAt(course.getUpdatedAt())
+                .createdAt(course.getCreatedAt() != null
+                   ? course.getCreatedAt().atOffset(ZoneOffset.UTC)
+                   : null)
+                .updatedAt(course.getUpdatedAt() != null
+                   ? course.getUpdatedAt().atOffset(ZoneOffset.UTC)
+                   : null)
                 .isPublished(course.isPublished())
                 .totalLessons(calculateTotalLessons(course))
                 .totalDuration(calculateTotalDuration(course))
@@ -102,17 +119,16 @@ public class CourseService {
             progresses.forEach(p -> progressMap.put(p.getLesson().getLessonId(), p.getProgressPercent()));
         }
 
-        // [FIX NULL] Kiểm tra modules có null không trước khi stream
         List<ModuleResponse> modules = new ArrayList<>();
         if (course.getModules() != null) {
             modules = course.getModules().stream()
-                    .sorted(Comparator.comparingInt(com.seikyuuressha.lms.entity.Module::getSortOrder))
+                    .sorted(Comparator.comparingInt(com.seikyuuressha.lms.entity.Module::getSortOrder)) // [ĐÚNG: sortOrder]
                     .map(module -> mapToModuleResponse(module, isEnrolled, progressMap))
                     .collect(Collectors.toList());
         }
 
         return CourseResponse.builder()
-                .courseId(course.getCourseId()) // Thêm dòng này
+                .courseId(course.getCourseId())
                 .title(course.getTitle())
                 .slug(course.getSlug())
                 .description(course.getDescription())
@@ -121,8 +137,12 @@ public class CourseService {
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
                 .instructor(mapToInstructorResponse(course.getInstructor()))
-                .createdAt(course.getCreatedAt())
-                .updatedAt(course.getUpdatedAt())
+                .createdAt(course.getCreatedAt() != null
+                    ? course.getCreatedAt().atOffset(ZoneOffset.UTC)
+                    : null)
+                .updatedAt(course.getUpdatedAt() != null
+                    ? course.getUpdatedAt().atOffset(ZoneOffset.UTC)
+                    : null)
                 .isPublished(course.isPublished())
                 .modules(modules)
                 .totalLessons(calculateTotalLessons(course))
@@ -134,10 +154,9 @@ public class CourseService {
                                                boolean isEnrolled, 
                                                Map<UUID, Double> progressMap) {
         List<LessonResponse> lessons = new ArrayList<>();
-        // [FIX NULL] Kiểm tra lessons trong module
         if (module.getLessons() != null) {
             lessons = module.getLessons().stream()
-                    .sorted(Comparator.comparingInt(Lesson::getSortOrder))
+                    .sorted(Comparator.comparingInt(Lesson::getSortOrder)) // [ĐÚNG: sortOrder]
                     .map(lesson -> mapToLessonResponse(lesson, isEnrolled, progressMap))
                     .collect(Collectors.toList());
         }
@@ -145,7 +164,7 @@ public class CourseService {
         return ModuleResponse.builder()
                 .moduleId(module.getModuleId())
                 .title(module.getTitle())
-                .order(module.getSortOrder())
+                .order(module.getSortOrder()) // [ĐÚNG: sortOrder]
                 .lessons(lessons)
                 .build();
     }
@@ -158,7 +177,7 @@ public class CourseService {
                 .videoUrl(isEnrolled ? lesson.getVideoUrl() : null)
                 .content(lesson.getContent())
                 .durationSeconds(lesson.getDurationSeconds())
-                .order(lesson.getSortOrder())
+                .order(lesson.getSortOrder()) // [ĐÚNG: sortOrder]
                 .userProgress(progressMap.getOrDefault(lesson.getLessonId(), 0.0))
                 .build();
     }
@@ -175,7 +194,6 @@ public class CourseService {
                 .build();
     }
 
-    // [FIX NULL] Sửa logic tính toán an toàn hơn
     private Integer calculateTotalLessons(Course course) {
         if (course.getModules() == null) return 0;
         return course.getModules().stream()

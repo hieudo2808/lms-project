@@ -1,6 +1,8 @@
 package com.seikyuuressha.lms.repository;
 
 import com.seikyuuressha.lms.entity.Course;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -19,4 +21,9 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     List<Course> findPublishedCourses(UUID categoryId);
     
     List<Course> findByInstructor_UserId(UUID instructorId);
+    
+    boolean existsBySlug(String slug);
+    
+    Page<Course> findByIsPublished(Boolean isPublished, Pageable pageable);
+    long countByIsPublished(Boolean isPublished);
 }

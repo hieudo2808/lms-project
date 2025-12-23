@@ -145,3 +145,86 @@ export const REORDER_LESSONS_MUTATION = gql`
     }
   }
 `;
+
+
+// === 4. QUIZ MUTATIONS (Bài kiểm tra) ===
+
+// Cập nhật thông tin quiz
+export const UPDATE_QUIZ_MUTATION = gql`
+  mutation UpdateQuiz($quizId: UUID!, $input: UpdateQuizInput!) {
+    updateQuiz(quizId: $quizId, input: $input) {
+      quizId
+      title
+      description
+      timeLimit
+      passingScore
+      maxAttempts
+      isPublished
+    }
+  }
+`;
+
+// Xóa câu hỏi
+export const DELETE_QUESTION_MUTATION = gql`
+  mutation DeleteQuestion($questionId: UUID!) {
+    deleteQuestion(questionId: $questionId)
+  }
+`;
+
+// --- [QUAN TRỌNG] Mutation tạo câu hỏi ---
+export const CREATE_QUESTION_MUTATION = gql`
+  mutation CreateQuestion($input: CreateQuestionInput!) {
+    createQuestion(input: $input) {
+      questionId
+      questionText
+      questionType
+    }
+  }
+`;
+
+// --- [QUAN TRỌNG] Mutation tạo câu trả lời ---
+export const CREATE_ANSWER_MUTATION = gql`
+  mutation CreateAnswer($input: CreateAnswerInput!) {
+    createAnswer(input: $input) {
+      answerId
+      answerText
+      isCorrect
+    }
+  }
+`;
+
+// --- Mutation cập nhật câu hỏi ---
+export const UPDATE_QUESTION_MUTATION = gql`
+  mutation UpdateQuestion($questionId: UUID!, $input: UpdateQuestionInput!) {
+    updateQuestion(questionId: $questionId, input: $input) {
+      questionId
+      questionText
+      questionType
+      points
+      explanation
+      answers {
+        answerId
+        answerText
+        isCorrect
+      }
+    }
+  }
+`;
+
+// --- Mutation cập nhật câu trả lời ---
+export const UPDATE_ANSWER_MUTATION = gql`
+  mutation UpdateAnswer($answerId: UUID!, $input: UpdateAnswerInput!) {
+    updateAnswer(answerId: $answerId, input: $input) {
+      answerId
+      answerText
+      isCorrect
+    }
+  }
+`;
+
+// --- Mutation xóa bài quiz ---
+export const DELETE_QUIZ_MUTATION = gql`
+  mutation DeleteQuiz($quizId: UUID!) {
+    deleteQuiz(quizId: $quizId)
+  }
+`;

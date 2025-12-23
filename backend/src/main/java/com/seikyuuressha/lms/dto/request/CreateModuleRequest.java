@@ -1,0 +1,25 @@
+package com.seikyuuressha.lms.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateModuleRequest {
+
+    @NotNull(message = "Course ID is required")
+    private UUID courseId;
+
+    @NotBlank(message = "Title is required")
+    private String title;
+
+    private Integer order;
+}

@@ -19,6 +19,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Course {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID) // Đây là dòng sửa lỗi DataSeeder
     UUID courseId;
 
     @Column(nullable = false, length = 200)
@@ -61,6 +62,22 @@ public class Course {
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     List<Enrollment> enrollments;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    List<Review> reviews;
+
+    // Computed fields - giữ nguyên theo ý bạn
+    @Transient
+    Integer totalLessons;
+
+    @Transient
+    Integer totalDuration; // in seconds
+
+    @Transient
+    Double averageRating;
+
+    @Transient
+    Long reviewCount;
 
     @PrePersist
     protected void onCreate() {

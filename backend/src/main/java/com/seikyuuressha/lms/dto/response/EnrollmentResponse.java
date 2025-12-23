@@ -1,7 +1,7 @@
 package com.seikyuuressha.lms.dto.response;
 
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Data
@@ -11,6 +11,7 @@ import java.util.UUID;
 public class EnrollmentResponse {
     private UUID enrollmentId;
     private CourseResponse course;
-    private LocalDateTime enrolledAt;
+    private OffsetDateTime enrolledAt;
     private Double progressPercent;
 }
+

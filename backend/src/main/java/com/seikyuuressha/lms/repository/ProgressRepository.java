@@ -13,4 +13,10 @@ public interface ProgressRepository extends JpaRepository<Progress, UUID> {
     Optional<Progress> findByUser_UserIdAndLesson_LessonId(UUID userId, UUID lessonId);
     List<Progress> findByUser_UserId(UUID userId);
     List<Progress> findByUser_UserIdAndLesson_Module_Course_CourseId(UUID userId, UUID courseId);
+    boolean existsByLesson_LessonId(UUID lessonId);
+    
+    // Helper method for finding progress by course and user
+    default List<Progress> findProgressByCourseAndUser(UUID courseId, UUID userId) {
+        return findByUser_UserIdAndLesson_Module_Course_CourseId(userId, courseId);
+    }
 }

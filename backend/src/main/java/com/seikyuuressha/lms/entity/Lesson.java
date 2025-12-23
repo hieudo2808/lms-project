@@ -17,6 +17,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Lesson {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     UUID lessonId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -42,4 +43,7 @@ public class Lesson {
 
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL)
     List<LessonResource> resources;
+
+    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL)
+    List<Comment> comments;
 }
