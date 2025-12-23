@@ -61,7 +61,10 @@ export interface Course {
   price?: number | null;   
   categoryName?: string | null;
   
-
+  // Rating & Reviews
+  rating?: number;
+  reviewCount?: number;
+  
   instructor?: Instructor | null; 
   
   createdAt?: string;

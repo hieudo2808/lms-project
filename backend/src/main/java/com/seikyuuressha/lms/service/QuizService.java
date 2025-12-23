@@ -247,6 +247,18 @@ public class QuizService {
         return true;
     }
 
+    @Transactional(readOnly = true)
+    public QuestionResponse getQuestionById(UUID questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElse(null);
+        
+        if (question == null) {
+            return null;
+        }
+        
+        return mapToQuestionResponse(question);
+    }
+
     @Transactional
     public QuizAttemptResponse startQuizAttempt(UUID quizId) {
         UUID userId = getCurrentUserId();

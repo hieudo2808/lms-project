@@ -54,8 +54,6 @@ export const GET_MY_QUIZ_ATTEMPTS = gql`
   query GetMyQuizAttempts($quizId: UUID!) {
     getMyQuizAttempts(quizId: $quizId) {
       attemptId
-      quizId
-      userId
       attemptNumber
       startTime
       endTime
@@ -66,10 +64,11 @@ export const GET_MY_QUIZ_ATTEMPTS = gql`
       passed
       userAnswers {
         answerId
-        attemptId
-        questionId
+        question {
+          questionId
+          questionText
+        }
         selectedAnswerId
-        userAnswer
         isCorrect
         pointsAwarded
       }

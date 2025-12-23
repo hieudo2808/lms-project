@@ -15,6 +15,7 @@ export { QuizTakingPage } from './student/QuizTakingPage';
 export { CertificatesPage } from './student/CertificatesPage';
 export { CourseProgressPage } from './student/CourseProgressPage';
 export { default as ProfileSettingsPage } from './student/ProfileSettingsPage';
+export { QuizHistoryPage } from './student/QuizHistoryPage';
 
 // Instructor Pages
 export { EditCoursePage } from './instructor/EditCoursePage';
