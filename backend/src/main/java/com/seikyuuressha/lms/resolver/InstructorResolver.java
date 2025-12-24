@@ -143,4 +143,10 @@ public class InstructorResolver {
     public List<Map<String, Object>> getStudentProgress(@Argument UUID courseId) {
         return instructorService.getStudentProgress(courseId);
     }
+
+    @QueryMapping
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    public long getTotalStudentsCount() {
+        return instructorService.getTotalStudentsCount();
+    }
 }

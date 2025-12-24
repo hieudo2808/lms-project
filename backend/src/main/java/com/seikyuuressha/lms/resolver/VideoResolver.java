@@ -34,8 +34,8 @@ public class VideoResolver {
      */
     @MutationMapping
     @PreAuthorize("hasRole('INSTRUCTOR')")
-    public VideoResponse confirmVideoUpload(@Argument UUID videoId) {
-        return videoService.confirmUpload(videoId);
+    public VideoResponse confirmVideoUpload(@Argument UUID videoId, @Argument Integer durationSeconds) {
+        return videoService.confirmUpload(videoId, durationSeconds);
     }
 
     /**

@@ -63,7 +63,7 @@ export const CoInstructorManager = ({ courseId, coInstructors, isOwner, refetch 
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold flex items-center gap-2">
                     <Users size={20} className="text-indigo-600" />
-                    Giảng viên ({coInstructors.length + 1})
+                    Giảng viên ({coInstructors.length})
                 </h2>
                 {isOwner && !showAddForm && (
                     <button

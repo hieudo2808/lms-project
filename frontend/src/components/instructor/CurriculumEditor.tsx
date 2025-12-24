@@ -430,10 +430,51 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                     <div className="mt-4 pl-10 border-t pt-4">
                                                                                         <VideoUploader
                                                                                             lessonId={lesson.lessonId}
-                                                                                            onUploadComplete={() => {
+                                                                                            onUploadComplete={(
+                                                                                                newVideoUrl,
+                                                                                            ) => {
+                                                                                                // 1. Đóng form upload
                                                                                                 setUploadingLessonId(
                                                                                                     null,
                                                                                                 );
+
+                                                                                                // 2. Cập nhật ngay lập tức vào localModules (Optimistic UI)
+                                                                                                if (newVideoUrl) {
+                                                                                                    setLocalModules(
+                                                                                                        (prevModules) =>
+                                                                                                            prevModules.map(
+                                                                                                                (m) => {
+                                                                                                                    if (
+                                                                                                                        m.moduleId !==
+                                                                                                                        module.moduleId
+                                                                                                                    )
+                                                                                                                        return m;
+                                                                                                                    return {
+                                                                                                                        ...m,
+                                                                                                                        lessons:
+                                                                                                                            m.lessons.map(
+                                                                                                                                (
+                                                                                                                                    l,
+                                                                                                                                ) => {
+                                                                                                                                    if (
+                                                                                                                                        l.lessonId !==
+                                                                                                                                        lesson.lessonId
+                                                                                                                                    )
+                                                                                                                                        return l;
+                                                                                                                                    return {
+                                                                                                                                        ...l,
+                                                                                                                                        videoUrl:
+                                                                                                                                            newVideoUrl,
+                                                                                                                                    };
+                                                                                                                                },
+                                                                                                                            ),
+                                                                                                                    };
+                                                                                                                },
+                                                                                                            ),
+                                                                                                    );
+                                                                                                }
+
+                                                                                                // 3. Refetch để đồng bộ dữ liệu thật từ server
                                                                                                 refetch();
                                                                                             }}
                                                                                         />

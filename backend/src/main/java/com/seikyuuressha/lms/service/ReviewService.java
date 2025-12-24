@@ -3,10 +3,10 @@ package com.seikyuuressha.lms.service;
 import com.seikyuuressha.lms.dto.request.CreateReviewRequest;
 import com.seikyuuressha.lms.dto.request.UpdateReviewRequest;
 import com.seikyuuressha.lms.dto.response.ReviewResponse;
-import com.seikyuuressha.lms.dto.response.UserResponse;
 import com.seikyuuressha.lms.entity.Course;
 import com.seikyuuressha.lms.entity.Review;
 import com.seikyuuressha.lms.entity.Users;
+import com.seikyuuressha.lms.mapper.ReviewMapper;
 import com.seikyuuressha.lms.repository.CourseRepository;
 import com.seikyuuressha.lms.repository.ReviewRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
@@ -29,6 +29,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final ReviewMapper reviewMapper;
 
     @Transactional
     public ReviewResponse createReview(CreateReviewRequest request) {
@@ -55,7 +56,7 @@ public class ReviewService {
                 .build();
 
         review = reviewRepository.save(review);
-        return mapToResponse(review);
+        return reviewMapper.toReviewResponse(review);
     }
 
     @Transactional
@@ -77,7 +78,7 @@ public class ReviewService {
         review.setUpdatedAt(OffsetDateTime.now()); // Explicitly set updatedAt
 
         review = reviewRepository.save(review);
-        return mapToResponse(review);
+        return reviewMapper.toReviewResponse(review);
     }
 
     @Transactional
@@ -104,7 +105,7 @@ public class ReviewService {
                 .findByCourseAndIsActiveOrderByCreatedAtDesc(course, true);
 
         return reviews.stream()
-                .map(this::mapToResponse)
+                .map(reviewMapper::toReviewResponse)
                 .collect(Collectors.toList());
     }
 
@@ -128,31 +129,7 @@ public class ReviewService {
         Review review = reviewRepository.findByUserAndCourse(user, course)
                 .orElse(null);
 
-        return review != null && review.getIsActive() ? mapToResponse(review) : null;
-    }
-
-    private ReviewResponse mapToResponse(Review review) {
-        UserResponse userResponse = UserResponse.builder()
-                .userId(review.getUser().getUserId())
-                .fullName(review.getUser().getFullName())
-                .email(review.getUser().getEmail())
-                .avatarUrl(review.getUser().getAvatarUrl())
-                .bio(review.getUser().getBio())
-                .roleName(review.getUser().getRole().getRoleName())
-                .createdAt(review.getUser().getCreatedAt())
-                .isActive(review.getUser().isActive())
-                .build();
-
-        return ReviewResponse.builder()
-                .reviewId(review.getReviewId())
-                .courseId(review.getCourse().getCourseId())
-                .user(userResponse)
-                .rating(review.getRating())
-                .comment(review.getComment())
-                .isActive(review.getIsActive())
-                .createdAt(review.getCreatedAt())
-                .updatedAt(review.getUpdatedAt())
-                .build();
+        return review != null && review.getIsActive() ? reviewMapper.toReviewResponse(review) : null;
     }
 
     private UUID getCurrentUserId() {

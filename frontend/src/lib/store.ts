@@ -28,6 +28,7 @@ export const useAuthStore = create<AuthStore>()(
             },
 
             logout: () => {
+                localStorage.removeItem('refresh_token');
                 set({ token: null, user: null });
             },
 

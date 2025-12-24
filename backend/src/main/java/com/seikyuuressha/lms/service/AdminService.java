@@ -2,6 +2,7 @@ package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.entity.*;
+import com.seikyuuressha.lms.mapper.*;
 import com.seikyuuressha.lms.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,9 @@ public class AdminService {
     private final CategoryRepository categoryRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final PaymentRepository paymentRepository;
+    private final UserMapper userMapper;
+    private final CategoryMapper categoryMapper;
+    private final PaymentMapper paymentMapper;
 
     // ==================== USER MANAGEMENT ====================
 
@@ -55,7 +59,7 @@ public class AdminService {
         }
 
         return usersPage.getContent().stream()
-                .map(this::mapToUserResponse)
+                .map(userMapper::toUserResponse)
                 .collect(Collectors.toList());
     }
 
@@ -76,7 +80,7 @@ public class AdminService {
         user = userRepository.save(user);
 
         log.info("User role updated. UserId: {}, NewRole: {}", userId, role.getRoleName());
-        return mapToUserResponse(user);
+        return userMapper.toUserResponse(user);
     }
 
     /**
@@ -351,7 +355,7 @@ public class AdminService {
         }
 
         return paymentsPage.getContent().stream()
-                .map(this::mapToPaymentResponse)
+                .map(paymentMapper::toPaymentResponse)
                 .collect(Collectors.toList());
     }
 
@@ -363,7 +367,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(this::mapToCategoryResponse)
+                .map(categoryMapper::toCategoryResponse)
                 .collect(Collectors.toList());
     }
 
@@ -385,7 +389,7 @@ public class AdminService {
 
         category = categoryRepository.save(category);
         log.info("Category created. CategoryId: {}, Name: {}", category.getCategoryId(), name);
-        return mapToCategoryResponse(category);
+        return categoryMapper.toCategoryResponse(category);
     }
 
     /**
@@ -413,7 +417,7 @@ public class AdminService {
 
         category = categoryRepository.save(category);
         log.info("Category updated. CategoryId: {}", categoryId);
-        return mapToCategoryResponse(category);
+        return categoryMapper.toCategoryResponse(category);
     }
 
     /**
@@ -434,29 +438,7 @@ public class AdminService {
         return true;
     }
 
-    private CategoryResponse mapToCategoryResponse(Categories category) {
-        return CategoryResponse.builder()
-                .categoryId(category.getCategoryId())
-                .name(category.getName())
-                .slug(category.getSlug())
-                .description(category.getDescription())
-                .build();
-    }
-
     // ==================== HELPER METHODS ====================
-
-    private UserResponse mapToUserResponse(Users user) {
-        return UserResponse.builder()
-                .userId(user.getUserId())
-                .fullName(user.getFullName())
-                .email(user.getEmail())
-                .avatarUrl(user.getAvatarUrl())
-                .bio(user.getBio())
-                .roleName(user.getRole().getRoleName())
-                .createdAt(user.getCreatedAt())
-                .isActive(user.isActive())
-                .build();
-    }
 
     private CourseResponse mapToCourseResponse(Course course) {
         return CourseResponse.builder()
@@ -468,35 +450,10 @@ public class AdminService {
                 .level(course.getLevel())
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
-                .instructor(mapToInstructorResponse(course.getInstructor()))
+                .instructor(userMapper.toInstructorResponse(course.getInstructor()))
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
                 .isPublished(course.isPublished())
-                .build();
-    }
-
-    private InstructorResponse mapToInstructorResponse(Users instructor) {
-        return InstructorResponse.builder()
-                .userId(instructor.getUserId())
-                .fullName(instructor.getFullName())
-                .email(instructor.getEmail())
-                .avatarUrl(instructor.getAvatarUrl())
-                .bio(instructor.getBio())
-                .build();
-    }
-
-    private PaymentResponse mapToPaymentResponse(Payment payment) {
-        return PaymentResponse.builder()
-                .paymentId(payment.getPaymentId())
-                .userId(payment.getUser().getUserId())
-                .courseId(payment.getCourse().getCourseId())
-                .enrollmentId(payment.getEnrollment() != null ? payment.getEnrollment().getEnrollmentId() : null)
-                .amount(payment.getAmount())
-                .paymentProvider(payment.getPaymentMethod())
-                .transactionId(payment.getTransactionId())
-                .paymentStatus(payment.getPaymentStatus())
-                .paidAt(payment.getPaidAt())
-                .createdAt(payment.getCreatedAt())
                 .build();
     }
 }

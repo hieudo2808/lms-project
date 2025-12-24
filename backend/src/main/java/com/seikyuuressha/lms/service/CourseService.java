@@ -3,6 +3,7 @@ package com.seikyuuressha.lms.service;
 import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.repository.CourseRepository;
+import com.seikyuuressha.lms.repository.CourseInstructorRepository;
 import com.seikyuuressha.lms.repository.EnrollmentRepository;
 import com.seikyuuressha.lms.repository.ProgressRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class CourseService {
 
     private final CourseRepository courseRepository;
+    private final CourseInstructorRepository courseInstructorRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ProgressRepository progressRepository;
     private final UserRepository userRepository;
@@ -109,6 +111,15 @@ public class CourseService {
     private CourseResponse mapToCourseResponse(Course course, UUID userId) {
         boolean isEnrolled = userId != null && 
                 enrollmentRepository.existsByUser_UserIdAndCourse_CourseId(userId, course.getCourseId());
+        
+        // Check if current user is instructor/co-instructor of this course
+        boolean isInstructor = userId != null && (
+                course.getInstructor().getUserId().equals(userId) ||
+                courseInstructorRepository.existsByCourseIdAndUserId(course.getCourseId(), userId)
+        );
+        
+        // Instructors and enrolled users can see video URLs
+        boolean canSeeVideo = isEnrolled || isInstructor;
 
         Map<UUID, Double> progressMap = new HashMap<>();
         if (userId != null) {
@@ -121,7 +132,7 @@ public class CourseService {
         if (course.getModules() != null) {
             modules = course.getModules().stream()
                     .sorted(Comparator.comparingInt(com.seikyuuressha.lms.entity.Module::getSortOrder)) // [ĐÚNG: sortOrder]
-                    .map(module -> mapToModuleResponse(module, isEnrolled, progressMap))
+                    .map(module -> mapToModuleResponse(module, canSeeVideo, progressMap))
                     .collect(Collectors.toList());
         }
 
@@ -173,9 +184,6 @@ public class CourseService {
             if (videoOpt.isPresent() && videoOpt.get().getProcessingStatus() == Video.ProcessingStatus.COMPLETED) {
                 // Return marker for frontend to call getVideoStreamUrl
                 videoUrl = "stream:" + lesson.getLessonId().toString();
-            } else {
-                // Fallback to old videoUrl field
-                videoUrl = lesson.getVideoUrl();
             }
         }
         

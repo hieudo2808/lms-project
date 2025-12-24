@@ -11,7 +11,6 @@ public class GraphQLConfig {
     @Bean
     public RuntimeWiringConfigurer runtimeWiringConfigurer() {
         return wiringBuilder -> wiringBuilder
-                // Sử dụng thư viện có sẵn 
                 .scalar(ExtendedScalars.GraphQLLong)       
                 .scalar(ExtendedScalars.GraphQLBigDecimal) 
                 .scalar(ExtendedScalars.DateTime)          

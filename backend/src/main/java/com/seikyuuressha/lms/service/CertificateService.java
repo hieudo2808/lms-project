@@ -11,6 +11,7 @@ import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.seikyuuressha.lms.dto.response.CertificateResponse;
 import com.seikyuuressha.lms.entity.*;
+import com.seikyuuressha.lms.mapper.CertificateMapper;
 import com.seikyuuressha.lms.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class CertificateService {
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ProgressRepository progressRepository;
+    private final CertificateMapper certificateMapper;
 
     @Value("${certificate.storage-path}")
     private String certificateStoragePath;
@@ -102,7 +104,7 @@ public class CertificateService {
                 .build();
 
         certificate = certificateRepository.save(certificate);
-        return mapToResponse(certificate);
+        return certificateMapper.toCertificateResponse(certificate);
     }
 
     @Transactional(readOnly = true)
@@ -113,7 +115,7 @@ public class CertificateService {
 
         List<Certificate> certificates = certificateRepository.findByUserOrderByIssuedAtDesc(user);
         return certificates.stream()
-                .map(this::mapToResponse)
+                .map(certificateMapper::toCertificateResponse)
                 .collect(Collectors.toList());
     }
 
@@ -129,7 +131,7 @@ public class CertificateService {
         Certificate certificate = certificateRepository.findByUserAndCourse(user, course)
                 .orElse(null);
 
-        return certificate != null ? mapToResponse(certificate) : null;
+        return certificate != null ? certificateMapper.toCertificateResponse(certificate) : null;
     }
 
     private void createCertificatePDF(String filePath, Users user, Course course,
@@ -229,21 +231,6 @@ public class CertificateService {
         String year = String.valueOf(OffsetDateTime.now().getYear());
         String randomPart = String.format("%06d", (int) (Math.random() * 1000000));
         return "LMS-" + year + "-" + randomPart;
-    }
-
-    private CertificateResponse mapToResponse(Certificate certificate) {
-        return CertificateResponse.builder()
-                .certificateId(certificate.getCertificateId())
-                .userId(certificate.getUser().getUserId())
-                .courseId(certificate.getCourse().getCourseId())
-                .certificateCode(certificate.getCertificateCode())
-                .pdfUrl(certificate.getPdfUrl())
-                .finalScore(certificate.getFinalScore())
-                .issuedAt(certificate.getIssuedAt())
-                .isValid(certificate.getIsValid())
-                .revokedAt(certificate.getRevokedAt())
-                .revocationReason(certificate.getRevokedReason())
-                .build();
     }
 
     private UUID getCurrentUserId() {

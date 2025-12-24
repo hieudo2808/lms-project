@@ -12,29 +12,35 @@ const GET_VIDEO_STREAM_URL = gql`
 interface VideoPlayerProps {
     videoUrl: string;
     title: string;
-    duration: number;
-    onProgress?: (currentTime: number, totalDuration: number) => void;
+    duration?: number;
+    onWatchedUpdate?: (watchedSeconds: number, totalDuration: number) => void;
 }
 
-export const VideoPlayer = ({ videoUrl, title, duration, onProgress }: VideoPlayerProps) => {
+export const VideoPlayer = ({ videoUrl, title, duration, onWatchedUpdate }: VideoPlayerProps) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [actualUrl, setActualUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const lastTimeRef = useRef<number>(0);
+    const accumulatedSecondsRef = useRef<number>(0);
 
-    const [getStreamUrl] = useLazyQuery(GET_VIDEO_STREAM_URL, {
+    const [getStreamUrl, { data: streamData, error: streamError }] = useLazyQuery(GET_VIDEO_STREAM_URL, {
         fetchPolicy: 'network-only',
-        onCompleted: (data) => {
-            if (data?.getVideoStreamUrl) {
-                setActualUrl(data.getVideoStreamUrl);
-                setIsLoading(false);
-            }
-        },
-        onError: (err) => {
-            setError(err.message);
-            setIsLoading(false);
-        },
     });
+
+    useEffect(() => {
+        if (streamData?.getVideoStreamUrl) {
+            setActualUrl(streamData.getVideoStreamUrl);
+            setIsLoading(false);
+        }
+    }, [streamData]);
+
+    useEffect(() => {
+        if (streamError) {
+            setError(streamError.message);
+            setIsLoading(false);
+        }
+    }, [streamError]);
 
     useEffect(() => {
         if (videoUrl && videoUrl.startsWith('stream:')) {
@@ -49,17 +55,28 @@ export const VideoPlayer = ({ videoUrl, title, duration, onProgress }: VideoPlay
 
     useEffect(() => {
         const video = videoRef.current;
-        if (!video) return;
+        if (!video || !actualUrl) return;
 
         const handleTimeUpdate = () => {
-            if (onProgress) {
-                onProgress(video.currentTime, duration * 60); // Convert minutes to seconds
+            const currentTime = video.currentTime;
+            const totalDuration = video.duration || 0;
+
+            // Only count forward progress (not seeking backwards)
+            const timeDelta = currentTime - lastTimeRef.current;
+            if (timeDelta > 0 && timeDelta < 2) {
+                // Normal playback (< 2 second jump)
+                accumulatedSecondsRef.current += timeDelta;
+            }
+            lastTimeRef.current = currentTime;
+
+            if (onWatchedUpdate && totalDuration > 0) {
+                onWatchedUpdate(Math.round(accumulatedSecondsRef.current), totalDuration);
             }
         };
 
         video.addEventListener('timeupdate', handleTimeUpdate);
         return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-    }, [duration, onProgress]);
+    }, [onWatchedUpdate, actualUrl]);
 
     if (isLoading) {
         return (
@@ -111,7 +128,7 @@ export const VideoPlayer = ({ videoUrl, title, duration, onProgress }: VideoPlay
             </div>
             <div className="p-4 bg-gray-50">
                 <h3 className="font-semibold text-gray-800">{title}</h3>
-                <p className="text-sm text-gray-500">⏱ {duration} phút</p>
+                {duration && <p className="text-sm text-gray-500">⏱ {duration} phút</p>}
             </div>
         </div>
     );

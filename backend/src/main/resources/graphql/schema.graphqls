@@ -45,6 +45,11 @@ type User {
   isActive: Boolean!
 }
 
+type Role {
+  roleId: UUID!
+  roleName: String!
+}
+
 type Instructor {
   userId: UUID!
   fullName: String!
@@ -196,11 +201,11 @@ type QuizAttempt {
 type QuizAnswer {
   answerId: UUID!
   attempt: QuizAttempt!
-  question: Question!
+  question: Question
   selectedAnswerId: UUID
   userAnswer: String
-  isCorrect: Boolean!
-  pointsAwarded: Int!
+  isCorrect: Boolean
+  pointsAwarded: Int
 }
 
 type Payment {
@@ -358,6 +363,7 @@ type Query {
   # Auth & User
   me: User!
   getUserById(userId: UUID!): User!
+  getAllRoles: [Role!]!
 
   # Categories
   getAllCategories: [Category!]!
@@ -459,13 +465,9 @@ type Video {
   fileSize: Long
   mimeType: String
   durationSeconds: Int
-  resolution: String
   processingStatus: String!
   streamUrl: String
-  thumbnailUrl: String
   uploadedAt: DateTime!
-  processedAt: DateTime
-  errorMessage: String
 }
 
 type PresignedUrl {
@@ -588,6 +590,7 @@ extend type Query {
   getCourseEnrollments(courseId: UUID!): [Enrollment!]!
   getCourseRevenue(courseId: UUID!): CourseRevenue!
   getStudentProgress(courseId: UUID!): [StudentProgress!]!
+  getTotalStudentsCount: Int!
 
   # Admin Dashboard
   getAllUsers(page: Int, limit: Int, roleName: String): [User!]!
@@ -601,7 +604,7 @@ extend type Query {
 extend type Mutation {
   # Video Upload
   generateVideoUploadUrl(input: VideoUploadInput!): PresignedUrl!
-  confirmVideoUpload(videoId: UUID!): Video!
+  confirmVideoUpload(videoId: UUID!, durationSeconds: Int): Video!
   deleteVideo(videoId: UUID!): Boolean!
 
   # Instructor - Course Management

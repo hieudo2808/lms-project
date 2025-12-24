@@ -13,18 +13,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VideoResponse {
-
     private UUID videoId;
     private UUID lessonId;
     private String originalFilename;
     private Long fileSize;
     private String mimeType;
     private Integer durationSeconds;
-    private String resolution;
     private String processingStatus;
     private String streamUrl;
-    private String thumbnailUrl;
     private OffsetDateTime uploadedAt;
-    private OffsetDateTime processedAt;
-    private String errorMessage;
 }

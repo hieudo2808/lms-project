@@ -3,6 +3,7 @@ package com.seikyuuressha.lms.service;
 import com.seikyuuressha.lms.dto.request.InitiatePaymentRequest;
 import com.seikyuuressha.lms.dto.response.PaymentResponse;
 import com.seikyuuressha.lms.entity.*;
+import com.seikyuuressha.lms.mapper.PaymentMapper;
 import com.seikyuuressha.lms.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final VNPayService vnPayService;
+    private final PaymentMapper paymentMapper;
 
     @Transactional
     public PaymentResponse initiatePayment(InitiatePaymentRequest request, HttpServletRequest httpRequest) {
@@ -77,7 +79,7 @@ public class PaymentService {
             throw new RuntimeException("Payment provider not supported yet");
         }
 
-        return mapToResponse(payment);
+        return paymentMapper.toPaymentResponse(payment);
     }
 
     @Transactional
@@ -107,7 +109,7 @@ public class PaymentService {
         }
 
         payment = paymentRepository.save(payment);
-        return mapToResponse(payment);
+        return paymentMapper.toPaymentResponse(payment);
     }
 
     @Transactional(readOnly = true)
@@ -118,7 +120,7 @@ public class PaymentService {
 
         List<Payment> payments = paymentRepository.findByUserOrderByCreatedAtDesc(user);
         return payments.stream()
-                .map(this::mapToResponse)
+                .map(paymentMapper::toPaymentResponse)
                 .collect(Collectors.toList());
     }
 
@@ -127,23 +129,7 @@ public class PaymentService {
         Payment payment = paymentRepository.findByTransactionId(transactionId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
-        return mapToResponse(payment);
-    }
-
-    private PaymentResponse mapToResponse(Payment payment) {
-        return PaymentResponse.builder()
-                .paymentId(payment.getPaymentId())
-                .userId(payment.getUser().getUserId())
-                .courseId(payment.getCourse().getCourseId())
-                .enrollmentId(payment.getEnrollment() != null ? payment.getEnrollment().getEnrollmentId() : null)
-                .amount(payment.getAmount())
-                .paymentProvider(payment.getPaymentMethod())
-                .transactionId(payment.getTransactionId())
-                .vnpayResponseCode(payment.getVnpayResponseCode())
-                .paymentStatus(payment.getPaymentStatus())
-                .paidAt(payment.getPaidAt())
-                .createdAt(payment.getCreatedAt())
-                .build();
+        return paymentMapper.toPaymentResponse(payment);
     }
 
     private UUID getCurrentUserId() {

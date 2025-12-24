@@ -3,6 +3,7 @@ package com.seikyuuressha.lms.service;
 import com.seikyuuressha.lms.dto.request.UpdateProfileRequest;
 import com.seikyuuressha.lms.dto.response.UserResponse;
 import com.seikyuuressha.lms.entity.Users;
+import com.seikyuuressha.lms.mapper.UserMapper;
 import com.seikyuuressha.lms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser() {
@@ -33,7 +35,7 @@ public class UserService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return mapToUserResponse(user);
+        return userMapper.toUserResponse(user);
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +44,7 @@ public class UserService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return mapToUserResponse(user);
+        return userMapper.toUserResponse(user);
     }
 
     @Transactional
@@ -71,19 +73,7 @@ public class UserService {
         }
 
         userRepository.save(user);
-        return mapToUserResponse(user);
+        return userMapper.toUserResponse(user);
     }
 
-    private UserResponse mapToUserResponse(Users user) {
-        return UserResponse.builder()
-                .userId(user.getUserId())
-                .fullName(user.getFullName())
-                .email(user.getEmail())
-                .avatarUrl(user.getAvatarUrl())
-                .bio(user.getBio())
-                .roleName(user.getRole().getRoleName())
-                .createdAt(user.getCreatedAt())
-                .isActive(user.isActive())
-                .build();
-    }
 }

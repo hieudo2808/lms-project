@@ -27,9 +27,6 @@ public class Lesson {
     @Column(nullable = false, length = 200)
     String title;
 
-    @Column(length = 255)
-    String videoUrl;
-
     @Column(columnDefinition = "NVARCHAR(MAX)")
     String content;
 

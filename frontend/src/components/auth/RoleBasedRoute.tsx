@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../lib/store';
 
 type Role = 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
@@ -9,17 +9,21 @@ interface RoleBasedRouteProps {
 }
 
 export const RoleBasedRoute = ({ allowedRoles, fallbackPath = '/' }: RoleBasedRouteProps) => {
-    const { user, _hasHydrated } = useAuthStore();
+    const { user, token, _hasHydrated } = useAuthStore();
+    const location = useLocation();
 
-    // Chờ Zustand rehydrate xong từ localStorage
     if (!_hasHydrated) {
-        return null; // hoặc Loading spinner
+        return null;
     }
 
     const userRole = user?.roleName as Role | undefined;
 
+    if (!token) {
+        return <Outlet />;
+    }
+
     if (!userRole || !allowedRoles.includes(userRole)) {
-        return <Navigate to={fallbackPath} replace />;
+        return <Navigate to={fallbackPath} replace state={{ from: location }} />;
     }
 
     return <Outlet />;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useMutation } from '@apollo/client';
+import { useMutation, useApolloClient } from '@apollo/client';
 import { toast } from 'react-toastify'; // Import thêm toast để thông báo đẹp hơn
 import { Layout } from '../../components/common/Layout';
 import { Input } from '../../components/common/Input';
@@ -21,6 +21,7 @@ interface LoginMutationVariables {
 
 export const LoginPage = () => {
     const navigate = useNavigate();
+    const client = useApolloClient();
     const { setAuth } = useAuthStore();
 
     const [email, setEmail] = useState('');
@@ -58,6 +59,7 @@ export const LoginPage = () => {
         setErrors({});
 
         try {
+            await client.resetStore();
             const { data } = await loginMutation({
                 variables: {
                     input: {
@@ -74,18 +76,17 @@ export const LoginPage = () => {
 
             const { token, user, refreshToken } = data.login;
 
-            // 1. Lưu token và user vào Zustand store
             localStorage.setItem('refresh_token', refreshToken);
             setAuth(token, user);
 
             toast.success(`Xin chào, ${user.fullName}!`);
 
             if (user.roleName === 'ADMIN') {
-                navigate('/admin/dashboard');
+                navigate('/admin/dashboard', { replace: true });
             } else if (user.roleName === 'INSTRUCTOR') {
-                navigate('/instructor/dashboard');
+                navigate('/instructor/dashboard', { replace: true });
             } else {
-                navigate('/dashboard/my-courses');
+                navigate('/dashboard/my-courses', { replace: true });
             }
         } catch (error: any) {
             console.error('Login error:', error);

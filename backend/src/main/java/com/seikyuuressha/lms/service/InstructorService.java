@@ -4,8 +4,9 @@ import com.seikyuuressha.lms.dto.request.*;
 import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.entity.Module;
+import com.seikyuuressha.lms.mapper.LessonMapper;
+import com.seikyuuressha.lms.mapper.UserMapper;
 import com.seikyuuressha.lms.repository.*;
-import com.seikyuuressha.lms.entity.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -33,6 +34,10 @@ public class InstructorService {
     private final UserRepository userRepository;
     private final CourseInstructorRepository courseInstructorRepository;
     private final RoleRepository roleRepository;
+    private final VideoRepository videoRepository;
+    private final QuizRepository quizRepository;
+    private final UserMapper userMapper;
+    private final LessonMapper lessonMapper;
 
     // ==================== COURSE MANAGEMENT ====================
 
@@ -294,7 +299,6 @@ public class InstructorService {
                 .module(module)
                 .title(request.getTitle())
                 .content(request.getContent())
-                .videoUrl(request.getVideoUrl())
                 .durationSeconds(request.getDurationSeconds())
                 .sortOrder(order)
                 .build();
@@ -302,7 +306,7 @@ public class InstructorService {
         lesson = lessonRepository.save(lesson);
         log.info("Lesson created. LessonId: {}, ModuleId: {}", lesson.getLessonId(), module.getModuleId());
 
-        return mapToLessonResponse(lesson);
+        return lessonMapper.toLessonResponseSimple(lesson);
     }
 
     /**
@@ -318,9 +322,6 @@ public class InstructorService {
         if (request.getContent() != null) {
             lesson.setContent(request.getContent());
         }
-        if (request.getVideoUrl() != null) {
-            lesson.setVideoUrl(request.getVideoUrl());
-        }
         if (request.getDurationSeconds() != null) {
             lesson.setDurationSeconds(request.getDurationSeconds());
         }
@@ -329,7 +330,7 @@ public class InstructorService {
         }
 
         lesson = lessonRepository.save(lesson);
-        return mapToLessonResponse(lesson);
+        return lessonMapper.toLessonResponseSimple(lesson);
     }
 
     /**
@@ -343,6 +344,27 @@ public class InstructorService {
         if (progressRepository.existsByLesson_LessonId(lessonId)) {
             throw new RuntimeException("Cannot delete lesson with student progress");
         }
+
+        // Cascade delete quiz-related data in correct order (due to FK NO ACTION constraints)
+        // 1. Delete QuizAnswerSelections (join table)
+        quizRepository.deleteQuizAnswerSelectionsByLessonId(lessonId);
+        // 2. Delete QuizAnswers
+        quizRepository.deleteQuizAnswersByLessonId(lessonId);
+        // 3. Delete QuizAttempts
+        quizRepository.deleteQuizAttemptsByLessonId(lessonId);
+        // 4. Delete Answers
+        quizRepository.deleteAnswersByLessonId(lessonId);
+        // 5. Delete Questions
+        quizRepository.deleteQuestionsByLessonId(lessonId);
+        // 6. Delete Quizzes
+        quizRepository.deleteByLesson_LessonId(lessonId);
+        log.info("Deleted quiz cascade for lesson. LessonId: {}", lessonId);
+
+        // Delete associated video
+        videoRepository.findByLesson_LessonId(lessonId).ifPresent(video -> {
+            videoRepository.delete(video);
+            log.info("Deleted video for lesson. VideoId: {}", video.getVideoId());
+        });
 
         lessonRepository.delete(lesson);
         log.info("Lesson deleted. LessonId: {}", lessonId);
@@ -380,7 +402,7 @@ public class InstructorService {
 
         return lessons.stream()
                 .sorted(Comparator.comparingInt(Lesson::getSortOrder))
-                .map(this::mapToLessonResponse)
+                .map(lessonMapper::toLessonResponseSimple)
                 .collect(Collectors.toList());
     }
 
@@ -436,6 +458,8 @@ public class InstructorService {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
 
         List<Enrollment> enrollments = enrollmentRepository.findByCourse_CourseId(courseId);
+        List<Lesson> allLessons = lessonRepository.findByCourseId(courseId);
+        int totalLessons = allLessons.size();
 
         return enrollments.stream()
                 .map(enrollment -> {
@@ -444,23 +468,44 @@ public class InstructorService {
                     studentData.put("fullName", enrollment.getUser().getFullName());
                     studentData.put("email", enrollment.getUser().getEmail());
                     studentData.put("enrolledAt", enrollment.getEnrolledAt());
-                    studentData.put("progressPercent", enrollment.getProgressPercent());
 
-                    // Get lesson progress
-                    List<Progress> progresses = progressRepository
-                            .findByUser_UserIdAndLesson_Module_Course_CourseId(
-                                    enrollment.getUser().getUserId(), courseId);
-                    
-                    long completedLessons = progresses.stream()
-                            .filter(p -> p.getProgressPercent() >= 100.0)
+                    // Calculate progress dynamically from lesson progress
+                    UUID userId = enrollment.getUser().getUserId();
+                    long completedLessons = allLessons.stream()
+                            .filter(lesson -> {
+                                Progress progress = progressRepository
+                                        .findByUser_UserIdAndLesson_LessonId(userId, lesson.getLessonId())
+                                        .orElse(null);
+                                return progress != null && progress.getProgressPercent() >= 80;
+                            })
                             .count();
-                    
+
+                    double progressPercent = totalLessons > 0
+                            ? (double) completedLessons / totalLessons * 100
+                            : 0.0;
+
+                    studentData.put("progressPercent", progressPercent);
                     studentData.put("completedLessons", completedLessons);
-                    studentData.put("totalLessons", calculateTotalLessons(course));
+                    studentData.put("totalLessons", totalLessons);
 
                     return studentData;
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get total unique students count across all instructor's courses
+     */
+    @Transactional(readOnly = true)
+    public long getTotalStudentsCount() {
+        Users instructor = getCurrentInstructor();
+        List<Course> courses = courseRepository.findByInstructor_UserId(instructor.getUserId());
+        
+        return courses.stream()
+                .flatMap(course -> enrollmentRepository.findByCourse_CourseId(course.getCourseId()).stream())
+                .map(enrollment -> enrollment.getUser().getUserId())
+                .distinct()
+                .count();
     }
 
     // ==================== HELPER METHODS ====================
@@ -653,7 +698,7 @@ public class InstructorService {
                 .level(course.getLevel())
                 .price(course.getPrice())
                 .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
-                .instructor(mapToInstructorResponse(course.getInstructor()))
+                .instructor(userMapper.toInstructorResponse(course.getInstructor()))
                 .createdAt(course.getCreatedAt())
                 .updatedAt(course.getUpdatedAt())
                 .isPublished(course.isPublished())
@@ -666,7 +711,16 @@ public class InstructorService {
         List<LessonResponse> lessons = module.getLessons() != null
                 ? module.getLessons().stream()
                         .sorted(Comparator.comparingInt(Lesson::getSortOrder))
-                        .map(this::mapToLessonResponse)
+                        .map(lesson -> {
+                            LessonResponse response = lessonMapper.toLessonResponseSimple(lesson);
+                            // Check if video exists for this lesson (for instructor view)
+                            var videoOpt = videoRepository.findByLesson_LessonId(lesson.getLessonId());
+                            if (videoOpt.isPresent()) {
+                                // Set indicator that video exists (actual or processing)
+                                response.setVideoUrl("video:" + lesson.getLessonId());
+                            }
+                            return response;
+                        })
                         .collect(Collectors.toList())
                 : Collections.emptyList();
 
@@ -675,27 +729,6 @@ public class InstructorService {
                 .title(module.getTitle())
                 .order(module.getSortOrder())
                 .lessons(lessons)
-                .build();
-    }
-
-    private LessonResponse mapToLessonResponse(Lesson lesson) {
-        return LessonResponse.builder()
-                .lessonId(lesson.getLessonId())
-                .title(lesson.getTitle())
-                .videoUrl(lesson.getVideoUrl())
-                .content(lesson.getContent())
-                .durationSeconds(lesson.getDurationSeconds())
-                .order(lesson.getSortOrder())
-                .build();
-    }
-
-    private InstructorResponse mapToInstructorResponse(Users instructor) {
-        return InstructorResponse.builder()
-                .userId(instructor.getUserId())
-                .fullName(instructor.getFullName())
-                .email(instructor.getEmail())
-                .avatarUrl(instructor.getAvatarUrl())
-                .bio(instructor.getBio())
                 .build();
     }
 

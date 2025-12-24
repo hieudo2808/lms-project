@@ -120,7 +120,7 @@ public class VideoService {
      * Confirm video upload and update status
      */
     @Transactional
-    public VideoResponse confirmUpload(UUID videoId) {
+    public VideoResponse confirmUpload(UUID videoId, Integer durationSeconds) {
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
 
@@ -143,18 +143,28 @@ public class VideoService {
                 video.setFileSize(response.contentLength());
             }
 
+            // Set duration on Video entity
+            if (durationSeconds != null && durationSeconds > 0) {
+                video.setDurationSeconds(durationSeconds);
+                
+                // Also update the Lesson's durationSeconds
+                Lesson lesson = video.getLesson();
+                lesson.setDurationSeconds(durationSeconds);
+                lessonRepository.save(lesson);
+                
+                log.info("Set video duration: {} seconds for VideoId: {}", durationSeconds, video.getVideoId());
+            }
+
             // Direct streaming: set COMPLETED immediately (no transcoding needed)
             video.setProcessingStatus(Video.ProcessingStatus.COMPLETED);
-            video.setProcessedAt(OffsetDateTime.now());
             video = videoRepository.save(video);
 
             log.info("Video uploaded and ready for streaming. VideoId: {}, S3Key: {}", video.getVideoId(), video.getS3Key());
 
         } catch (S3Exception e) {
             video.setProcessingStatus(Video.ProcessingStatus.FAILED);
-            video.setErrorMessage("File not found in S3: " + e.getMessage());
             videoRepository.save(video);
-            throw new RuntimeException("Video file not found in S3");
+            throw new RuntimeException("Video file not found in S3: " + e.getMessage());
         }
 
         return mapToVideoResponse(video);
@@ -173,8 +183,7 @@ public class VideoService {
         }
 
         // Generate S3 Presigned GET URL
-        String key = video.getHlsManifestKey() != null ? video.getHlsManifestKey() : video.getS3Key();
-        return generatePresignedGetUrl(key);
+        return generatePresignedGetUrl(video.getS3Key());
     }
 
     /**
@@ -247,20 +256,6 @@ public class VideoService {
 
             s3Client.deleteObject(deleteObjectRequest);
 
-            // Delete thumbnail if exists
-            if (video.getThumbnailS3Key() != null) {
-                DeleteObjectRequest deleteThumbnailRequest = DeleteObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(video.getThumbnailS3Key())
-                        .build();
-                s3Client.deleteObject(deleteThumbnailRequest);
-            }
-
-            // Delete HLS manifest if exists
-            if (video.getHlsManifestKey() != null) {
-                // TODO: Delete all HLS segments
-            }
-
             log.info("Video deleted from S3. VideoId: {}", videoId);
         } catch (S3Exception e) {
             log.error("Failed to delete video from S3: {}", e.getMessage());
@@ -272,43 +267,7 @@ public class VideoService {
         return true;
     }
 
-    /**
-     * Update video processing status (called by background job)
-     */
-    @Transactional
-    public VideoResponse updateProcessingStatus(UUID videoId, 
-                                                Video.ProcessingStatus status,
-                                                Integer durationSeconds,
-                                                String resolution,
-                                                String hlsManifestKey,
-                                                String thumbnailKey,
-                                                String errorMessage) {
-        Video video = videoRepository.findById(videoId)
-                .orElseThrow(() -> new RuntimeException("Video not found"));
 
-        video.setProcessingStatus(status);
-        video.setDurationSeconds(durationSeconds);
-        video.setResolution(resolution);
-        video.setHlsManifestKey(hlsManifestKey);
-        video.setThumbnailS3Key(thumbnailKey);
-        video.setErrorMessage(errorMessage);
-
-        if (status == Video.ProcessingStatus.COMPLETED || status == Video.ProcessingStatus.FAILED) {
-            video.setProcessedAt(OffsetDateTime.now());
-        }
-
-        video = videoRepository.save(video);
-
-        // Update lesson video URL if completed
-        if (status == Video.ProcessingStatus.COMPLETED) {
-            Lesson lesson = video.getLesson();
-            lesson.setVideoUrl(getVideoStreamUrl(lesson.getLessonId()));
-            lesson.setDurationSeconds(durationSeconds);
-            lessonRepository.save(lesson);
-        }
-
-        return mapToVideoResponse(video);
-    }
 
     // Helper methods
 
@@ -320,17 +279,12 @@ public class VideoService {
 
     private VideoResponse mapToVideoResponse(Video video) {
         String streamUrl = null;
-        String thumbnailUrl = null;
 
         if (video.getProcessingStatus() == Video.ProcessingStatus.COMPLETED) {
             try {
                 streamUrl = getVideoStreamUrl(video.getLesson().getLessonId());
             } catch (Exception e) {
                 log.warn("Failed to generate stream URL: {}", e.getMessage());
-            }
-
-            if (video.getThumbnailS3Key() != null) {
-                thumbnailUrl = generatePresignedGetUrl(video.getThumbnailS3Key());
             }
         }
 
@@ -341,13 +295,9 @@ public class VideoService {
                 .fileSize(video.getFileSize())
                 .mimeType(video.getMimeType())
                 .durationSeconds(video.getDurationSeconds())
-                .resolution(video.getResolution())
                 .processingStatus(video.getProcessingStatus().name())
                 .streamUrl(streamUrl)
-                .thumbnailUrl(thumbnailUrl)
                 .uploadedAt(video.getUploadedAt())
-                .processedAt(video.getProcessedAt())
-                .errorMessage(video.getErrorMessage())
                 .build();
     }
 

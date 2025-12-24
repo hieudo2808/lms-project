@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -324,24 +325,53 @@ public class QuizService {
         Integer pointsAwarded = 0;
 
         if (question.getType() == Question.QuestionType.SHORT_ANSWER) {
-            // For short answer, manual grading needed (for now, mark as incorrect)
             isCorrect = false;
         } else if (selectedAnswer != null) {
             isCorrect = selectedAnswer.getIsCorrect();
             pointsAwarded = isCorrect ? question.getPoints() : 0;
         }
 
-        QuizAnswer quizAnswer = QuizAnswer.builder()
-                .attempt(attempt)
-                .question(question)
-                .selectedAnswers(selectedAnswer != null ? List.of(selectedAnswer) : List.of())
-                .textAnswer(request.getUserAnswer())
-                .isCorrect(isCorrect)
-                .pointsEarned(pointsAwarded)
-                .build();
+        // Find existing answer or create new one (prevent duplicates)
+        QuizAnswer quizAnswer = quizAnswerRepository.findByAttemptAndQuestion(attempt, question)
+                .orElse(null);
+        
+        if (quizAnswer != null) {
+            // Update existing answer - clear and add to manage ManyToMany properly
+            quizAnswer.getSelectedAnswers().clear();
+            if (selectedAnswer != null) {
+                quizAnswer.getSelectedAnswers().add(selectedAnswer);
+            }
+            quizAnswer.setTextAnswer(request.getUserAnswer());
+            quizAnswer.setIsCorrect(isCorrect);
+            quizAnswer.setPointsEarned(pointsAwarded);
+        } else {
+            // Create new answer
+            List<Answer> answerList = new ArrayList<>();
+            if (selectedAnswer != null) {
+                answerList.add(selectedAnswer);
+            }
+            quizAnswer = QuizAnswer.builder()
+                    .attempt(attempt)
+                    .question(question)
+                    .selectedAnswers(answerList)
+                    .textAnswer(request.getUserAnswer())
+                    .isCorrect(isCorrect)
+                    .pointsEarned(pointsAwarded)
+                    .build();
+        }
 
         quizAnswer = quizAnswerRepository.save(quizAnswer);
-        return mapToQuizAnswerResponse(quizAnswer);
+        
+        // Return response WITHOUT isCorrect and pointsAwarded to prevent cheating
+        return QuizAnswerResponse.builder()
+                .answerId(quizAnswer.getQuizAnswerId())
+                .attemptId(quizAnswer.getAttempt().getAttemptId())
+                .questionId(quizAnswer.getQuestion().getQuestionId())
+                .selectedAnswerId(selectedAnswer != null ? selectedAnswer.getAnswerId() : null)
+                .userAnswer(quizAnswer.getTextAnswer())
+                .isCorrect(null)
+                .pointsAwarded(null)
+                .build();
     }
 
     @Transactional

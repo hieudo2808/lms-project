@@ -1,7 +1,9 @@
 package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.UpdateProfileRequest;
+import com.seikyuuressha.lms.dto.response.RoleResponse;
 import com.seikyuuressha.lms.dto.response.UserResponse;
+import com.seikyuuressha.lms.repository.RoleRepository;
 import com.seikyuuressha.lms.service.AdminService;
 import com.seikyuuressha.lms.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ public class UserResolver {
 
     private final UserService userService;
     private final AdminService adminService;
+    private final RoleRepository roleRepository;
 
     // ==================== USER QUERIES ====================
 
@@ -41,7 +45,16 @@ public class UserResolver {
         return userService.updateProfile(input);
     }
 
-    // ==================== ADMIN: USER MANAGEMENT ====================
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<RoleResponse> getAllRoles() {
+        return roleRepository.findAll().stream()
+                .map(role -> RoleResponse.builder()
+                        .roleId(role.getRoleId())
+                        .roleName(role.getRoleName())
+                        .build())
+                .collect(Collectors.toList());
+    }
 
     @QueryMapping
     @PreAuthorize("hasRole('ADMIN')")

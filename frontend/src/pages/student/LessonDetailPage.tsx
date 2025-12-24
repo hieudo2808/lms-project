@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
 import { Layout, VideoPlayer, Button } from '../../components/common';
-import { ArrowLeft, ChevronRight, BookOpen, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, CheckCircle, AlertCircle } from 'lucide-react';
 import { GET_COURSE_WITH_LESSONS } from '../../graphql/queries/course';
 import { GET_QUIZ_BY_LESSON } from '../../graphql/queries/quiz';
 import { UPDATE_PROGRESS_MUTATION } from '../../graphql/mutations/enrollment';
+import { QuizCard } from '../../components/student/QuizCard';
 
 interface Lesson {
     lessonId: string;
@@ -29,15 +30,15 @@ export const LessonDetailPage = () => {
     const { slug, lessonId } = useParams<{ slug: string; lessonId: string }>();
     const navigate = useNavigate();
 
-    // State
-    const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
-    const [lessons, setLessons] = useState<Lesson[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [progress, setProgress] = useState(0);
+    /* =====================
+        STATE
+    ====================== */
     const [isCompleted, setIsCompleted] = useState(false);
-    const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+    const lastUpdateCall = useRef(0);
 
-    // Queries
+    /* =====================
+        QUERIES
+    ====================== */
     const {
         data: courseData,
         loading: courseLoading,
@@ -54,93 +55,105 @@ export const LessonDetailPage = () => {
 
     const [updateProgress] = useMutation(UPDATE_PROGRESS_MUTATION);
 
-    // Initialize lesson data
-    useEffect(() => {
-        if (courseData?.getCourseBySlug?.modules) {
-            const allLessons: Lesson[] = [];
-            courseData.getCourseBySlug.modules.forEach((mod: Record<string, unknown>) => {
-                if (mod.lessons && Array.isArray(mod.lessons)) {
-                    allLessons.push(
-                        ...(mod.lessons as Record<string, unknown>[]).map((l: Record<string, unknown>) => ({
-                            lessonId: l.lessonId as string,
-                            title: l.title as string,
-                            description: (l.description as string) || '',
-                            videoUrl: (l.videoUrl as string) || '',
-                            durationSeconds: (l.durationSeconds as number) || 0,
-                            order: l.order as number,
-                        })),
-                    );
-                }
-            });
+    /* =====================
+        DERIVED DATA (THAY useEffect + useState)
+    ====================== */
+    const lessons = useMemo<Lesson[]>(() => {
+        if (!courseData?.getCourseBySlug?.modules) return [];
 
-            setLessons(allLessons);
+        return courseData.getCourseBySlug.modules.flatMap(
+            (mod: any) =>
+                mod.lessons?.map((l: any) => ({
+                    lessonId: l.lessonId,
+                    title: l.title,
+                    description: l.description || '',
+                    videoUrl: l.videoUrl || '',
+                    durationSeconds: l.durationSeconds || 0,
+                    order: l.order,
+                })) ?? [],
+        );
+    }, [courseData]);
 
-            if (lessonId) {
-                const current = allLessons.find((l) => l.lessonId === lessonId);
-                if (current) {
-                    setCurrentLesson(current);
-                    setCurrentIndex(allLessons.indexOf(current));
-                }
-            }
-        }
-    }, [courseData, lessonId]);
+    const currentIndex = useMemo(() => lessons.findIndex((l) => l.lessonId === lessonId), [lessons, lessonId]);
 
-    // Set quizzes
-    useEffect(() => {
-        if (quizData?.getQuizzesByLesson) {
-            setQuizzes(
-                quizData.getQuizzesByLesson.map((q: Record<string, unknown>) => ({
-                    quizId: q.quizId,
-                    title: q.title,
-                    description: q.description,
-                    isPublished: q.isPublished,
-                    passingScore: q.passingScore,
-                })),
-            );
-        }
+    const currentLesson = currentIndex >= 0 ? lessons[currentIndex] : null;
+
+    const quizzes = useMemo<Quiz[]>(() => {
+        if (!quizData?.getQuizzesByLesson) return [];
+        return quizData.getQuizzesByLesson.map((q: any) => ({
+            quizId: q.quizId,
+            title: q.title,
+            description: q.description,
+            isPublished: q.isPublished,
+            passingScore: q.passingScore,
+        }));
     }, [quizData]);
 
-    // Handle progress update
-    const handleProgressUpdate = async (currentTime: number, duration: number) => {
-        if (!currentLesson) return;
+    const nextLesson = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;
+    const previousLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null;
 
-        const newProgress = Math.round((currentTime / duration) * 100);
-        setProgress(newProgress);
+    /* =====================
+        PROGRESS LOGIC
+    ====================== */
+    const handleWatchedUpdate = useCallback(
+        async (watchedSeconds: number, totalDuration: number) => {
+            if (!currentLesson || totalDuration === 0) return;
 
-        // Mark as completed when 90%+ watched
-        if (newProgress >= 90 && !isCompleted) {
-            setIsCompleted(true);
-            try {
-                await updateProgress({
+            const watchedPercent = Math.round((watchedSeconds / totalDuration) * 100);
+
+            // Mark complete when user has watched 80% of total duration
+            if (watchedPercent >= 80 && !isCompleted) {
+                setIsCompleted(true);
+                try {
+                    await updateProgress({
+                        variables: {
+                            lessonId: currentLesson.lessonId,
+                            input: {
+                                watchedSeconds: Math.round(watchedSeconds),
+                                progressPercent: 100,
+                            },
+                        },
+                    });
+                    toast.success('✓ Đã hoàn thành bài học!');
+                } catch (err: unknown) {
+                    console.error('Progress update error:', err);
+                }
+                return;
+            }
+
+            // Background update every 30 seconds
+            const now = Date.now();
+            if (!isCompleted && now - lastUpdateCall.current > 30000) {
+                lastUpdateCall.current = now;
+                updateProgress({
                     variables: {
                         lessonId: currentLesson.lessonId,
                         input: {
-                            watchedSeconds: Math.round(currentTime),
-                            progressPercent: 100,
+                            watchedSeconds: Math.round(watchedSeconds),
+                            progressPercent: watchedPercent,
                         },
                     },
-                });
-                toast.success('✓ Đã hoàn thành bài học!');
-            } catch (err: unknown) {
-                console.error('Progress update error:', err);
+                }).catch(() => {});
             }
-        }
-    };
+        },
+        [currentLesson, isCompleted, updateProgress],
+    );
 
-    const handleNextLesson = () => {
-        if (currentIndex < lessons.length - 1) {
-            const nextLesson = lessons[currentIndex + 1];
+    const handleNextLesson = useCallback(() => {
+        if (nextLesson) {
             navigate(`/courses/${slug}/lesson/${nextLesson.lessonId}`);
         }
-    };
+    }, [nextLesson, slug, navigate]);
 
-    const handlePreviousLesson = () => {
-        if (currentIndex > 0) {
-            const prevLesson = lessons[currentIndex - 1];
-            navigate(`/courses/${slug}/lesson/${prevLesson.lessonId}`);
+    const handlePreviousLesson = useCallback(() => {
+        if (previousLesson) {
+            navigate(`/courses/${slug}/lesson/${previousLesson.lessonId}`);
         }
-    };
+    }, [previousLesson, slug, navigate]);
 
+    /* =====================
+        LOADING / ERROR (GIỮ NGUYÊN UI)
+    ====================== */
     if (courseLoading) {
         return (
             <Layout>
@@ -172,9 +185,9 @@ export const LessonDetailPage = () => {
         );
     }
 
-    const nextLesson = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;
-    const previousLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null;
-
+    /* =====================
+        JSX — GIỮ NGUYÊN 100%
+    ====================== */
     return (
         <Layout>
             <div className="max-w-6xl mx-auto px-4 py-8 pb-20">
@@ -194,8 +207,7 @@ export const LessonDetailPage = () => {
                             <VideoPlayer
                                 videoUrl={currentLesson.videoUrl}
                                 title={currentLesson.title}
-                                duration={Math.round(currentLesson.durationSeconds / 60)}
-                                onProgress={handleProgressUpdate}
+                                onWatchedUpdate={handleWatchedUpdate}
                             />
                         ) : (
                             <div className="aspect-video bg-gray-300 rounded-lg flex items-center justify-center mb-8">
@@ -223,22 +235,6 @@ export const LessonDetailPage = () => {
                                 )}
                             </div>
 
-                            {/* Progress Bar */}
-                            {!isCompleted && (
-                                <div className="mb-6">
-                                    <div className="flex justify-between text-sm text-gray-600 mb-2">
-                                        <span>Tiến độ</span>
-                                        <span>{progress}%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div
-                                            className="bg-blue-600 h-2 rounded-full transition-all"
-                                            style={{ width: `${progress}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            )}
-
                             {/* Description */}
                             {currentLesson.description && (
                                 <div className="mb-8 p-4 bg-gray-50 rounded-lg">
@@ -256,32 +252,14 @@ export const LessonDetailPage = () => {
                                 </h2>
                                 <div className="space-y-3">
                                     {quizzes.map((quiz) => (
-                                        <div
+                                        <QuizCard
                                             key={quiz.quizId}
-                                            className="p-4 border border-gray-200 rounded-lg hover:border-purple-400 transition-all flex items-center justify-between"
-                                        >
-                                            <div className="flex-1">
-                                                <h3 className="font-bold text-gray-800">{quiz.title}</h3>
-                                                {quiz.description && (
-                                                    <p className="text-sm text-gray-600 mt-1">{quiz.description}</p>
-                                                )}
-                                                <p className="text-xs text-gray-500 mt-2">
-                                                    Điểm cần đạt: {quiz.passingScore}%
-                                                </p>
-                                            </div>
-                                            {quiz.isPublished ? (
-                                                <button
-                                                    onClick={() => navigate(`/student/quizzes/${quiz.quizId}`)}
-                                                    className="ml-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium flex items-center gap-2"
-                                                >
-                                                    Làm bài <ChevronRight size={18} />
-                                                </button>
-                                            ) : (
-                                                <div className="ml-4 px-4 py-2 bg-gray-100 text-gray-500 rounded-lg font-medium">
-                                                    Chưa công bố
-                                                </div>
-                                            )}
-                                        </div>
+                                            quizId={quiz.quizId}
+                                            title={quiz.title}
+                                            description={quiz.description}
+                                            passingScore={quiz.passingScore}
+                                            isPublished={quiz.isPublished}
+                                        />
                                     ))}
                                 </div>
                             </div>

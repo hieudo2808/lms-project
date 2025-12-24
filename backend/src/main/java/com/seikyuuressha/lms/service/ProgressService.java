@@ -9,6 +9,7 @@ import com.seikyuuressha.lms.repository.EnrollmentRepository;
 import com.seikyuuressha.lms.repository.LessonRepository;
 import com.seikyuuressha.lms.repository.ProgressRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
+import com.seikyuuressha.lms.mapper.ProgressMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -27,11 +28,12 @@ public class ProgressService {
     private final UserRepository userRepository;
     private final LessonRepository lessonRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final ProgressMapper progressMapper;
 
     @Transactional
     public ProgressResponse updateProgress(UUID lessonId, UpdateProgressRequest request) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Users user = userRepository.findByEmail(email)
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Lesson lesson = lessonRepository.findById(lessonId)
@@ -66,13 +68,13 @@ public class ProgressService {
 
         progressRepository.save(progress);
 
-        return mapToProgressResponse(progress);
+        return progressMapper.toProgressResponse(progress);
     }
 
     @Transactional(readOnly = true)
     public List<ProgressResponse> getMyProgress(UUID courseId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Users user = userRepository.findByEmail(email)
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<Progress> progresses = courseId != null
@@ -80,30 +82,20 @@ public class ProgressService {
                 : progressRepository.findByUser_UserId(user.getUserId());
 
         return progresses.stream()
-                .map(this::mapToProgressResponse)
+                .map(progressMapper::toProgressResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public ProgressResponse getLessonProgress(UUID lessonId) {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Users user = userRepository.findByEmail(email)
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Progress progress = progressRepository
                 .findByUser_UserIdAndLesson_LessonId(user.getUserId(), lessonId)
                 .orElse(null);
 
-        return progress != null ? mapToProgressResponse(progress) : null;
-    }
-
-    private ProgressResponse mapToProgressResponse(Progress progress) {
-        return ProgressResponse.builder()
-                .lessonId(progress.getLesson().getLessonId())
-                .lessonTitle(progress.getLesson().getTitle())
-                .watchedSeconds(progress.getWatchedSeconds())
-                .progressPercent(progress.getProgressPercent())
-                .lastWatchedAt(progress.getLastWatchedAt())
-                .build();
+        return progress != null ? progressMapper.toProgressResponse(progress) : null;
     }
 }

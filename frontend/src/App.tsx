@@ -22,6 +22,8 @@ import {
     ProfileSettingsPage,
 } from './pages';
 
+import { QuizHistoryPage } from './pages/student/QuizHistoryPage';
+
 import { InstructorLayout } from './layouts/InstructorLayout';
 import { AdminLayout } from './layouts/AdminLayout';
 import { DashboardPage } from './pages/instructor/DashboardPage';
@@ -34,7 +36,7 @@ import { UsersPage as AdminUsersPage } from './pages/admin/UsersPage';
 import { CoursesPage as AdminCoursesPage } from './pages/admin/CoursesPage';
 import { CategoriesPage } from './pages/admin/CategoriesPage';
 
-import { ProtectedRoute, RoleBasedRoute } from './components/auth';
+import { ProtectedRoute, RoleBasedRoute, GuestRoute } from './components/auth';
 
 function App() {
     return (
@@ -43,12 +45,13 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/courses" element={<HomePage />} />
                 <Route path="/courses/:slug" element={<CourseDetailPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
 
-                {/* ================= PROTECTED ================= */}
+                <Route element={<GuestRoute />}>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                </Route>
+
                 <Route element={<ProtectedRoute />}>
-                    {/* ===== STUDENT ===== */}
                     <Route path="/dashboard/my-courses" element={<StudentDashboardPage />} />
                     <Route path="/dashboard/settings" element={<ProfileSettingsPage />} />
                     <Route path="/dashboard/certificates" element={<CertificatesPage />} />
@@ -56,8 +59,8 @@ function App() {
                     <Route path="/courses/:slug/progress" element={<CourseProgressPage />} />
                     <Route path="/courses/:slug/lesson/:lessonId" element={<LessonDetailPage />} />
                     <Route path="/student/quizzes/:quizId" element={<QuizTakingPage />} />
+                    <Route path="/student/quizzes/:quizId/history" element={<QuizHistoryPage />} />
 
-                    {/* ===== INSTRUCTOR (Role-based) ===== */}
                     <Route
                         element={
                             <RoleBasedRoute
@@ -83,7 +86,6 @@ function App() {
                         </Route>
                     </Route>
 
-                    {/* ===== ADMIN (Role-based) ===== */}
                     <Route element={<RoleBasedRoute allowedRoles={['ADMIN']} fallbackPath="/dashboard/my-courses" />}>
                         <Route path="/admin" element={<AdminLayout />}>
                             <Route index element={<Navigate to="dashboard" replace />} />
