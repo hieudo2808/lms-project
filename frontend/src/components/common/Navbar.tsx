@@ -52,9 +52,17 @@ export const Navbar = () => {
     }
 
     const handleLogout = async () => {
-        await client.clearStore(); // Clear Apollo cache
-        logout();
-        navigate('/login');
+        try {
+            // Clear Apollo cache và reset store
+            await client.clearStore();
+            await client.resetStore();
+            logout();
+            navigate('/login', { replace: true });
+        } catch (error) {
+            console.error('Logout error:', error);
+            logout();
+            navigate('/login', { replace: true });
+        }
     };
 
     const handleExplore = (level?: string) => {

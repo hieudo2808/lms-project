@@ -28,9 +28,16 @@ export const InstructorLayout = () => {
 
     // ===== LOGOUT HANDLER =====
     const handleLogout = async () => {
-        await client.clearStore(); // Clear Apollo cache
-        logout(); // clear token + user
-        navigate('/login'); // redirect
+        try {
+            await client.clearStore();
+            await client.resetStore();
+            logout();
+            navigate('/login', { replace: true });
+        } catch (error) {
+            console.error('Logout error:', error);
+            logout();
+            navigate('/login', { replace: true });
+        }
     };
 
     return (

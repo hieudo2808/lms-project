@@ -10,7 +10,9 @@ type MyCourse = Course & {
 };
 
 export const MyCoursesPage = () => {
-  const { data, loading, error } = useQuery(GET_MY_ENROLLMENTS);
+  const { data, loading, error } = useQuery(GET_MY_ENROLLMENTS, {
+    fetchPolicy: 'network-only', // Luôn fetch từ server, không dùng cache
+  });
   const [filterStatus, setFilterStatus] = useState<'all' | 'ongoing' | 'completed'>('all');
 
   const courses: MyCourse[] = data?.myEnrollments?.map((e: any) => ({
