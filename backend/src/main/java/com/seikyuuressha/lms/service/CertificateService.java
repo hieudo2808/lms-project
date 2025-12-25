@@ -7,7 +7,6 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.seikyuuressha.lms.dto.response.CertificateResponse;
 import com.seikyuuressha.lms.entity.*;
@@ -20,9 +19,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -39,13 +44,13 @@ public class CertificateService {
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ProgressRepository progressRepository;
+    private final LessonRepository lessonRepository;
     private final CertificateMapper certificateMapper;
+    private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
-    @Value("${certificate.storage-path}")
-    private String certificateStoragePath;
-
-    @Value("${certificate.base-url}")
-    private String certificateBaseUrl;
+    @Value("${aws.s3.bucket-name}")
+    private String bucketName;
 
     @Transactional
     public CertificateResponse generateCertificate(UUID courseId) {
@@ -60,9 +65,26 @@ public class CertificateService {
         Enrollment enrollment = enrollmentRepository.findByUserAndCourse(user, course)
                 .orElseThrow(() -> new RuntimeException("Not enrolled in this course"));
 
-        // Check if course is completed
-        if (enrollment.getProgressPercent() < 90.0f) {
-            throw new RuntimeException("Course not completed yet. Required: 90% progress");
+        // Calculate progress dynamically (lessons with >= 80% watched)
+        List<Lesson> allLessons = lessonRepository.findByCourseId(courseId);
+        int totalLessons = allLessons.size();
+        
+        long completedLessons = allLessons.stream()
+                .filter(lesson -> {
+                    Progress progress = progressRepository
+                            .findByUser_UserIdAndLesson_LessonId(userId, lesson.getLessonId())
+                            .orElse(null);
+                    return progress != null && progress.getProgressPercent() >= 80;
+                })
+                .count();
+
+        double progressPercent = totalLessons > 0 
+                ? (double) completedLessons / totalLessons * 100 
+                : 0.0;
+
+        // Check if course is completed (>= 90%)
+        if (progressPercent < 90.0) {
+            throw new RuntimeException("Course not completed yet. Required: 90% progress. Current: " + Math.round(progressPercent) + "%");
         }
 
         // Check if certificate already exists
@@ -81,30 +103,44 @@ public class CertificateService {
         // Generate certificate code
         String certificateCode = generateCertificateCode();
 
-        // Generate PDF
-        String pdfFileName = certificateCode + ".pdf";
-        String pdfPath = certificateStoragePath + "/" + pdfFileName;
-        String pdfUrl = certificateBaseUrl + "/" + pdfFileName;
-
+        // Generate PDF and upload to S3
+        String s3Key = "certificates/" + certificateCode + ".pdf";
+        
         try {
-            createCertificatePDF(pdfPath, user, course, certificateCode, finalScore);
+            byte[] pdfBytes = createCertificatePDF(user, course, certificateCode, finalScore);
+            
+            // Upload to S3
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(s3Key)
+                            .contentType("application/pdf")
+                            .build(),
+                    RequestBody.fromBytes(pdfBytes)
+            );
+            
+            log.info("Certificate PDF uploaded to S3: {}", s3Key);
         } catch (Exception e) {
-            log.error("Failed to generate certificate PDF", e);
-            throw new RuntimeException("Failed to generate certificate PDF");
+            log.error("Failed to generate/upload certificate PDF", e);
+            throw new RuntimeException("Failed to generate certificate PDF: " + e.getMessage());
         }
 
-        // Save certificate record
+        // Save certificate record with S3 key
         Certificate certificate = Certificate.builder()
                 .user(user)
                 .course(course)
                 .certificateCode(certificateCode)
-                .pdfUrl(pdfUrl)
+                .pdfUrl(s3Key)  // Store S3 key instead of URL
                 .finalScore(finalScore)
                 .isValid(true)
                 .build();
 
         certificate = certificateRepository.save(certificate);
-        return certificateMapper.toCertificateResponse(certificate);
+        
+        // Return response with presigned URL
+        CertificateResponse response = certificateMapper.toCertificateResponse(certificate);
+        response.setPdfUrl(generatePresignedUrl(s3Key));
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -115,7 +151,13 @@ public class CertificateService {
 
         List<Certificate> certificates = certificateRepository.findByUserOrderByIssuedAtDesc(user);
         return certificates.stream()
-                .map(certificateMapper::toCertificateResponse)
+                .map(cert -> {
+                    CertificateResponse response = certificateMapper.toCertificateResponse(cert);
+                    if (cert.getPdfUrl() != null) {
+                        response.setPdfUrl(generatePresignedUrl(cert.getPdfUrl()));
+                    }
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -131,100 +173,220 @@ public class CertificateService {
         Certificate certificate = certificateRepository.findByUserAndCourse(user, course)
                 .orElse(null);
 
-        return certificate != null ? certificateMapper.toCertificateResponse(certificate) : null;
-    }
-
-    private void createCertificatePDF(String filePath, Users user, Course course,
-                                     String certificateCode, Double finalScore) throws Exception {
-        // Ensure directory exists
-        File directory = new File(certificateStoragePath);
-        if (!directory.exists()) {
-            directory.mkdirs();
+        if (certificate == null) {
+            return null;
         }
 
-        // Create PDF
-        PdfWriter writer = new PdfWriter(new FileOutputStream(filePath));
-        PdfDocument pdfDoc = new PdfDocument(writer);
-        Document document = new Document(pdfDoc);
+        CertificateResponse response = certificateMapper.toCertificateResponse(certificate);
+        if (certificate.getPdfUrl() != null) {
+            response.setPdfUrl(generatePresignedUrl(certificate.getPdfUrl()));
+        }
+        return response;
+    }
 
-        // Add certificate content
+    private String generatePresignedUrl(String s3Key) {
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofHours(1))
+                .getObjectRequest(GetObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(s3Key)
+                        .build())
+                .build();
+
+        return s3Presigner.presignGetObject(presignRequest).url().toString();
+    }
+
+    private byte[] createCertificatePDF(Users user, Course course,
+                                        String certificateCode, Double finalScore) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        
+        PdfWriter writer = new PdfWriter(baos);
+        PdfDocument pdfDoc = new PdfDocument(writer);
+        
+        // Set landscape page size
+        pdfDoc.setDefaultPageSize(com.itextpdf.kernel.geom.PageSize.A4.rotate());
+        Document document = new Document(pdfDoc);
+        document.setMargins(40, 60, 40, 60);
+
+        // Get page dimensions
+        float pageWidth = pdfDoc.getDefaultPageSize().getWidth();
+        float pageHeight = pdfDoc.getDefaultPageSize().getHeight();
+
+        // Draw gradient background
+        com.itextpdf.kernel.pdf.canvas.PdfCanvas canvas = new com.itextpdf.kernel.pdf.canvas.PdfCanvas(pdfDoc.addNewPage());
+        
+        // Purple gradient effect (draw multiple rectangles)
+        com.itextpdf.kernel.colors.DeviceRgb darkPurple = new com.itextpdf.kernel.colors.DeviceRgb(45, 27, 105);
+        com.itextpdf.kernel.colors.DeviceRgb mediumPurple = new com.itextpdf.kernel.colors.DeviceRgb(88, 28, 135);
+        
+        canvas.saveState();
+        canvas.setFillColor(darkPurple);
+        canvas.rectangle(0, 0, pageWidth, pageHeight);
+        canvas.fill();
+        
+        // Add decorative corner triangles
+        canvas.setFillColor(mediumPurple);
+        canvas.moveTo(0, pageHeight);
+        canvas.lineTo(200, pageHeight);
+        canvas.lineTo(0, pageHeight - 150);
+        canvas.closePathFillStroke();
+        
+        canvas.moveTo(pageWidth, 0);
+        canvas.lineTo(pageWidth - 200, 0);
+        canvas.lineTo(pageWidth, 150);
+        canvas.closePathFillStroke();
+        canvas.restoreState();
+
+        // Draw border
+        com.itextpdf.kernel.colors.DeviceRgb gold = new com.itextpdf.kernel.colors.DeviceRgb(212, 175, 55);
+        canvas.saveState();
+        canvas.setStrokeColor(gold);
+        canvas.setLineWidth(3);
+        canvas.rectangle(30, 30, pageWidth - 60, pageHeight - 60);
+        canvas.stroke();
+        canvas.restoreState();
+
+        // Fonts
         PdfFont boldFont = PdfFontFactory.createFont();
         PdfFont regularFont = PdfFontFactory.createFont();
 
-        // Title
-        Paragraph title = new Paragraph("CERTIFICATE OF COMPLETION")
+        // Gold medal/ribbon symbol using Unicode
+        Paragraph medal = new Paragraph("🏆")
+                .setFontSize(60)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setMarginTop(20);
+        document.add(medal);
+
+        // "CERTIFICATE" title
+        Paragraph certTitle = new Paragraph("CERTIFICATE")
                 .setFont(boldFont)
-                .setFontSize(32)
+                .setFontSize(48)
                 .setBold()
                 .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(ColorConstants.BLUE)
-                .setMarginTop(100);
-        document.add(title);
+                .setFontColor(gold)
+                .setMarginTop(-20);
+        document.add(certTitle);
 
-        // Subtitle
-        Paragraph subtitle = new Paragraph("This is to certify that")
+        // "OF COMPLETION" subtitle
+        Paragraph ofCompletion = new Paragraph("OF COMPLETION")
                 .setFont(regularFont)
-                .setFontSize(18)
+                .setFontSize(20)
                 .setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(30);
-        document.add(subtitle);
+                .setFontColor(ColorConstants.WHITE)
+                .setMarginTop(5);
+        document.add(ofCompletion);
 
-        // User name
-        Paragraph userName = new Paragraph(user.getFullName())
+        // Decorative line
+        Paragraph line1 = new Paragraph("─────────────────────")
+                .setFontSize(14)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setFontColor(gold)
+                .setMarginTop(15);
+        document.add(line1);
+
+        // "This certifies that"
+        Paragraph thisCertifies = new Paragraph("This certifies that")
+                .setFont(regularFont)
+                .setFontSize(14)
+                .setTextAlignment(TextAlignment.CENTER)
+                .setFontColor(ColorConstants.LIGHT_GRAY)
+                .setMarginTop(15);
+        document.add(thisCertifies);
+
+        // Student name
+        Paragraph studentName = new Paragraph(user.getFullName())
                 .setFont(boldFont)
-                .setFontSize(28)
+                .setFontSize(36)
                 .setBold()
                 .setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(20)
-                .setFontColor(ColorConstants.DARK_GRAY);
-        document.add(userName);
+                .setFontColor(ColorConstants.WHITE)
+                .setMarginTop(10);
+        document.add(studentName);
 
-        // Course completion text
-        Paragraph completionText = new Paragraph("has successfully completed the course")
+        // "has successfully completed the course"
+        Paragraph hasCompleted = new Paragraph("has successfully completed the course")
                 .setFont(regularFont)
-                .setFontSize(18)
+                .setFontSize(14)
                 .setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(30);
-        document.add(completionText);
+                .setFontColor(ColorConstants.LIGHT_GRAY)
+                .setMarginTop(15);
+        document.add(hasCompleted);
 
         // Course title
         Paragraph courseTitle = new Paragraph(course.getTitle())
                 .setFont(boldFont)
-                .setFontSize(24)
+                .setFontSize(28)
                 .setBold()
                 .setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(20)
-                .setFontColor(ColorConstants.BLUE);
+                .setFontColor(gold)
+                .setMarginTop(10);
         document.add(courseTitle);
 
-        // Final score
-        Paragraph score = new Paragraph(String.format("Final Score: %.2f%%", finalScore))
-                .setFont(regularFont)
+        // Score badge
+        Paragraph scoreBadge = new Paragraph(String.format("Score: %.0f%%", finalScore))
+                .setFont(boldFont)
                 .setFontSize(16)
                 .setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(30);
-        document.add(score);
+                .setFontColor(ColorConstants.WHITE)
+                .setMarginTop(20);
+        document.add(scoreBadge);
 
-        // Date
-        String dateStr = OffsetDateTime.now().format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
-        Paragraph date = new Paragraph("Date: " + dateStr)
-                .setFont(regularFont)
-                .setFontSize(14)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(40);
-        document.add(date);
+        // Bottom section with date and signature
+        String dateStr = OffsetDateTime.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy"));
+        
+        // Create a table for bottom section
+        com.itextpdf.layout.element.Table bottomTable = new com.itextpdf.layout.element.Table(2);
+        bottomTable.setWidth(com.itextpdf.layout.properties.UnitValue.createPercentValue(80));
+        bottomTable.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
+        bottomTable.setMarginTop(30);
+        
+        // Date cell
+        com.itextpdf.layout.element.Cell dateCell = new com.itextpdf.layout.element.Cell()
+                .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
+                .add(new Paragraph("_____________________")
+                        .setFontColor(gold)
+                        .setTextAlignment(TextAlignment.CENTER)
+                        .setFontSize(12))
+                .add(new Paragraph(dateStr)
+                        .setFontColor(ColorConstants.WHITE)
+                        .setTextAlignment(TextAlignment.CENTER)
+                        .setFontSize(10))
+                .add(new Paragraph("Date")
+                        .setFontColor(ColorConstants.LIGHT_GRAY)
+                        .setTextAlignment(TextAlignment.CENTER)
+                        .setFontSize(10));
+        bottomTable.addCell(dateCell);
+        
+        // Signature cell
+        com.itextpdf.layout.element.Cell signatureCell = new com.itextpdf.layout.element.Cell()
+                .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
+                .add(new Paragraph("_____________________")
+                        .setFontColor(gold)
+                        .setTextAlignment(TextAlignment.CENTER)
+                        .setFontSize(12))
+                .add(new Paragraph("LMS Platform")
+                        .setFontColor(ColorConstants.WHITE)
+                        .setTextAlignment(TextAlignment.CENTER)
+                        .setFontSize(10))
+                .add(new Paragraph("Signature")
+                        .setFontColor(ColorConstants.LIGHT_GRAY)
+                        .setTextAlignment(TextAlignment.CENTER)
+                        .setFontSize(10));
+        bottomTable.addCell(signatureCell);
+        
+        document.add(bottomTable);
 
-        // Certificate code
-        Paragraph code = new Paragraph("Certificate Code: " + certificateCode)
+        // Certificate code at bottom
+        Paragraph codeText = new Paragraph("Certificate ID: " + certificateCode)
                 .setFont(regularFont)
-                .setFontSize(12)
+                .setFontSize(10)
                 .setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(20)
-                .setFontColor(ColorConstants.GRAY);
-        document.add(code);
+                .setFontColor(ColorConstants.GRAY)
+                .setMarginTop(20);
+        document.add(codeText);
 
         document.close();
-        log.info("Certificate PDF generated: {}", filePath);
+        return baos.toByteArray();
     }
 
     private String generateCertificateCode() {
@@ -238,10 +400,8 @@ public class CertificateService {
         String userIdStr = authentication.getName();
         
         try {
-            // Token chứa UUID -> Parse trực tiếp
             return UUID.fromString(userIdStr);
         } catch (IllegalArgumentException e) {
-            // Fallback: Nếu token chứa email (trường hợp cũ)
             Users user = userRepository.findByEmail(userIdStr)
                     .orElseThrow(() -> new RuntimeException("User not found by email/id: " + userIdStr));
             return user.getUserId();
