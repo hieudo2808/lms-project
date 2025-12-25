@@ -5,7 +5,6 @@ import com.seikyuuressha.lms.dto.response.PaymentResponse;
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.mapper.PaymentMapper;
 import com.seikyuuressha.lms.repository.*;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -32,7 +32,7 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
 
     @Transactional
-    public PaymentResponse initiatePayment(InitiatePaymentRequest request, HttpServletRequest httpRequest) {
+    public PaymentResponse initiatePayment(InitiatePaymentRequest request, String ipAddress) {
         UUID userId = getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -40,26 +40,38 @@ public class PaymentService {
         Course course = courseRepository.findById(request.getCourseId())
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Check if already enrolled
-        if (enrollmentRepository.existsByUserAndCourse(user, course)) {
-            throw new RuntimeException("Already enrolled in this course");
+        // Check if already enrolled with successful payment
+        Optional<Enrollment> existingEnrollment = enrollmentRepository.findByUserAndCourse(user, course);
+        Enrollment enrollment;
+        
+        if (existingEnrollment.isPresent()) {
+            enrollment = existingEnrollment.get();
+            Optional<Payment> existingPayment = paymentRepository.findByEnrollment_EnrollmentId(enrollment.getEnrollmentId());
+            
+            if (existingPayment.isPresent() && "SUCCESS".equals(existingPayment.get().getPaymentStatus())) {
+                throw new RuntimeException("Already enrolled in this course");
+            }
+            
+            // If payment is PENDING or FAILED, delete old payment and create new one
+            if (existingPayment.isPresent()) {
+                paymentRepository.delete(existingPayment.get());
+            }
+        } else {
+            // Create new enrollment
+            enrollment = Enrollment.builder()
+                    .enrollmentId(UUID.randomUUID())
+                    .user(user)
+                    .course(course)
+                    .progressPercent(0.0)
+                    .build();
+            enrollment = enrollmentRepository.save(enrollment);
         }
-
-        // Create enrollment (pending payment)
-        Enrollment enrollment = Enrollment.builder()
-                .enrollmentId(UUID.randomUUID())
-                .user(user)
-                .course(course)
-                .progressPercent(0.0)
-                .build();
-        enrollment = enrollmentRepository.save(enrollment);
 
         // Generate transaction ID
         String transactionId = vnPayService.generateTransactionId();
 
         // Create payment record
         Payment payment = Payment.builder()
-                .paymentId(UUID.randomUUID())
                 .user(user)
                 .course(course)
                 .enrollment(enrollment)
@@ -73,17 +85,18 @@ public class PaymentService {
         // Generate payment URL based on provider
         String paymentUrl;
         if ("VNPAY".equals(request.getPaymentProvider())) {
-            String ipAddress = getClientIP(httpRequest);
             paymentUrl = vnPayService.createPaymentUrl(payment, course, ipAddress);
         } else {
             throw new RuntimeException("Payment provider not supported yet");
         }
 
-        return paymentMapper.toPaymentResponse(payment);
+        PaymentResponse response = paymentMapper.toPaymentResponse(payment);
+        response.setPaymentUrl(paymentUrl);
+        return response;
     }
 
     @Transactional
-    public PaymentResponse confirmPayment(String transactionId, Map<String, String> params) {
+    public PaymentResponse confirmPayment(String transactionId, String vnpResponseCode) {
         Payment payment = paymentRepository.findByTransactionId(transactionId)
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
 
@@ -91,21 +104,15 @@ public class PaymentService {
             throw new RuntimeException("Payment already processed");
         }
 
-        // Validate callback based on provider
-        if ("VNPAY".equals(payment.getPaymentMethod())) {
-            if (!vnPayService.validateCallback(params)) {
-                payment.setPaymentStatus("FAILED");
-                paymentRepository.save(payment);
-                throw new RuntimeException("Invalid payment callback signature");
-            }
+        if (!"VNPAY".equals(payment.getPaymentMethod())) {
+            throw new RuntimeException("Payment provider not supported for confirmation");
+        }
 
-            String vnpResponseCode = params.get("vnp_ResponseCode");
-            payment.setVnpayResponseCode(vnpResponseCode);
-            payment.setPaymentStatus(vnPayService.getPaymentStatus(vnpResponseCode));
-            
-            if (payment.isSuccess()) {
-                payment.setPaidAt(OffsetDateTime.now());
-            }
+        payment.setVnpayResponseCode(vnpResponseCode);
+        payment.setPaymentStatus(vnPayService.getPaymentStatus(vnpResponseCode));
+
+        if (payment.isSuccess()) {
+            payment.setPaidAt(OffsetDateTime.now());
         }
 
         payment = paymentRepository.save(payment);
@@ -135,13 +142,5 @@ public class PaymentService {
     private UUID getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return UUID.fromString(authentication.getName());
-    }
-
-    private String getClientIP(HttpServletRequest request) {
-        String xfHeader = request.getHeader("X-Forwarded-For");
-        if (xfHeader == null) {
-            return request.getRemoteAddr();
-        }
-        return xfHeader.split(",")[0];
     }
 }

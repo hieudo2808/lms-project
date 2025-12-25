@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.graphql.data.method.annotation.Argument;
-import org.springframework.graphql.data.method.annotation.ContextValue;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,15 +38,30 @@ public class PaymentResolver {
     }
 
     @MutationMapping
-    public PaymentResponse initiatePayment(@Argument InitiatePaymentRequest input, 
-                                          @ContextValue HttpServletRequest request) {
-        return paymentService.initiatePayment(input, request);
+    public PaymentResponse initiatePayment(@Argument InitiatePaymentRequest input) {
+        HttpServletRequest request = getCurrentRequest();
+        String ipAddress = getClientIP(request);
+        return paymentService.initiatePayment(input, ipAddress);
     }
 
     @MutationMapping
-    public PaymentResponse confirmPayment(@Argument String transactionId, 
-                                         @Argument Map<String, String> params) {
-        return paymentService.confirmPayment(transactionId, params);
+    public PaymentResponse confirmPayment(@Argument String transactionId,
+                                          @Argument("vnp_ResponseCode") String vnpResponseCode) {
+        return paymentService.confirmPayment(transactionId, vnpResponseCode);
+    }
+
+    private HttpServletRequest getCurrentRequest() {
+        return ((org.springframework.web.context.request.ServletRequestAttributes) 
+                org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes())
+                .getRequest();
+    }
+
+    private String getClientIP(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0];
     }
 
     // ==================== ADMIN: PAYMENT REPORTS ====================

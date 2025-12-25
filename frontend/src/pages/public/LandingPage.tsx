@@ -11,40 +11,13 @@ import {
   GraduationCap,
   Sparkles
 } from 'lucide-react';
+import { Navbar } from '../../components/common/Navbar';
 
 export const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* ===== NAVBAR ===== */}
-      <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              🎓 LMS
-            </div>
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Platform
-            </span>
-          </Link>
-          
-          {/* Auth Buttons */}
-          <div className="flex items-center gap-3">
-            <Link 
-              to="/login" 
-              className="px-5 py-2.5 text-gray-700 hover:text-blue-600 font-semibold transition-colors"
-            >
-              Đăng nhập
-            </Link>
-            <Link 
-              to="/register" 
-              className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all"
-            >
-              Đăng ký ngay
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* ===== HERO SECTION ===== */}
       <section className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white py-20 lg:py-28 overflow-hidden">

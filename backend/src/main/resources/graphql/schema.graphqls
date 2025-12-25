@@ -449,7 +449,7 @@ type Mutation {
 
   # Payments
   initiatePayment(input: InitiatePaymentInput!): Payment!
-  confirmPayment(transactionId: String!): Payment!
+  confirmPayment(transactionId: String!, vnp_ResponseCode: String!): Payment!
 
   # Certificates
   generateCertificate(courseId: UUID!): Certificate!

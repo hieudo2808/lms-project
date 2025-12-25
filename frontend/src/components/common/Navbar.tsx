@@ -6,14 +6,15 @@ import { GET_ME_QUERY } from '../../graphql/queries/user';
 import { client } from '../../lib/apollo';
 
 export const Navbar = () => {
-    const { user: storedUser, token, logout, setAuth } = useAuthStore();
+    const { user: storedUser, token, logout, setAuth, _hasHydrated } = useAuthStore();
     const location = useLocation();
+    const navigate = useNavigate();
 
     const isAuthPage = ['/login', '/register'].includes(location.pathname);
 
     // Query GET_ME để lấy user data mới nhất (bao gồm avatar)
     const { data: meData } = useQuery(GET_ME_QUERY, {
-        skip: !token || isAuthPage, // Chỉ query khi đã login
+        skip: !_hasHydrated || !token || isAuthPage, // Chỉ query khi đã login và store đã hydrate
         fetchPolicy: 'cache-and-network', // Luôn fetch để có data mới nhất
     });
 
@@ -25,10 +26,30 @@ export const Navbar = () => {
     }, [meData, token, setAuth]);
 
     const user = meData?.me || storedUser;
-    const navigate = useNavigate();
-    const isAuthenticated = !!token;
+    
+    // Chỉ check authentication sau khi store đã hydrate xong
+    const isAuthenticated = _hasHydrated && !!token;
+
+    
     const [showExploreMenu, setShowExploreMenu] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
+
+    // Nếu chưa hydrate xong, hiển thị skeleton đơn giản
+    if (!_hasHydrated) {
+        return (
+            <nav className="bg-white shadow-lg sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+                    <Link to="/" className="flex items-center gap-2">
+                        <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            🎓 LMS
+                        </div>
+                        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Platform</span>
+                    </Link>
+                    <div className="w-32 h-8 bg-gray-200 animate-pulse rounded"></div>
+                </div>
+            </nav>
+        );
+    }
 
     const handleLogout = async () => {
         await client.clearStore(); // Clear Apollo cache

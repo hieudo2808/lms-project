@@ -20,6 +20,8 @@ import {
     CertificatesPage,
     CourseProgressPage,
     ProfileSettingsPage,
+    PaymentPage,
+    PaymentCallbackPage,
 } from './pages';
 
 import { QuizHistoryPage } from './pages/student/QuizHistoryPage';
@@ -60,6 +62,10 @@ function App() {
                     <Route path="/courses/:slug/lesson/:lessonId" element={<LessonDetailPage />} />
                     <Route path="/student/quizzes/:quizId" element={<QuizTakingPage />} />
                     <Route path="/student/quizzes/:quizId/history" element={<QuizHistoryPage />} />
+                    
+                    {/* Payment Routes */}
+                    <Route path="/payment/:courseId" element={<PaymentPage />} />
+                    <Route path="/payment/callback" element={<PaymentCallbackPage />} />
 
                     <Route
                         element={

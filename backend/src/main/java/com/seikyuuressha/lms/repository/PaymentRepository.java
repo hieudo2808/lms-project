@@ -24,4 +24,8 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     Page<Payment> findByPaymentStatus(String paymentStatus, Pageable pageable);
     
     List<Payment> findByCreatedAtBetween(OffsetDateTime startDate, OffsetDateTime endDate);
+    
+    // Check if enrollment has successful payment
+    boolean existsByEnrollment_EnrollmentIdAndPaymentStatus(UUID enrollmentId, String paymentStatus);
+    Optional<Payment> findByEnrollment_EnrollmentId(UUID enrollmentId);
 }

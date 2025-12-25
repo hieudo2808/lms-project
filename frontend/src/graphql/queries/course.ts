@@ -28,6 +28,23 @@ export const GET_COURSE_RATING = gql`
     }
 `;
 
+// Lấy khóa học theo ID (cho Payment Page)
+export const GET_COURSE_BY_ID = gql`
+    query GetCourseById($courseId: UUID!) {
+        getCourseById(courseId: $courseId) {
+            courseId
+            title
+            slug
+            description
+            price
+            thumbnailUrl
+            level
+            totalLessons
+            totalDuration
+        }
+    }
+`;
+
 // Lấy chi tiết khóa học + Modules + Lessons (cho Detail & Lesson Page)
 
 export const GET_COURSE_BY_SLUG = gql`

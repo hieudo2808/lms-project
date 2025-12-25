@@ -186,7 +186,14 @@ export const CourseDetailPage = () => {
             return;
         }
 
-        enrollMutation({ variables: { courseId } });
+        // Check if course is free or requires payment
+        if (course?.price > 0) {
+            // Navigate to payment page
+            navigate(`/payment/${courseId}`);
+        } else {
+            // Free course - enroll directly
+            enrollMutation({ variables: { courseId } });
+        }
     };
 
     const handleAddComment = () => {

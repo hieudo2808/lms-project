@@ -23,6 +23,7 @@ public class PaymentResponse {
     String transactionId;
     String vnpayResponseCode;
     String paymentStatus;        // Original DB: paymentStatus (SUCCESS, PENDING, FAILED)
+    String paymentUrl;           // For redirect URL in initiatePayment response
     OffsetDateTime paidAt;
     OffsetDateTime createdAt;
 }

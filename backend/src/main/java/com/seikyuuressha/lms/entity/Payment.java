@@ -58,9 +58,6 @@ public class Payment {
 
     @PrePersist
     protected void onCreate() {
-        if (paymentId == null) {
-            paymentId = UUID.randomUUID();
-        }
         if (createdAt == null) {
             createdAt = OffsetDateTime.now();
         }

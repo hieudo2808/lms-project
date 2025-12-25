@@ -5,11 +5,13 @@ import com.seikyuuressha.lms.dto.response.EnrollmentResponse;
 import com.seikyuuressha.lms.entity.Course;
 import com.seikyuuressha.lms.entity.Enrollment;
 import com.seikyuuressha.lms.entity.Lesson;
+import com.seikyuuressha.lms.entity.Payment;
 import com.seikyuuressha.lms.entity.Progress;
 import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.repository.CourseRepository;
 import com.seikyuuressha.lms.repository.EnrollmentRepository;
 import com.seikyuuressha.lms.repository.LessonRepository;
+import com.seikyuuressha.lms.repository.PaymentRepository;
 import com.seikyuuressha.lms.repository.ProgressRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,6 +36,7 @@ public class EnrollmentService {
     private final CourseService courseService;
     private final ProgressRepository progressRepository;
     private final LessonRepository lessonRepository;
+    private final PaymentRepository paymentRepository;
 
     @Transactional
     public EnrollmentResponse enrollCourse(UUID courseId) {
@@ -88,10 +92,18 @@ public class EnrollmentService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Lấy tất cả enrollment
         List<Enrollment> enrollments =
                 enrollmentRepository.findByUser_UserId(user.getUserId());
 
+        // Lọc chỉ những enrollment đã thanh toán thành công hoặc miễn phí
         return enrollments.stream()
+                .filter(enrollment -> {
+                    Optional<Payment> payment = paymentRepository
+                            .findByEnrollment_EnrollmentId(enrollment.getEnrollmentId());
+                    // Không có payment (free) hoặc payment SUCCESS
+                    return !payment.isPresent() || "SUCCESS".equals(payment.get().getPaymentStatus());
+                })
                 .map(this::mapToEnrollmentResponse)
                 .collect(Collectors.toList());
     }
@@ -108,8 +120,22 @@ public class EnrollmentService {
 
         UUID userId = (UUID) authentication.getPrincipal();
 
-        return enrollmentRepository
-                .existsByUser_UserIdAndCourse_CourseId(userId, courseId);
+        // Kiểm tra enrollment có tồn tại không
+        Optional<Enrollment> enrollmentOpt = enrollmentRepository
+                .findByUser_UserIdAndCourse_CourseId(userId, courseId);
+        
+        if (!enrollmentOpt.isPresent()) {
+            return false;
+        }
+        
+        Enrollment enrollment = enrollmentOpt.get();
+        
+        // Kiểm tra payment có thành công không
+        Optional<Payment> paymentOpt = paymentRepository
+                .findByEnrollment_EnrollmentId(enrollment.getEnrollmentId());
+        
+        // Nếu không có payment (khóa học miễn phí) hoặc payment SUCCESS → được phép học
+        return !paymentOpt.isPresent() || "SUCCESS".equals(paymentOpt.get().getPaymentStatus());
     }
 
     private EnrollmentResponse mapToEnrollmentResponse(Enrollment enrollment) {
