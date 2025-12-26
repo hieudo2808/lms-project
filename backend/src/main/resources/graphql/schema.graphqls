@@ -415,6 +415,8 @@ type Mutation {
   register(input: RegisterInput!): AuthResponse!
   login(input: LoginInput!): AuthResponse!
   googleLogin(idToken: String!): AuthResponse!
+  requestPasswordReset(email: String!): Boolean!
+  resetPassword(resetCode: String!, newPassword: String!): Boolean!
 
   # User
   updateProfile(input: UpdateProfileInput!): User!

@@ -13,7 +13,9 @@ type MyCourse = Course & {
 
 export const StudentDashboardPage = () => {
   const navigate = useNavigate();
-  const { data, loading, error } = useQuery(GET_MY_ENROLLMENTS);
+  const { data, loading, error } = useQuery(GET_MY_ENROLLMENTS, {
+    fetchPolicy: 'network-only',
+  });
   const [filterStatus, setFilterStatus] = useState<'all' | 'ongoing' | 'completed'>('all');
 
   const courses: MyCourse[] =

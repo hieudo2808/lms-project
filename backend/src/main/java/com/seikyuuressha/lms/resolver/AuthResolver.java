@@ -29,4 +29,16 @@ public class AuthResolver {
     public AuthResponse googleLogin(@Argument String idToken) {
         return authService.googleLogin(idToken);
     }
+    
+    @MutationMapping
+    public Boolean requestPasswordReset(@Argument String email) {
+        authService.requestPasswordReset(email);
+        return true;
+    }
+    
+    @MutationMapping
+    public Boolean resetPassword(@Argument String resetCode, @Argument String newPassword) {
+        authService.resetPassword(resetCode, newPassword);
+        return true;
+    }
 }

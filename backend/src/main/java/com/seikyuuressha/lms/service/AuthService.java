@@ -37,6 +37,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
     private final UserMapper userMapper;
+    private final PasswordResetService passwordResetService;
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
@@ -165,5 +166,17 @@ public class AuthService {
         } catch (Exception e) {
             throw new RuntimeException("Google login failed: " + e.getMessage(), e);
         }
+    }
+    
+    @Transactional
+    public void requestPasswordReset(String email) {
+        passwordResetService.requestPasswordReset(email);
+    }
+    
+    @Transactional
+    public void resetPassword(String resetCode, String newPassword) {
+        // Encode password before passing to service
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        passwordResetService.resetPassword(resetCode, encodedPassword);
     }
 }

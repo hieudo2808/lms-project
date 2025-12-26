@@ -178,6 +178,12 @@ export const LoginPage = () => {
                             disabled={isLoading}
                         />
 
+                        <div className="flex justify-end">
+                            <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                                Quên mật khẩu?
+                            </Link>
+                        </div>
+
                         <button
                             type="submit"
                             disabled={isLoading}
@@ -202,7 +208,6 @@ export const LoginPage = () => {
                             <GoogleLogin
                                 onSuccess={handleGoogleSuccess}
                                 onError={handleGoogleError}
-                                useOneTap
                                 theme="outline"
                                 size="large"
                                 text="continue_with"

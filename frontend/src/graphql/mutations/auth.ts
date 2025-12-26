@@ -53,3 +53,15 @@ export const GOOGLE_LOGIN_MUTATION = gql`
     }
   }
 `;
+
+export const REQUEST_PASSWORD_RESET = gql`
+  mutation RequestPasswordReset($email: String!) {
+    requestPasswordReset(email: $email)
+  }
+`;
+
+export const RESET_PASSWORD = gql`
+  mutation ResetPassword($resetCode: String!, $newPassword: String!) {
+    resetPassword(resetCode: $resetCode, newPassword: $newPassword)
+  }
+`;

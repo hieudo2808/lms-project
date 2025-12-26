@@ -6,6 +6,8 @@ import {
     HomePage,
     LoginPage,
     RegisterPage,
+    ForgotPasswordPage,
+    ResetPasswordPage,
     CourseDetailPage,
     NotFoundPage,
     EditCoursePage,
@@ -51,6 +53,8 @@ function App() {
                 <Route element={<GuestRoute />}>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
                 </Route>
 
                 <Route element={<ProtectedRoute />}>
