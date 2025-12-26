@@ -1,13 +1,22 @@
 package com.seikyuuressha.lms.service;
 
-import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.borders.Border;
+import com.itextpdf.layout.element.Div;
 import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.layout.properties.UnitValue;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Table;
 import com.seikyuuressha.lms.dto.response.CertificateResponse;
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.mapper.CertificateMapper;
@@ -199,194 +208,215 @@ public class CertificateService {
     private byte[] createCertificatePDF(Users user, Course course,
                                         String certificateCode, Double finalScore) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        
+
         PdfWriter writer = new PdfWriter(baos);
         PdfDocument pdfDoc = new PdfDocument(writer);
-        
-        // Set landscape page size
-        pdfDoc.setDefaultPageSize(com.itextpdf.kernel.geom.PageSize.A4.rotate());
+
+        pdfDoc.setDefaultPageSize(PageSize.A4.rotate());
         Document document = new Document(pdfDoc);
-        document.setMargins(40, 60, 40, 60);
+        document.setMargins(0, 0, 0, 0);
 
-        // Get page dimensions
-        float pageWidth = pdfDoc.getDefaultPageSize().getWidth();
-        float pageHeight = pdfDoc.getDefaultPageSize().getHeight();
+        float width = pdfDoc.getDefaultPageSize().getWidth();
+        float height = pdfDoc.getDefaultPageSize().getHeight();
 
-        // Draw gradient background
-        com.itextpdf.kernel.pdf.canvas.PdfCanvas canvas = new com.itextpdf.kernel.pdf.canvas.PdfCanvas(pdfDoc.addNewPage());
-        
-        // Purple gradient effect (draw multiple rectangles)
-        com.itextpdf.kernel.colors.DeviceRgb darkPurple = new com.itextpdf.kernel.colors.DeviceRgb(45, 27, 105);
-        com.itextpdf.kernel.colors.DeviceRgb mediumPurple = new com.itextpdf.kernel.colors.DeviceRgb(88, 28, 135);
-        
+        DeviceRgb bgDark = new DeviceRgb(20, 10, 40);
+        DeviceRgb bgLight = new DeviceRgb(45, 27, 105);
+        DeviceRgb goldColor = new DeviceRgb(255, 215, 0);
+        DeviceRgb whiteColor = new DeviceRgb(255, 255, 255);
+        DeviceRgb grayColor = new DeviceRgb(200, 200, 200);
+
+        PdfFont titleFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
+        PdfFont textFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+        PdfFont nameFont = PdfFontFactory.createFont(StandardFonts.TIMES_BOLDITALIC);
+
+        // 2. VẼ NỀN (BACKGROUND)
+        PdfCanvas canvas = new PdfCanvas(pdfDoc.addNewPage());
+
+        // Vẽ nền tối full trang
         canvas.saveState();
-        canvas.setFillColor(darkPurple);
-        canvas.rectangle(0, 0, pageWidth, pageHeight);
+        canvas.setFillColor(bgDark);
+        canvas.rectangle(0, 0, width, height);
         canvas.fill();
-        
-        // Add decorative corner triangles
-        canvas.setFillColor(mediumPurple);
-        canvas.moveTo(0, pageHeight);
-        canvas.lineTo(200, pageHeight);
-        canvas.lineTo(0, pageHeight - 150);
-        canvas.closePathFillStroke();
-        
-        canvas.moveTo(pageWidth, 0);
-        canvas.lineTo(pageWidth - 200, 0);
-        canvas.lineTo(pageWidth, 150);
-        canvas.closePathFillStroke();
+
+        // Vẽ họa tiết trang trí (Tam giác góc/Abstract shape)
+        canvas.setFillColor(bgLight);
+        canvas.moveTo(0, height);
+        canvas.lineTo(width / 2, height);
+        canvas.lineTo(0, 0);
+        canvas.fill();
         canvas.restoreState();
 
-        // Draw border
-        com.itextpdf.kernel.colors.DeviceRgb gold = new com.itextpdf.kernel.colors.DeviceRgb(212, 175, 55);
+        // 3. VẼ KHUNG VIỀN VÀNG (BORDER)
+        float margin = 30;
         canvas.saveState();
-        canvas.setStrokeColor(gold);
-        canvas.setLineWidth(3);
-        canvas.rectangle(30, 30, pageWidth - 60, pageHeight - 60);
+        canvas.setStrokeColor(goldColor);
+        canvas.setLineWidth(2);
+        // Vẽ hình chữ nhật bo góc (x, y, w, h, radius)
+        canvas.roundRectangle(margin, margin, width - (margin * 2), height - (margin * 2), 10);
+        canvas.stroke();
+
+        // Vẽ thêm một viền mỏng bên trong để tạo hiệu ứng kép
+        canvas.setLineWidth(0.5f);
+        canvas.roundRectangle(margin + 5, margin + 5, width - (margin * 2) - 10, height - (margin * 2) - 10, 8);
         canvas.stroke();
         canvas.restoreState();
 
-        // Fonts
-        PdfFont boldFont = PdfFontFactory.createFont();
-        PdfFont regularFont = PdfFontFactory.createFont();
+        // 4. VẼ HUY HIỆU (BADGE) - Bên trái hoặc phải
+        // Vẽ thủ công bằng code (Vòng tròn và ruy băng)
+        drawGoldBadge(canvas, height - 120, goldColor, bgDark);
 
-        // Gold medal/ribbon symbol using Unicode
-        Paragraph medal = new Paragraph("🏆")
-                .setFontSize(60)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(20);
-        document.add(medal);
+        // --- NỘI DUNG TEXT (Dùng Container/Div để căn chỉnh padding tốt hơn) ---
+        Div contentDiv = new Div()
+                .setMargins(40, 60, 40, 60)
+                .setWidth(UnitValue.createPercentValue(100));
 
-        // "CERTIFICATE" title
+        // Logo / Brand Name nhỏ ở trên cùng
+        Paragraph brandName = new Paragraph("LMS PLATFORM")
+                .setFont(titleFont).setFontSize(12).setFontColor(grayColor)
+                .setTextAlignment(TextAlignment.CENTER).setCharacterSpacing(2);
+        contentDiv.add(brandName);
+
+        // Tiêu đề chính "CERTIFICATE"
         Paragraph certTitle = new Paragraph("CERTIFICATE")
-                .setFont(boldFont)
-                .setFontSize(48)
-                .setBold()
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(gold)
-                .setMarginTop(-20);
-        document.add(certTitle);
+                .setFont(titleFont).setFontSize(50).setFontColor(goldColor)
+                .setTextAlignment(TextAlignment.CENTER).setBold()
+                .setMarginTop(20);
+        contentDiv.add(certTitle);
 
-        // "OF COMPLETION" subtitle
-        Paragraph ofCompletion = new Paragraph("OF COMPLETION")
-                .setFont(regularFont)
-                .setFontSize(20)
+        // "OF COMPLETION"
+        Paragraph subTitle = new Paragraph("OF COMPLETION")
+                .setFont(textFont).setFontSize(18).setFontColor(whiteColor)
+                .setTextAlignment(TextAlignment.CENTER).setCharacterSpacing(5)
+                .setMarginTop(-10);
+        contentDiv.add(subTitle);
+
+        // Dòng kẻ ngăn cách
+        contentDiv.add(new Paragraph(" ")
+                .setBorderBottom(new com.itextpdf.layout.borders.SolidBorder(goldColor, 1))
+                .setWidth(200)
+                .setHorizontalAlignment(HorizontalAlignment.CENTER)
+                .setMarginTop(10)
+                .setMarginBottom(10));
+
+        // "This is to certify that"
+        Paragraph introText = new Paragraph("This is to certify that")
+                .setFont(textFont).setFontSize(14).setFontColor(grayColor)
+                .setTextAlignment(TextAlignment.CENTER).setItalic();
+        contentDiv.add(introText);
+
+        // TÊN HỌC VIÊN (Lớn nhất)
+        Paragraph studentNamePara = new Paragraph(user.getFullName().toUpperCase())
+                .setFont(nameFont).setFontSize(32).setFontColor(whiteColor)
                 .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(ColorConstants.WHITE)
+                .setMarginTop(10).setMarginBottom(10);
+        contentDiv.add(studentNamePara);
+
+        // "Has successfully completed the course"
+        Paragraph bodyText = new Paragraph("Has successfully completed the curriculum and requirements for the course:")
+                .setFont(textFont).setFontSize(14).setFontColor(grayColor)
+                .setTextAlignment(TextAlignment.CENTER);
+        contentDiv.add(bodyText);
+
+        // TÊN KHÓA HỌC
+        Paragraph courseTitlePara = new Paragraph(course.getTitle())
+                .setFont(titleFont).setFontSize(24).setFontColor(goldColor)
+                .setTextAlignment(TextAlignment.CENTER)
                 .setMarginTop(5);
-        document.add(ofCompletion);
+        contentDiv.add(courseTitlePara);
 
-        // Decorative line
-        Paragraph line1 = new Paragraph("─────────────────────")
-                .setFontSize(14)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(gold)
-                .setMarginTop(15);
-        document.add(line1);
+        // Điểm số (Option)
+        Paragraph scorePara = new Paragraph(String.format("Final Grade: %.1f/100", finalScore))
+                .setFont(textFont).setFontSize(12).setFontColor(grayColor)
+                .setTextAlignment(TextAlignment.CENTER).setMarginTop(5);
+        contentDiv.add(scorePara);
 
-        // "This certifies that"
-        Paragraph thisCertifies = new Paragraph("This certifies that")
-                .setFont(regularFont)
-                .setFontSize(14)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(ColorConstants.LIGHT_GRAY)
-                .setMarginTop(15);
-        document.add(thisCertifies);
+        // --- PHẦN CHỮ KÝ VÀ NGÀY (Dùng Table 2 cột) ---
+        Table footerTable = new Table(UnitValue.createPercentArray(new float[]{1, 1}));
+        footerTable.setWidth(UnitValue.createPercentValue(80));
+        footerTable.setHorizontalAlignment(HorizontalAlignment.CENTER);
+        footerTable.setMarginTop(40);
 
-        // Student name
-        Paragraph studentName = new Paragraph(user.getFullName())
-                .setFont(boldFont)
-                .setFontSize(36)
-                .setBold()
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(ColorConstants.WHITE)
-                .setMarginTop(10);
-        document.add(studentName);
-
-        // "has successfully completed the course"
-        Paragraph hasCompleted = new Paragraph("has successfully completed the course")
-                .setFont(regularFont)
-                .setFontSize(14)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(ColorConstants.LIGHT_GRAY)
-                .setMarginTop(15);
-        document.add(hasCompleted);
-
-        // Course title
-        Paragraph courseTitle = new Paragraph(course.getTitle())
-                .setFont(boldFont)
-                .setFontSize(28)
-                .setBold()
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(gold)
-                .setMarginTop(10);
-        document.add(courseTitle);
-
-        // Score badge
-        Paragraph scoreBadge = new Paragraph(String.format("Score: %.0f%%", finalScore))
-                .setFont(boldFont)
-                .setFontSize(16)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(ColorConstants.WHITE)
-                .setMarginTop(20);
-        document.add(scoreBadge);
-
-        // Bottom section with date and signature
+        // Cột 1: Ngày tháng
         String dateStr = OffsetDateTime.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy"));
-        
-        // Create a table for bottom section
-        com.itextpdf.layout.element.Table bottomTable = new com.itextpdf.layout.element.Table(2);
-        bottomTable.setWidth(com.itextpdf.layout.properties.UnitValue.createPercentValue(80));
-        bottomTable.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
-        bottomTable.setMarginTop(30);
-        
-        // Date cell
-        com.itextpdf.layout.element.Cell dateCell = new com.itextpdf.layout.element.Cell()
-                .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
-                .add(new Paragraph("_____________________")
-                        .setFontColor(gold)
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setFontSize(12))
-                .add(new Paragraph(dateStr)
-                        .setFontColor(ColorConstants.WHITE)
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setFontSize(10))
-                .add(new Paragraph("Date")
-                        .setFontColor(ColorConstants.LIGHT_GRAY)
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setFontSize(10));
-        bottomTable.addCell(dateCell);
-        
-        // Signature cell
-        com.itextpdf.layout.element.Cell signatureCell = new com.itextpdf.layout.element.Cell()
-                .setBorder(com.itextpdf.layout.borders.Border.NO_BORDER)
-                .add(new Paragraph("_____________________")
-                        .setFontColor(gold)
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setFontSize(12))
-                .add(new Paragraph("LMS Platform")
-                        .setFontColor(ColorConstants.WHITE)
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setFontSize(10))
-                .add(new Paragraph("Signature")
-                        .setFontColor(ColorConstants.LIGHT_GRAY)
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .setFontSize(10));
-        bottomTable.addCell(signatureCell);
-        
-        document.add(bottomTable);
+        Cell dateCell = new Cell().add(new Paragraph(dateStr).setFont(titleFont).setFontSize(14).setFontColor(whiteColor).setTextAlignment(TextAlignment.CENTER))
+                .add(new Paragraph("______________________").setFontColor(goldColor).setTextAlignment(TextAlignment.CENTER))
+                .add(new Paragraph("Date Issued").setFont(textFont).setFontSize(10).setFontColor(grayColor).setTextAlignment(TextAlignment.CENTER))
+                .setBorder(Border.NO_BORDER);
 
-        // Certificate code at bottom
-        Paragraph codeText = new Paragraph("Certificate ID: " + certificateCode)
-                .setFont(regularFont)
-                .setFontSize(10)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setFontColor(ColorConstants.GRAY)
-                .setMarginTop(20);
-        document.add(codeText);
+        // Cột 2: Chữ ký (Giả lập)
+        Cell signCell = new Cell().add(new Paragraph("Do Hieu").setFont(nameFont).setFontSize(18).setFontColor(whiteColor).setTextAlignment(TextAlignment.CENTER).setItalic())
+                .add(new Paragraph("______________________").setFontColor(goldColor).setTextAlignment(TextAlignment.CENTER))
+                .add(new Paragraph("Instructor Signature").setFont(textFont).setFontSize(10).setFontColor(grayColor).setTextAlignment(TextAlignment.CENTER))
+                .setBorder(Border.NO_BORDER);
 
+        footerTable.addCell(dateCell);
+        footerTable.addCell(signCell);
+        contentDiv.add(footerTable);
+
+        // Mã chứng chỉ nhỏ ở đáy
+        Paragraph certIdPara = new Paragraph("Certificate ID: " + certificateCode)
+                .setFont(textFont).setFontSize(8).setFontColor(new DeviceRgb(100, 100, 100));
+        contentDiv.add(certIdPara);
+
+        document.add(contentDiv);
         document.close();
+
         return baos.toByteArray();
+    }
+
+    private void drawGoldBadge(PdfCanvas canvas, float y, DeviceRgb gold, DeviceRgb dark) {
+        canvas.saveState();
+
+        // 1. Vẽ ruy băng đuôi (Ribbon tails)
+        canvas.setFillColor(gold);
+        // Đuôi trái
+        canvas.moveTo((float) 100 - 15, y - 40);
+        canvas.lineTo((float) 100 - 25, y - 80);
+        canvas.lineTo((float) 100 - 5, y - 70);
+        canvas.lineTo((float) 100 + 15, y - 80); // Đuôi phải
+        canvas.lineTo((float) 100 + 5, y - 40);
+        canvas.fill();
+
+        // 2. Vẽ vòng tròn răng cưa (Starburst)
+        float radius = 40;
+        int rays = 24;
+        double step = 2 * Math.PI / rays;
+        canvas.setFillColor(gold);
+
+        // Di chuyển đến điểm bắt đầu
+        double startAngle = 0;
+        canvas.moveTo((float) 100 + Math.cos(startAngle) * (radius + 5), y + Math.sin(startAngle) * (radius + 5));
+
+        for (int i = 0; i < rays; i++) {
+            double angle = i * step;
+            double nextAngle = (i + 1) * step;
+            double midAngle = (angle + nextAngle) / 2;
+
+            // Đỉnh nhọn ra ngoài
+            canvas.lineTo((float) 100 + Math.cos(midAngle) * (radius + 8), y + Math.sin(midAngle) * (radius + 8));
+            // Đỉnh lùi vào trong
+            canvas.lineTo((float) 100 + Math.cos(nextAngle) * (radius), y + Math.sin(nextAngle) * (radius));
+        }
+        canvas.fill();
+
+        // 3. Vẽ vòng tròn chính bên trong
+        canvas.setFillColor(gold);
+        canvas.circle((float) 100, y, radius);
+        canvas.fill();
+
+        // 4. Vẽ viền tròn mỏng bên trong (tạo hiệu ứng dập nổi)
+        canvas.setStrokeColor(dark);
+        canvas.setLineWidth(1);
+        canvas.circle((float) 100, y, radius - 5);
+        canvas.stroke();
+
+        // 5. Vẽ icon cuốn sách đơn giản ở giữa (Hoặc chữ A)
+        canvas.setFillColor(dark);
+        // Vẽ hình chữ nhật tượng trưng sách
+        canvas.rectangle((float) 100 - 12, y - 10, 24, 20);
+        canvas.fill();
+
+        canvas.restoreState();
     }
 
     private String generateCertificateCode() {
@@ -398,7 +428,7 @@ public class CertificateService {
     private UUID getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userIdStr = authentication.getName();
-        
+
         try {
             return UUID.fromString(userIdStr);
         } catch (IllegalArgumentException e) {
