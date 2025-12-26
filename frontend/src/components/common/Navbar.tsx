@@ -156,9 +156,17 @@ export const Navbar = () => {
                                 onClick={() => setShowUserMenu(!showUserMenu)}
                                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                             >
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                                    {user?.fullName?.[0] || 'U'}
-                                </div>
+                                {user?.avatarUrl ? (
+                                    <img 
+                                        src={user.avatarUrl} 
+                                        alt={user.fullName}
+                                        className="w-8 h-8 rounded-full object-cover border-2 border-blue-500"
+                                    />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                                        {user?.fullName?.[0] || 'U'}
+                                    </div>
+                                )}
                                 <span className="text-sm font-medium text-gray-700">
                                     {user?.fullName?.split(' ')[0] || 'User'}
                                 </span>

@@ -16,15 +16,15 @@
     }
 
     .btn-primary {
-        @apply btn bg-blue-600 text-white hover:bg-blue-700;
+        @apply btn bg-blue-600 text-white hover:bg-blue-700 shadow-sm;
     }
 
     .btn-secondary {
-        @apply btn bg-gray-200 text-gray-800 hover:bg-gray-300;
+        @apply btn bg-gray-600 text-white hover:bg-gray-700 shadow-sm;
     }
 
     .btn-accent {
-        @apply btn bg-green-600 text-white hover:bg-green-700;
+        @apply btn bg-green-600 text-white hover:bg-green-700 shadow-sm;
     }
 
     .input-field {

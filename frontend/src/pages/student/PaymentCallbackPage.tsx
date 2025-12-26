@@ -62,7 +62,7 @@ export const PaymentCallbackPage = () => {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   Đang xử lý
                 </h2>
-                <p className="text-gray-600">{message}</p>
+                <p className="text-gray-800">{message}</p>
               </>
             )}
 
@@ -86,7 +86,7 @@ export const PaymentCallbackPage = () => {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   Thanh toán thành công!
                 </h2>
-                <p className="text-gray-600 mb-6">{message}</p>
+                <p className="text-gray-800 mb-6">{message}</p>
                 <div className="space-y-3">
                   <Button
                     variant="secondary"
@@ -119,7 +119,7 @@ export const PaymentCallbackPage = () => {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   Thanh toán thất bại
                 </h2>
-                <p className="text-gray-600 mb-6">{message}</p>
+                <p className="text-gray-800 mb-6">{message}</p>
                 <div className="space-y-3">
                   <Button onClick={() => navigate('/')} className="w-full">
                     Quay lại trang chủ
@@ -138,28 +138,28 @@ export const PaymentCallbackPage = () => {
             {/* Payment Details */}
             {status !== 'processing' && (
               <div className="mt-6 pt-6 border-t text-left">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">
                   Chi tiết giao dịch
                 </h3>
                 <dl className="space-y-1 text-sm">
                   {searchParams.get('vnp_TxnRef') && (
                     <div className="flex justify-between">
-                      <dt className="text-gray-600">Mã giao dịch:</dt>
-                      <dd className="font-medium">{searchParams.get('vnp_TxnRef')}</dd>
+                      <dt className="text-gray-800">Mã giao dịch:</dt>
+                      <dd className="font-medium text-gray-900">{searchParams.get('vnp_TxnRef')}</dd>
                     </div>
                   )}
                   {searchParams.get('vnp_Amount') && (
                     <div className="flex justify-between">
-                      <dt className="text-gray-600">Số tiền:</dt>
-                      <dd className="font-medium">
+                      <dt className="text-gray-800">Số tiền:</dt>
+                      <dd className="font-medium text-gray-900">
                         {(Number(searchParams.get('vnp_Amount')) / 100).toLocaleString('vi-VN')} ₫
                       </dd>
                     </div>
                   )}
                   {searchParams.get('vnp_PayDate') && (
                     <div className="flex justify-between">
-                      <dt className="text-gray-600">Thời gian:</dt>
-                      <dd className="font-medium">
+                      <dt className="text-gray-800">Thời gian:</dt>
+                      <dd className="font-medium text-gray-900">
                         {new Date(
                           searchParams.get('vnp_PayDate')?.replace(
                             /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/,

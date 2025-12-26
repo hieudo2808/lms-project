@@ -82,11 +82,11 @@ export const PaymentPage = () => {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4">
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h1 className="text-2xl font-bold mb-6">Thanh toán khóa học</h1>
+            <h1 className="text-2xl font-bold mb-6 text-gray-900">Thanh toán khóa học</h1>
             
             {/* Course Info */}
             <div className="border-b pb-6 mb-6">
-              <h2 className="text-lg font-semibold mb-2">Thông tin khóa học</h2>
+              <h2 className="text-lg font-semibold mb-2 text-gray-900">Thông tin khóa học</h2>
               <div className="flex items-start gap-4">
                 {course.thumbnailUrl && (
                   <img
@@ -97,14 +97,14 @@ export const PaymentPage = () => {
                 )}
                 <div>
                   <h3 className="font-semibold text-gray-900">{course.title}</h3>
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{course.description}</p>
+                  <p className="text-sm text-gray-700 mt-1 line-clamp-2">{course.description}</p>
                 </div>
               </div>
             </div>
 
             {/* Payment Method Selection */}
             <div className="border-b pb-6 mb-6">
-              <h2 className="text-lg font-semibold mb-4">Phương thức thanh toán</h2>
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">Phương thức thanh toán</h2>
               <div className="space-y-3">
                 <label className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
                   <input
@@ -122,8 +122,8 @@ export const PaymentPage = () => {
                       className="h-8"
                     />
                     <div>
-                      <p className="font-medium">VNPay</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-medium text-gray-900">VNPay</p>
+                      <p className="text-sm text-gray-700">
                         Thanh toán qua cổng VNPay (ATM, Visa, MasterCard, QR)
                       </p>
                     </div>
@@ -140,8 +140,8 @@ export const PaymentPage = () => {
                     className="w-4 h-4 text-blue-600"
                   />
                   <div className="ml-3">
-                    <p className="font-medium">MoMo (Sắp ra mắt)</p>
-                    <p className="text-sm text-gray-500">Ví điện tử MoMo</p>
+                    <p className="font-medium text-gray-700">MoMo (Sắp ra mắt)</p>
+                    <p className="text-sm text-gray-600">Ví điện tử MoMo</p>
                   </div>
                 </label>
               </div>
@@ -149,23 +149,23 @@ export const PaymentPage = () => {
 
             {/* Order Summary */}
             <div className="bg-gray-50 rounded-lg p-6 mb-6">
-              <h2 className="text-lg font-semibold mb-4">Chi tiết thanh toán</h2>
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">Chi tiết thanh toán</h2>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Giá khóa học:</span>
-                  <span className="font-medium">
+                  <span className="text-gray-800">Giá khóa học:</span>
+                  <span className="font-medium text-gray-900">
                     {course.price > 0 
                       ? `${course.price.toLocaleString('vi-VN')} ₫`
                       : 'Miễn phí'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Phí xử lý:</span>
-                  <span className="font-medium">0 ₫</span>
+                  <span className="text-gray-800">Phí xử lý:</span>
+                  <span className="font-medium text-gray-900">0 ₫</span>
                 </div>
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between text-lg font-bold">
-                    <span>Tổng cộng:</span>
+                    <span className="text-gray-900">Tổng cộng:</span>
                     <span className="text-blue-600">
                       {course.price > 0 
                         ? `${course.price.toLocaleString('vi-VN')} ₫`

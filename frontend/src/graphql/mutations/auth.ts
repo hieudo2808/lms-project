@@ -35,3 +35,21 @@ export const REGISTER_MUTATION = gql`
     }
   }
 `;
+
+export const GOOGLE_LOGIN_MUTATION = gql`
+  mutation GoogleLogin($idToken: String!) {
+    googleLogin(idToken: $idToken) {
+      token
+      refreshToken
+      user {
+        userId
+        fullName
+        email
+        avatarUrl
+        bio
+        roleName
+        isActive
+      }
+    }
+  }
+`;

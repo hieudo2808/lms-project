@@ -24,4 +24,9 @@ public class AuthResolver {
     public AuthResponse login(@Argument("input") LoginRequest input) {
         return authService.login(input);
     }
+
+    @MutationMapping
+    public AuthResponse googleLogin(@Argument String idToken) {
+        return authService.googleLogin(idToken);
+    }
 }

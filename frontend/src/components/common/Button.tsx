@@ -8,6 +8,7 @@ export const Button = ({
   isLoading = false,
   children,
   disabled,
+  className,
   ...props 
 }: ButtonProps) => {
   const variants = {
@@ -18,7 +19,7 @@ export const Button = ({
 
   return (
     <button
-      className={`${variants[variant]} disabled:opacity-50 disabled:cursor-not-allowed`}
+      className={`${variants[variant]} disabled:opacity-50 disabled:cursor-not-allowed ${className || ''}`}
       disabled={disabled || isLoading}
       {...props}
     >
