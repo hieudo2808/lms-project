@@ -404,6 +404,9 @@ type Query {
   # Certificates
   getMyCertificates: [Certificate!]!
   getCertificateByCourse(courseId: UUID!): Certificate
+
+  # Lesson Resources
+  getLessonResources(lessonId: UUID!): [LessonResourceResponse!]!
 }
 
 # ===== ROOT TYPE - MUTATIONS =====
@@ -453,6 +456,37 @@ type Mutation {
 
   # Certificates
   generateCertificate(courseId: UUID!): Certificate!
+
+  # Lesson Resources
+  generateResourceUploadUrl(
+    lessonId: UUID!
+    fileName: String!
+    contentType: String!
+  ): ResourceUploadUrlResponse!
+  confirmResourceUpload(
+    lessonId: UUID!
+    s3Key: String!
+    fileName: String!
+    resourceType: String!
+    fileSize: Long!
+  ): LessonResourceResponse!
+  deleteLessonResource(resourceId: UUID!): Boolean!
+}
+
+# ===== LESSON RESOURCES =====
+type LessonResourceResponse {
+  resourceId: UUID!
+  lessonId: UUID!
+  fileName: String!
+  resourceType: String!
+  fileSize: Long
+  downloadUrl: String
+  createdAt: DateTime
+}
+
+type ResourceUploadUrlResponse {
+  uploadUrl: String!
+  s3Key: String!
 }
 
 # ===== NEW TYPES & INPUTS FOR MEDIA, INSTRUCTOR, ADMIN =====
@@ -567,6 +601,11 @@ type SystemStatistics {
   failedPayments: Long!
 }
 
+type MonthlyRevenue {
+  month: String!
+  revenue: Float!
+}
+
 type RevenueReport {
   totalRevenue: BigDecimal!
   totalPayments: Long!
@@ -591,6 +630,8 @@ extend type Query {
   getCourseRevenue(courseId: UUID!): CourseRevenue!
   getStudentProgress(courseId: UUID!): [StudentProgress!]!
   getTotalStudentsCount: Int!
+  getMonthlyRevenue(months: Int!): [MonthlyRevenue!]!
+  getCourseMonthlyRevenue(courseId: UUID!, months: Int!): [MonthlyRevenue!]!
 
   # Admin Dashboard
   getAllUsers(page: Int, limit: Int, roleName: String): [User!]!
@@ -629,6 +670,9 @@ extend type Mutation {
   updateLesson(lessonId: UUID!, input: UpdateLessonInput!): Lesson!
   deleteLesson(lessonId: UUID!): Boolean!
   reorderLessons(moduleId: UUID!, lessonIds: [UUID!]!): [Lesson!]!
+
+  # Instructor - Student Management
+  removeStudentFromCourse(courseId: UUID!, userId: UUID!): Boolean!
 
   # Admin - User Management
   updateUserRole(userId: UUID!, roleId: UUID!): User!

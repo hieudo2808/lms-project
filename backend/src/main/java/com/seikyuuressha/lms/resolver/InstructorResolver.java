@@ -149,4 +149,22 @@ public class InstructorResolver {
     public long getTotalStudentsCount() {
         return instructorService.getTotalStudentsCount();
     }
+
+    @QueryMapping
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    public List<Map<String, Object>> getMonthlyRevenue(@Argument int months) {
+        return instructorService.getMonthlyRevenue(months);
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    public List<Map<String, Object>> getCourseMonthlyRevenue(@Argument UUID courseId, @Argument int months) {
+        return instructorService.getCourseMonthlyRevenue(courseId, months);
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    public boolean removeStudentFromCourse(@Argument UUID courseId, @Argument UUID userId) {
+        return instructorService.removeStudentFromCourse(courseId, userId);
+    }
 }

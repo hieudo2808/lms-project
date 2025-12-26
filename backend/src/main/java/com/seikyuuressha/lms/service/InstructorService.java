@@ -508,6 +508,117 @@ public class InstructorService {
                 .count();
     }
 
+    /**
+     * Remove a student from a course
+     */
+    @Transactional
+    public boolean removeStudentFromCourse(UUID courseId, UUID userId) {
+        // Verify instructor owns this course
+        getCourseByIdAndVerifyOwnership(courseId);
+        
+        // Find enrollment
+        Enrollment enrollment = enrollmentRepository.findByUser_UserIdAndCourse_CourseId(userId, courseId)
+                .orElseThrow(() -> new RuntimeException("Student is not enrolled in this course"));
+        
+        // Delete progress records first (by userId and courseId through lesson -> module -> course)
+        progressRepository.deleteByUser_UserIdAndLesson_Module_Course_CourseId(userId, courseId);
+        
+        // Delete enrollment
+        enrollmentRepository.delete(enrollment);
+        
+        log.info("Student {} removed from course {} by instructor", userId, courseId);
+        return true;
+    }
+
+    /**
+     * Get monthly revenue for the last N months
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getMonthlyRevenue(int months) {
+        Users instructor = getCurrentInstructor();
+        OffsetDateTime startDate = OffsetDateTime.now().minusMonths(months);
+        
+        List<Object[]> rawData = paymentRepository.getMonthlyRevenueByInstructor(
+                instructor.getUserId(), startDate);
+        
+        Map<String, BigDecimal> revenueByMonth = new LinkedHashMap<>();
+        String[] monthNames = {"", "Thg 1", "Thg 2", "Thg 3", "Thg 4", "Thg 5", "Thg 6", 
+                              "Thg 7", "Thg 8", "Thg 9", "Thg 10", "Thg 11", "Thg 12"};
+        
+        for (int i = months - 1; i >= 0; i--) {
+            OffsetDateTime date = OffsetDateTime.now().minusMonths(i);
+            int month = date.getMonthValue();
+            int year = date.getYear();
+            String key = monthNames[month] + " " + year;
+            revenueByMonth.put(key, BigDecimal.ZERO);
+        }
+        
+        for (Object[] row : rawData) {
+            int year = ((Number) row[0]).intValue();
+            int month = ((Number) row[1]).intValue();
+            BigDecimal revenue = row[2] != null ? new BigDecimal(row[2].toString()) : BigDecimal.ZERO;
+            String key = monthNames[month] + " " + year;
+            if (revenueByMonth.containsKey(key)) {
+                revenueByMonth.put(key, revenue);
+            }
+        }
+        
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<String, BigDecimal> entry : revenueByMonth.entrySet()) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("month", entry.getKey());
+            item.put("revenue", entry.getValue().doubleValue());
+            result.add(item);
+        }
+        
+        return result;
+    }
+
+    /**
+     * Get monthly revenue for a specific course
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getCourseMonthlyRevenue(UUID courseId, int months) {
+        // Verify instructor owns this course
+        getCourseByIdAndVerifyOwnership(courseId);
+        
+        OffsetDateTime startDate = OffsetDateTime.now().minusMonths(months);
+        
+        List<Object[]> rawData = paymentRepository.getMonthlyRevenueByCourse(courseId, startDate);
+        
+        Map<String, BigDecimal> revenueByMonth = new LinkedHashMap<>();
+        String[] monthNames = {"", "Thg 1", "Thg 2", "Thg 3", "Thg 4", "Thg 5", "Thg 6", 
+                              "Thg 7", "Thg 8", "Thg 9", "Thg 10", "Thg 11", "Thg 12"};
+        
+        for (int i = months - 1; i >= 0; i--) {
+            OffsetDateTime date = OffsetDateTime.now().minusMonths(i);
+            int month = date.getMonthValue();
+            int year = date.getYear();
+            String key = monthNames[month] + " " + year;
+            revenueByMonth.put(key, BigDecimal.ZERO);
+        }
+        
+        for (Object[] row : rawData) {
+            int year = ((Number) row[0]).intValue();
+            int month = ((Number) row[1]).intValue();
+            BigDecimal revenue = row[2] != null ? new BigDecimal(row[2].toString()) : BigDecimal.ZERO;
+            String key = monthNames[month] + " " + year;
+            if (revenueByMonth.containsKey(key)) {
+                revenueByMonth.put(key, revenue);
+            }
+        }
+        
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<String, BigDecimal> entry : revenueByMonth.entrySet()) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("month", entry.getKey());
+            item.put("revenue", entry.getValue().doubleValue());
+            result.add(item);
+        }
+        
+        return result;
+    }
+
     // ==================== HELPER METHODS ====================
 
     private Users getCurrentInstructor() {

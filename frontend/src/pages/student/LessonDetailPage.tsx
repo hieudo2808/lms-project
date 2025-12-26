@@ -3,9 +3,10 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
 import { Layout, VideoPlayer, Button } from '../../components/common';
-import { ArrowLeft, BookOpen, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, CheckCircle, AlertCircle, FileText, Download } from 'lucide-react';
 import { GET_COURSE_WITH_LESSONS } from '../../graphql/queries/course';
 import { GET_QUIZ_BY_LESSON } from '../../graphql/queries/quiz';
+import { GET_LESSON_RESOURCES } from '../../graphql/queries/resource';
 import { UPDATE_PROGRESS_MUTATION } from '../../graphql/mutations/enrollment';
 import { QuizCard } from '../../components/student/QuizCard';
 
@@ -52,6 +53,13 @@ export const LessonDetailPage = () => {
         variables: { lessonId: lessonId || '' },
         skip: !lessonId,
     });
+
+    const { data: resourcesData } = useQuery(GET_LESSON_RESOURCES, {
+        variables: { lessonId: lessonId || '' },
+        skip: !lessonId,
+    });
+
+    const resources = resourcesData?.getLessonResources || [];
 
     const [updateProgress] = useMutation(UPDATE_PROGRESS_MUTATION);
 
@@ -260,6 +268,45 @@ export const LessonDetailPage = () => {
                                             passingScore={quiz.passingScore}
                                             isPublished={quiz.isPublished}
                                         />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Resources Section */}
+                        {resources.length > 0 && (
+                            <div className="mt-8 bg-white border-2 border-blue-200 rounded-lg p-6">
+                                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                    <FileText size={20} className="text-blue-600" /> Tài liệu bổ sung
+                                </h2>
+                                <div className="space-y-3">
+                                    {resources.map((resource: any) => (
+                                        <div
+                                            key={resource.resourceId}
+                                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-blue-100 rounded-lg">
+                                                    <FileText size={20} className="text-blue-600" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-800">{resource.fileName}</p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {resource.resourceType?.toUpperCase()}
+                                                        {resource.fileSize &&
+                                                            ` • ${(resource.fileSize / 1024 / 1024).toFixed(2)} MB`}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <a
+                                                href={resource.downloadUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                                            >
+                                                <Download size={18} /> Tải về
+                                            </a>
+                                        </div>
                                     ))}
                                 </div>
                             </div>

@@ -4,7 +4,18 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import { useNavigate } from 'react-router-dom';
 
-import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, FileVideo, GripVertical, X, Save } from 'lucide-react';
+import {
+    Plus,
+    Edit2,
+    Trash2,
+    ChevronDown,
+    ChevronRight,
+    FileVideo,
+    GripVertical,
+    X,
+    Save,
+    Paperclip,
+} from 'lucide-react';
 import { toast } from 'react-toastify';
 
 // Import Mutations
@@ -20,6 +31,7 @@ import {
 } from '../../graphql/mutations/instructor';
 
 import { VideoUploader } from './VideoUploader';
+import { ResourceUploader } from './ResourceUploader';
 
 // === TYPES ===
 interface Lesson {
@@ -69,6 +81,7 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
     const [newLessonTitle, setNewLessonTitle] = useState('');
     const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
     const [uploadingLessonId, setUploadingLessonId] = useState<string | null>(null);
+    const [resourceLessonId, setResourceLessonId] = useState<string | null>(null);
 
     // === MUTATIONS ===
     const [createModule] = useMutation(CREATE_MODULE_MUTATION);
@@ -369,14 +382,17 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                     <div className="flex gap-3 items-center">
                                                                                         {/* VIDEO BUTTON */}
                                                                                         <button
-                                                                                            onClick={() =>
+                                                                                            onClick={() => {
+                                                                                                setResourceLessonId(
+                                                                                                    null,
+                                                                                                ); // Close resources panel
                                                                                                 setUploadingLessonId(
                                                                                                     uploadingLessonId ===
                                                                                                         lesson.lessonId
                                                                                                         ? null
                                                                                                         : lesson.lessonId,
-                                                                                                )
-                                                                                            }
+                                                                                                );
+                                                                                            }}
                                                                                             className="text-xs font-medium text-blue-600 hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-50"
                                                                                         >
                                                                                             {uploadingLessonId ===
@@ -409,6 +425,28 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             className="text-xs font-medium text-purple-600 hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-purple-50"
                                                                                         >
                                                                                             🧠 Tạo Quiz
+                                                                                        </button>
+
+                                                                                        {/* RESOURCES BUTTON */}
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                setUploadingLessonId(
+                                                                                                    null,
+                                                                                                ); // Close video panel
+                                                                                                setResourceLessonId(
+                                                                                                    resourceLessonId ===
+                                                                                                        lesson.lessonId
+                                                                                                        ? null
+                                                                                                        : lesson.lessonId,
+                                                                                                );
+                                                                                            }}
+                                                                                            className="text-xs font-medium text-green-600 hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-green-50"
+                                                                                        >
+                                                                                            <Paperclip size={14} />
+                                                                                            {resourceLessonId ===
+                                                                                            lesson.lessonId
+                                                                                                ? 'Đóng'
+                                                                                                : 'Tài liệu'}
                                                                                         </button>
 
                                                                                         {/* DELETE */}
@@ -477,6 +515,21 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                                 // 3. Refetch để đồng bộ dữ liệu thật từ server
                                                                                                 refetch();
                                                                                             }}
+                                                                                        />
+                                                                                    </div>
+                                                                                )}
+
+                                                                                {/* RESOURCE UPLOADER */}
+                                                                                {resourceLessonId ===
+                                                                                    lesson.lessonId && (
+                                                                                    <div className="mt-4 pl-10">
+                                                                                        <ResourceUploader
+                                                                                            lessonId={lesson.lessonId}
+                                                                                            onClose={() =>
+                                                                                                setResourceLessonId(
+                                                                                                    null,
+                                                                                                )
+                                                                                            }
                                                                                         />
                                                                                     </div>
                                                                                 )}

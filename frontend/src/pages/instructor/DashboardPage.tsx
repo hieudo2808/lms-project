@@ -1,21 +1,11 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
-import { DollarSign, Users, BookOpen, Star, TrendingUp, ArrowRight, Loader2, BookX, Edit3 } from 'lucide-react';
+import { DollarSign, Users, BookOpen, Star, TrendingUp, Loader2, BookX, Edit3 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Import query đã chỉnh sửa (đã bỏ các trường createdAt, updatedAt bị lỗi)
+// Import queries
 import { INSTRUCTOR_DASHBOARD_QUERY } from '../../graphql/queries/dashboard';
-
-const chartData = [
-    { name: 'Thg 1', income: 0 },
-    { name: 'Thg 2', income: 0 },
-    { name: 'Thg 3', income: 0 },
-    { name: 'Thg 4', income: 0 },
-    { name: 'Thg 5', income: 0 },
-    { name: 'Thg 6', income: 0 },
-    { name: 'Thg 7', income: 0 },
-];
+import { GET_MONTHLY_REVENUE } from '../../graphql/queries/instructor';
 
 const StatCard = ({ title, value, icon: Icon, color, subtext }: any) => (
     <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -33,10 +23,19 @@ const StatCard = ({ title, value, icon: Icon, color, subtext }: any) => (
 export const DashboardPage = () => {
     const navigate = useNavigate();
 
-    // 1. Gọi API lấy dữ liệu thực
     const { data, loading, error } = useQuery(INSTRUCTOR_DASHBOARD_QUERY, {
         fetchPolicy: 'network-only',
     });
+
+    const { data: revenueData } = useQuery(GET_MONTHLY_REVENUE, {
+        variables: { months: 7 },
+        fetchPolicy: 'network-only',
+    });
+
+    const chartData = (revenueData?.getMonthlyRevenue || []).map((item: any) => ({
+        name: item.month.replace(/ \d{4}$/, ''),
+        income: item.revenue,
+    }));
 
     if (loading)
         return (
