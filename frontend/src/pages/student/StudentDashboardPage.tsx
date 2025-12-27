@@ -71,7 +71,7 @@ export const StudentDashboardPage = () => {
             <p className="text-blue-100 mt-2">Tiếp tục hành trình học tập với giao diện thống nhất và chuyên nghiệp.</p>
           </div>
           {continueCourse && (
-            <div className="bg-white/10 border border-white/20 rounded-xl p-4 min-w-[240px]">
+            <div className="bg-white/10 border border-white/20 rounded-xl p-4 min-w-0 sm:min-w-[240px]">
               <p className="text-sm text-blue-100">Tiếp tục học</p>
               <p className="font-bold text-lg leading-snug mt-1 line-clamp-2">{continueCourse.title}</p>
               <div className="w-full bg-white/30 rounded-full h-2 mt-3">

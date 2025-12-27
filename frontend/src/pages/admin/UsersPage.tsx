@@ -157,7 +157,7 @@ export const UsersPage = () => {
 
             {/* Filters */}
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-wrap gap-4 items-center">
-                <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                <div className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[200px]">
                     <Search className="w-5 h-5 text-gray-400" />
                     <input
                         type="text"
@@ -197,124 +197,221 @@ export const UsersPage = () => {
                         <p>Không có người dùng nào</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 border-b">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                                        Người dùng
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                                        Vai trò
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                                        Trạng thái
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                                        Ngày tạo
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                                        Thao tác
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {filteredUsers.map((user) => (
-                                    <tr key={user.userId} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <img
-                                                    src={
-                                                        user.avatarUrl ||
-                                                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                                            user.fullName,
-                                                        )}&background=random`
-                                                    }
-                                                    alt=""
-                                                    className="w-10 h-10 rounded-full"
-                                                />
-                                                <div>
-                                                    <p className="font-medium text-gray-800">{user.fullName}</p>
-                                                    <p className="text-sm text-gray-500">{user.email}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <select
-                                                value={roles.find((r) => r.roleName === user.roleName)?.roleId || ''}
-                                                onChange={(e) =>
-                                                    handleRoleChange(user.userId, user.fullName, e.target.value)
-                                                }
-                                                disabled={updatingRole || user.roleName === 'ADMIN'}
-                                                className={`px-2 py-1 rounded-lg text-xs font-medium border-0 cursor-pointer disabled:cursor-not-allowed ${
-                                                    user.roleName === 'ADMIN'
-                                                        ? 'bg-red-100 text-red-700'
-                                                        : user.roleName === 'INSTRUCTOR'
-                                                        ? 'bg-purple-100 text-purple-700'
-                                                        : 'bg-blue-100 text-blue-700'
-                                                }`}
-                                            >
-                                                {roles.map((role) => (
-                                                    <option key={role.roleId} value={role.roleId}>
-                                                        {role.roleName === 'ADMIN'
-                                                            ? 'Admin'
-                                                            : role.roleName === 'INSTRUCTOR'
-                                                            ? 'Giảng viên'
-                                                            : 'Học viên'}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {user.isActive ? (
-                                                <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                                    Hoạt động
-                                                </span>
-                                            ) : (
-                                                <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                                                    Đã khóa
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-600 text-sm">
-                                            {formatDate(user.createdAt)}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center justify-end gap-2">
-                                                {user.isActive ? (
-                                                    <button
-                                                        onClick={() => handleLock(user.userId, user.fullName)}
-                                                        disabled={locking || user.roleName === 'ADMIN'}
-                                                        className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors disabled:opacity-50"
-                                                        title="Khóa tài khoản"
-                                                    >
-                                                        <Lock className="w-4 h-4" />
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => handleUnlock(user.userId, user.fullName)}
-                                                        disabled={unlocking}
-                                                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                                                        title="Mở khóa"
-                                                    >
-                                                        <Unlock className="w-4 h-4" />
-                                                    </button>
-                                                )}
-                                                <button
-                                                    onClick={() => handleDelete(user.userId, user.fullName)}
-                                                    disabled={deleting || user.roleName === 'ADMIN'}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                                                    title="Xóa tài khoản"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
+                    <>
+                        {/* Desktop Table */}
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50 border-b">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                                            Người dùng
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                                            Vai trò
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                                            Trạng thái
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                                            Ngày tạo
+                                        </th>
+                                        <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                                            Thao tác
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {filteredUsers.map((user) => (
+                                        <tr key={user.userId} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <img
+                                                        src={
+                                                            user.avatarUrl ||
+                                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                                                user.fullName,
+                                                            )}&background=random`
+                                                        }
+                                                        alt=""
+                                                        className="w-10 h-10 rounded-full"
+                                                    />
+                                                    <div>
+                                                        <p className="font-medium text-gray-800">{user.fullName}</p>
+                                                        <p className="text-sm text-gray-500">{user.email}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <select
+                                                    value={roles.find((r) => r.roleName === user.roleName)?.roleId || ''}
+                                                    onChange={(e) =>
+                                                        handleRoleChange(user.userId, user.fullName, e.target.value)
+                                                    }
+                                                    disabled={updatingRole || user.roleName === 'ADMIN'}
+                                                    className={`px-2 py-1 rounded-lg text-xs font-medium border-0 cursor-pointer disabled:cursor-not-allowed ${
+                                                        user.roleName === 'ADMIN'
+                                                            ? 'bg-red-100 text-red-700'
+                                                            : user.roleName === 'INSTRUCTOR'
+                                                            ? 'bg-purple-100 text-purple-700'
+                                                            : 'bg-blue-100 text-blue-700'
+                                                    }`}
+                                                >
+                                                    {roles.map((role) => (
+                                                        <option key={role.roleId} value={role.roleId}>
+                                                            {role.roleName === 'ADMIN'
+                                                                ? 'Admin'
+                                                                : role.roleName === 'INSTRUCTOR'
+                                                                ? 'Giảng viên'
+                                                                : 'Học viên'}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {user.isActive ? (
+                                                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                                        Hoạt động
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                                        Đã khóa
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-600 text-sm">
+                                                {formatDate(user.createdAt)}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {user.isActive ? (
+                                                        <button
+                                                            onClick={() => handleLock(user.userId, user.fullName)}
+                                                            disabled={locking || user.roleName === 'ADMIN'}
+                                                            className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors disabled:opacity-50"
+                                                            title="Khóa tài khoản"
+                                                        >
+                                                            <Lock className="w-4 h-4" />
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleUnlock(user.userId, user.fullName)}
+                                                            disabled={unlocking}
+                                                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                                                            title="Mở khóa"
+                                                        >
+                                                            <Unlock className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => handleDelete(user.userId, user.fullName)}
+                                                        disabled={deleting || user.roleName === 'ADMIN'}
+                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                                        title="Xóa tài khoản"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-3 p-4">
+                            {filteredUsers.map((user) => (
+                                <div
+                                    key={user.userId}
+                                    className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm"
+                                >
+                                    <div className="flex items-start gap-3 mb-3">
+                                        <img
+                                            src={
+                                                user.avatarUrl ||
+                                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                                    user.fullName,
+                                                )}&background=random`
+                                            }
+                                            alt=""
+                                            className="w-12 h-12 rounded-full flex-shrink-0"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-gray-800 truncate">{user.fullName}</h3>
+                                            <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <select
+                                                    value={roles.find((r) => r.roleName === user.roleName)?.roleId || ''}
+                                                    onChange={(e) =>
+                                                        handleRoleChange(user.userId, user.fullName, e.target.value)
+                                                    }
+                                                    disabled={updatingRole || user.roleName === 'ADMIN'}
+                                                    className={`px-2 py-1 rounded-lg text-xs font-medium border-0 ${
+                                                        user.roleName === 'ADMIN'
+                                                            ? 'bg-red-100 text-red-700'
+                                                            : user.roleName === 'INSTRUCTOR'
+                                                            ? 'bg-purple-100 text-purple-700'
+                                                            : 'bg-blue-100 text-blue-700'
+                                                    }`}
+                                                >
+                                                    {roles.map((role) => (
+                                                        <option key={role.roleId} value={role.roleId}>
+                                                            {role.roleName === 'ADMIN'
+                                                                ? 'Admin'
+                                                                : role.roleName === 'INSTRUCTOR'
+                                                                ? 'Giảng viên'
+                                                                : 'Học viên'}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {user.isActive ? (
+                                                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                                        Hoạt động
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                                        Khóa
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                        <span className="text-xs text-gray-500">{formatDate(user.createdAt)}</span>
+                                        <div className="flex items-center gap-1">
+                                            {user.isActive ? (
+                                                <button
+                                                    onClick={() => handleLock(user.userId, user.fullName)}
+                                                    disabled={locking || user.roleName === 'ADMIN'}
+                                                    className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors disabled:opacity-50"
+                                                    title="Khóa"
+                                                >
+                                                    <Lock className="w-4 h-4" />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleUnlock(user.userId, user.fullName)}
+                                                    disabled={unlocking}
+                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                                                    title="Mở"
+                                                >
+                                                    <Unlock className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => handleDelete(user.userId, user.fullName)}
+                                                disabled={deleting || user.roleName === 'ADMIN'}
+                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                                title="Xóa"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 )}
             </div>
 

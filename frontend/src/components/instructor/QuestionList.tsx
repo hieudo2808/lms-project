@@ -16,7 +16,7 @@ export const QuestionList = ({
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-bold">Danh sách câu hỏi</h2>
+        <h2 className="text-lg font-bold text-gray-800">Danh sách câu hỏi</h2>
         <button onClick={onAdd} className="btn-primary flex gap-2 items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
           <Plus size={16} /> Thêm câu hỏi
         </button>

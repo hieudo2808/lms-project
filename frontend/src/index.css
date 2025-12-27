@@ -10,6 +10,28 @@
     color-scheme: light dark;
 }
 
+@layer base {
+    /* Prevent horizontal scroll globally */
+    html,
+    body,
+    #root {
+        overflow-x: hidden;
+        width: 100%;
+        max-width: 100vw;
+    }
+
+    * {
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    /* Better mobile tap targets */
+    button,
+    a {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
 @layer components {
     .btn {
         @apply px-6 py-2 rounded-lg font-semibold transition-colors;
@@ -34,9 +56,29 @@
     .card {
         @apply bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow;
     }
+
+    /* Container utilities for responsive layouts */
+    .container-responsive {
+        @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    }
+
+    /* Prevent overflow in flex/grid children */
+    .flex-item-responsive {
+        @apply min-w-0 flex-shrink;
+    }
 }
 
 body {
     margin: 0;
     background-color: #f3f4f6;
+    overflow-x: hidden;
+}
+
+#root {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+* {
+    min-width: 0;
 }

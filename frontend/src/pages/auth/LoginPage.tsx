@@ -146,9 +146,9 @@ export const LoginPage = () => {
     return (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <Layout>
-            <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-100 py-12">
-                <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-                    <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">Đăng nhập</h1>
+            <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+                <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 w-full max-w-md">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-gray-800">Đăng nhập</h1>
 
                     {/* Hiển thị lỗi form tổng quát */}
                     {errors.form && (

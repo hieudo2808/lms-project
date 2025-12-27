@@ -230,11 +230,11 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-800">Nội dung khóa học</h2>
-                <span className="text-sm text-gray-500 flex items-center gap-1">
-                    <GripVertical size={14} /> Kéo thả để sắp xếp vị trí
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mt-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800">Nội dung khóa học</h2>
+                <span className="text-xs sm:text-sm text-gray-600 flex items-center gap-1">
+                    <GripVertical className="w-3 h-3 sm:w-4 sm:h-4" /> Kéo thả để sắp xếp vị trí
                 </span>
             </div>
 
@@ -252,48 +252,47 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                             className="border border-gray-200 rounded-lg bg-gray-50 overflow-hidden"
                                         >
                                             {/* MODULE HEADER */}
-                                            <div className="flex items-center justify-between p-4 bg-gray-100 hover:bg-gray-200 group">
+                                            <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-100 hover:bg-gray-200 group">
                                                 {editingModuleId === module.moduleId ? (
                                                     <div className="flex items-center gap-2 flex-1">
                                                         <input
-                                                            className="flex-1 px-2 py-1 border rounded"
+                                                            className="flex-1 px-2 py-1 border rounded text-sm"
                                                             value={editModuleTitle}
                                                             onChange={(e) => setEditModuleTitle(e.target.value)}
                                                             autoFocus
                                                         />
                                                         <button
                                                             onClick={() => handleUpdateModule(module.moduleId)}
-                                                            className="text-green-600"
+                                                            className="text-green-600 flex-shrink-0 p-1.5 hover:bg-green-50 rounded"
                                                         >
-                                                            <Save size={18} />
+                                                            <Save className="w-4 h-4 sm:w-5 sm:h-5" />
                                                         </button>
                                                         <button
                                                             onClick={() => setEditingModuleId(null)}
-                                                            className="text-gray-500"
+                                                            className="text-gray-500 flex-shrink-0 p-1.5 hover:bg-gray-200 rounded"
                                                         >
-                                                            <X size={18} />
+                                                            <X className="w-4 h-4 sm:w-5 sm:h-5" />
                                                         </button>
                                                     </div>
                                                 ) : (
                                                     <div
-                                                        className="flex items-center gap-3 flex-1 cursor-pointer"
+                                                        className="flex items-center gap-2 sm:gap-3 flex-1 cursor-pointer min-w-0"
                                                         onClick={() => toggleModule(module.moduleId)}
                                                     >
                                                         {/* Drag Handle cho Module */}
-                                                        <div {...provided.dragHandleProps}>
+                                                        <div {...provided.dragHandleProps} className="flex-shrink-0">
                                                             <GripVertical
-                                                                size={20}
-                                                                className="text-gray-400 cursor-grab active:cursor-grabbing hover:text-gray-600"
+                                                                className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 cursor-grab active:cursor-grabbing hover:text-gray-600"
                                                             />
                                                         </div>
-                                                        <button className="text-gray-500">
+                                                        <button className="text-gray-500 flex-shrink-0">
                                                             {expandedModules[module.moduleId] ? (
-                                                                <ChevronDown size={20} />
+                                                                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
                                                             ) : (
-                                                                <ChevronRight size={20} />
+                                                                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                                                             )}
                                                         </button>
-                                                        <div className="font-bold text-gray-800">
+                                                        <div className="font-bold text-gray-800 text-sm sm:text-base truncate">
                                                             Chương {index + 1}: {module.title}
                                                         </div>
                                                     </div>
@@ -340,33 +339,33 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                             <div
                                                                                 ref={provided.innerRef}
                                                                                 {...provided.draggableProps}
-                                                                                className="border border-gray-100 rounded-lg p-3 hover:border-blue-200 group/lesson bg-white"
+                                                                                className="border border-gray-100 rounded-lg p-2 sm:p-3 hover:border-blue-200 group/lesson bg-white"
                                                                             >
-                                                                                <div className="flex items-center justify-between">
-                                                                                    <div className="flex items-center gap-3">
+                                                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                                                                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                                                                                         {/* Drag Handle cho Lesson */}
                                                                                         <div
                                                                                             {...provided.dragHandleProps}
+                                                                                            className="flex-shrink-0"
                                                                                         >
                                                                                             <GripVertical
-                                                                                                size={16}
-                                                                                                className="text-gray-300 cursor-grab active:cursor-grabbing hover:text-gray-500"
+                                                                                                className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing hover:text-gray-600"
                                                                                             />
                                                                                         </div>
                                                                                         <div
-                                                                                            className={`p-2 rounded-full ${
+                                                                                            className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
                                                                                                 lesson.videoUrl
                                                                                                     ? 'bg-green-100 text-green-600'
                                                                                                     : 'bg-gray-100 text-gray-500'
                                                                                             }`}
                                                                                         >
-                                                                                            <FileVideo size={16} />
+                                                                                            <FileVideo className="w-3 h-3 sm:w-4 sm:h-4" />
                                                                                         </div>
-                                                                                        <span className="text-sm font-medium text-gray-700">
+                                                                                        <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">
                                                                                             {lesson.title}
                                                                                         </span>
                                                                                         {lesson.durationSeconds ? (
-                                                                                            <span className="text-xs text-gray-400">
+                                                                                            <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap flex-shrink-0">
                                                                                                 (
                                                                                                 {Math.floor(
                                                                                                     lesson.durationSeconds /
@@ -379,7 +378,7 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             </span>
                                                                                         ) : null}
                                                                                     </div>
-                                                                                    <div className="flex gap-3 items-center">
+                                                                                    <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
                                                                                         {/* VIDEO BUTTON */}
                                                                                         <button
                                                                                             onClick={() => {
@@ -393,18 +392,18 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                                         : lesson.lessonId,
                                                                                                 );
                                                                                             }}
-                                                                                            className="text-xs font-medium text-blue-600 hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-blue-50"
+                                                                                            className="text-[10px] sm:text-xs font-medium text-blue-600 hover:underline flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded hover:bg-blue-50 whitespace-nowrap"
                                                                                         >
                                                                                             {uploadingLessonId ===
                                                                                             lesson.lessonId ? (
                                                                                                 <>
-                                                                                                    <X size={14} /> Đóng
+                                                                                                    <X className="w-3 h-3" /> <span className="hidden xs:inline">Đóng</span>
                                                                                                 </>
                                                                                             ) : (
                                                                                                 <>
                                                                                                     {lesson.videoUrl
-                                                                                                        ? 'Đổi Video'
-                                                                                                        : 'Upload Video'}
+                                                                                                        ? 'Đổi'
+                                                                                                        : 'Video'}
                                                                                                 </>
                                                                                             )}
                                                                                         </button>
@@ -422,9 +421,9 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                                     },
                                                                                                 )
                                                                                             }
-                                                                                            className="text-xs font-medium text-purple-600 hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-purple-50"
+                                                                                            className="text-[10px] sm:text-xs font-medium text-purple-600 hover:underline flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1 rounded hover:bg-purple-50 whitespace-nowrap"
                                                                                         >
-                                                                                            🧠 Tạo Quiz
+                                                                                            🧠 <span className="hidden xs:inline">Quiz</span>
                                                                                         </button>
 
                                                                                         {/* RESOURCES BUTTON */}
@@ -440,13 +439,13 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                                         : lesson.lessonId,
                                                                                                 );
                                                                                             }}
-                                                                                            className="text-xs font-medium text-green-600 hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-green-50"
+                                                                                            className="text-[10px] sm:text-xs font-medium text-green-600 hover:underline flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1 rounded hover:bg-green-50 whitespace-nowrap"
                                                                                         >
-                                                                                            <Paperclip size={14} />
-                                                                                            {resourceLessonId ===
+                                                                                            <Paperclip className="w-3 h-3" />
+                                                                                            <span className="hidden xs:inline">{resourceLessonId ===
                                                                                             lesson.lessonId
                                                                                                 ? 'Đóng'
-                                                                                                : 'Tài liệu'}
+                                                                                                : 'TL'}</span>
                                                                                         </button>
 
                                                                                         {/* DELETE */}
@@ -456,9 +455,9 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                                     lesson.lessonId,
                                                                                                 )
                                                                                             }
-                                                                                            className="opacity-0 group-hover/lesson:opacity-100 text-red-400 hover:text-red-600 p-1"
+                                                                                            className="sm:opacity-0 sm:group-hover/lesson:opacity-100 text-red-400 hover:text-red-600 p-1 flex-shrink-0"
                                                                                         >
-                                                                                            <Trash2 size={14} />
+                                                                                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                                                                                         </button>
                                                                                     </div>
                                                                                 </div>
@@ -598,7 +597,7 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
             {!isAddingModule && (
                 <button
                     onClick={() => setIsAddingModule(true)}
-                    className="w-full mt-4 py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-bold hover:border-blue-500 hover:text-blue-600 flex items-center justify-center gap-2 transition-all hover:shadow-sm"
+                    className="w-full mt-4 py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-bold hover:border-blue-500 hover:text-blue-600 flex items-center justify-center gap-2 transition-all hover:shadow-sm"
                 >
                     <Plus size={20} /> Thêm chương mới
                 </button>

@@ -113,64 +113,66 @@ export const EditCoursePage = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto pb-20">
+        <div className="w-full max-w-6xl mx-auto pb-20 px-4 sm:px-6 lg:px-8">
             {/* --- HEADER BAR --- */}
-            <div className="bg-white border-b border-gray-200 sticky top-0 z-10 px-6 py-4 -mx-8 mb-8 flex justify-between items-center shadow-sm">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => navigate('/instructor/dashboard')}
-                        className="p-2 hover:bg-gray-100 rounded-full text-gray-500"
-                    >
-                        <ArrowLeft size={20} />
-                    </button>
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-xl font-bold text-gray-800 truncate max-w-md">{course.title}</h1>
-                            <div
-                                className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                                    course.isPublished
-                                        ? 'bg-green-50 text-green-700 border-green-200'
-                                        : 'bg-gray-100 text-gray-600 border-gray-200'
-                                }`}
-                            >
-                                {course.isPublished ? <CheckCircle size={12} /> : <FileText size={12} />}
-                                {course.isPublished ? 'ĐANG CÔNG KHAI' : 'BẢN NHÁP'}
+            <div className="bg-white border-b border-gray-200 sticky top-0 z-10 px-4 sm:px-6 py-3 sm:py-4 -mx-4 sm:-mx-6 lg:-mx-8 mb-6 sm:mb-8 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                        <button
+                            onClick={() => navigate('/instructor/dashboard')}
+                            className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full text-gray-500 flex-shrink-0"
+                        >
+                            <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                        </button>
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 truncate max-w-[180px] sm:max-w-xs md:max-w-md">{course.title}</h1>
+                                <div
+                                    className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border whitespace-nowrap ${
+                                        course.isPublished
+                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                            : 'bg-gray-100 text-gray-600 border-gray-200'
+                                    }`}
+                                >
+                                    {course.isPublished ? <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+                                    <span className="hidden xs:inline">{course.isPublished ? 'CÔNG KHAI' : 'NHÁP'}</span>
+                                </div>
                             </div>
+                            <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 hidden sm:block">Biên tập nội dung & bài học</p>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">Biên tập nội dung & bài học</p>
                     </div>
-                </div>
 
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => window.open(`/courses/${course.slug}`, '_blank')}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                        <Eye size={18} /> <span className="hidden sm:inline">Xem trước</span>
-                    </button>
-                    <button
-                        onClick={handleTogglePublish}
-                        disabled={isBusy}
-                        className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-bold shadow-sm transition-all ${
-                            course.isPublished
-                                ? 'bg-white border border-red-200 text-red-600'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                        }`}
-                    >
-                        {isBusy ? (
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-                        ) : course.isPublished ? (
-                            <Lock size={18} />
-                        ) : (
-                            <Globe size={18} />
-                        )}
-                        <span>{course.isPublished ? 'Gỡ xuống' : 'Xuất bản'}</span>
-                    </button>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <button
+                            onClick={() => window.open(`/courses/${course.slug}`, '_blank')}
+                            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                            <Eye className="w-4 h-4 sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Xem trước</span>
+                        </button>
+                        <button
+                            onClick={handleTogglePublish}
+                            disabled={isBusy}
+                            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold shadow-sm transition-all ${
+                                course.isPublished
+                                    ? 'bg-white border border-red-200 text-red-600'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                        >
+                            {isBusy ? (
+                                <div className="animate-spin rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 border-2 border-current border-t-transparent" />
+                            ) : course.isPublished ? (
+                                <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
+                            ) : (
+                                <Globe className="w-4 h-4 sm:w-5 sm:h-5" />
+                            )}
+                            <span>{course.isPublished ? 'Gỡ' : 'Xuất bản'}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* --- MAIN CONTENT AREA --- */}
-            <div className="px-4 md:px-0">
+            <div className="w-full overflow-x-hidden">
                 {!course.isPublished && (
                     <div className="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-start gap-3">
                         <AlertCircle className="text-blue-600 w-5 h-5 mt-0.5 flex-shrink-0" />
@@ -195,10 +197,10 @@ export const EditCoursePage = () => {
                 </div>
 
                 {/* ===== QUIZ SECTION ===== */}
-                <div className="bg-white border rounded-xl p-6 mb-8 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-bold flex items-center gap-2">
-                            <ClipboardList size={20} className="text-purple-600" /> Quiz của khóa học
+                <div className="bg-white border rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
+                        <h2 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                            <ClipboardList className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" /> Quiz của khóa học
                         </h2>
                         <button
                             onClick={() => {
@@ -210,14 +212,14 @@ export const EditCoursePage = () => {
                                     state: { courseId: course.courseId },
                                 });
                             }}
-                            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm text-sm font-medium"
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm text-sm font-medium w-full sm:w-auto"
                         >
-                            <PlusCircle size={18} /> Tạo Quiz
+                            <PlusCircle className="w-4 h-4 sm:w-5 sm:h-5" /> Tạo Quiz
                         </button>
                     </div>
 
                     {quizzes.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             {quizzes.map((quiz: any) => (
                                 <div
                                     key={quiz.quizId}
@@ -241,7 +243,7 @@ export const EditCoursePage = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-200 text-sm text-gray-500">
+                        <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-200 text-sm text-gray-600">
                             Chưa có quiz nào cho khóa học này.
                         </div>
                     )}

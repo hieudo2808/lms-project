@@ -138,8 +138,8 @@ export const StudentsPage = () => {
                                 </div>
                             </div>
 
-                            {/* Table */}
-                            <div className="overflow-x-auto">
+                            {/* Desktop Table */}
+                            <div className="hidden md:block overflow-x-auto">
                                 <table className="w-full">
                                     <thead className="bg-gray-50 border-b">
                                         <tr>
@@ -226,6 +226,85 @@ export const StudentsPage = () => {
                                         ))}
                                     </tbody>
                                 </table>
+                            </div>
+
+                            {/* Mobile Card Layout */}
+                            <div className="md:hidden space-y-3 p-4">
+                                {students.map((student) => (
+                                    <div key={student.userId} className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+                                        {/* Student Info */}
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                                <span className="text-purple-600 font-bold text-xl">
+                                                    {student.fullName.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-bold text-gray-800 truncate">{student.fullName}</p>
+                                                <p className="text-sm text-gray-500 flex items-center gap-1 truncate">
+                                                    <Mail className="w-3 h-3 flex-shrink-0" />
+                                                    {student.email}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Stats */}
+                                        <div className="grid grid-cols-2 gap-3 text-sm">
+                                            <div className="bg-gray-50 rounded-lg p-2">
+                                                <div className="flex items-center gap-1 text-gray-500 mb-1">
+                                                    <Calendar className="w-3 h-3" />
+                                                    <span className="text-xs">Ngày đăng ký</span>
+                                                </div>
+                                                <p className="font-medium text-gray-800">{formatDate(student.enrolledAt)}</p>
+                                            </div>
+                                            <div className="bg-gray-50 rounded-lg p-2">
+                                                <div className="flex items-center gap-1 text-gray-500 mb-1">
+                                                    <BookOpen className="w-3 h-3" />
+                                                    <span className="text-xs">Bài học</span>
+                                                </div>
+                                                <p className="font-medium text-gray-800">
+                                                    {student.completedLessons} / {student.totalLessons}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Progress */}
+                                        <div className="bg-gray-50 rounded-lg p-3">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs text-gray-500 flex items-center gap-1">
+                                                    <TrendingUp className="w-3 h-3" />
+                                                    Tiến độ
+                                                </span>
+                                                <span className="text-sm font-bold text-gray-800">
+                                                    {Math.round(student.progressPercent)}%
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                                <div
+                                                    className={`h-2 rounded-full ${
+                                                        student.progressPercent >= 100
+                                                            ? 'bg-green-500'
+                                                            : student.progressPercent >= 50
+                                                            ? 'bg-blue-500'
+                                                            : 'bg-orange-500'
+                                                    }`}
+                                                    style={{
+                                                        width: `${Math.min(student.progressPercent, 100)}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Action */}
+                                        <button
+                                            onClick={() => handleKickStudent(student.userId, student.fullName)}
+                                            className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 py-2.5 rounded-lg font-medium hover:bg-red-100 transition-colors"
+                                        >
+                                            <UserX size={18} />
+                                            Xóa học viên
+                                        </button>
+                                    </div>
+                                ))}
                             </div>
                         </>
                     )}

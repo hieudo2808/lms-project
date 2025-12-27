@@ -163,64 +163,114 @@ export const CategoriesPage = () => {
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
-                  Tên danh mục
-                </th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
-                  Slug
-                </th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">
-                  Mô tả
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">
-                  Hành động
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {categories.map((cat: Category) => (
-                <tr key={cat.categoryId} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <span className="font-medium text-gray-800">
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap">
+                      Tên danh mục
+                    </th>
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap">
+                      Slug
+                    </th>
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap">
+                      Mô tả
+                    </th>
+                    <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600 whitespace-nowrap">
+                      Hành động
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {categories.map((cat: Category) => (
+                    <tr key={cat.categoryId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <span className="font-medium text-gray-800">
+                          {cat.name}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <code className="text-sm bg-gray-100 px-2 py-1 rounded text-gray-600 whitespace-nowrap">
+                          {cat.slug}
+                        </code>
+                      </td>
+                      <td className="px-6 py-4 text-gray-500 text-sm">
+                        <div className="max-w-xs truncate" title={cat.description || "-"}>
+                          {cat.description || "-"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleOpenModal(cat)}
+                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Sửa"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(cat.categoryId, cat.name)}
+                            disabled={deleting}
+                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Xóa"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {categories.map((cat: Category) => (
+              <div
+                key={cat.categoryId}
+                className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800 text-base mb-1">
                       {cat.name}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <code className="text-sm bg-gray-100 px-2 py-1 rounded text-gray-600">
+                    </h3>
+                    <code className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 inline-block">
                       {cat.slug}
                     </code>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 text-sm">
-                    {cat.description || "-"}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleOpenModal(cat)}
-                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Sửa"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(cat.categoryId, cat.name)}
-                        disabled={deleting}
-                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Xóa"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                  <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                    <button
+                      onClick={() => handleOpenModal(cat)}
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Sửa"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(cat.categoryId, cat.name)}
+                      disabled={deleting}
+                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Xóa"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                {cat.description && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    {cat.description}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Modal */}

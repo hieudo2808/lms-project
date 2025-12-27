@@ -54,73 +54,73 @@ export default function CourseInfoForm({ course }: CourseInfoFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl border p-6 space-y-4">
-      <h2 className="text-lg font-semibold">Thông tin khóa học</h2>
+    <div className="bg-white rounded-xl border p-4 sm:p-6 space-y-4">
+      <h2 className="text-base sm:text-lg font-semibold text-gray-800">Thông tin khóa học</h2>
 
       {/* Thumbnail */}
       <div>
-        <label className="block text-sm font-medium mb-1">Ảnh thumbnail</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Ảnh thumbnail</label>
         <input
           type="text"
           name="thumbnailUrl"
           value={form.thumbnailUrl}
           onChange={handleChange}
           placeholder="Dán URL ảnh (S3, Cloudinary...)"
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 text-sm"
         />
         {form.thumbnailUrl && (
           <img
             src={form.thumbnailUrl}
             alt="thumbnail"
-            className="mt-2 h-32 rounded object-cover"
+            className="mt-2 h-24 sm:h-32 rounded object-cover"
           />
         )}
       </div>
 
       {/* Title */}
       <div>
-        <label className="block text-sm font-medium mb-1">Tên khóa học</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Tên khóa học</label>
         <input
           type="text"
           name="title"
           value={form.title}
           onChange={handleChange}
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 text-sm"
         />
       </div>
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium mb-1">Mô tả</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
         <textarea
           name="description"
           value={form.description}
           onChange={handleChange}
           rows={4}
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 text-sm"
         />
       </div>
 
       {/* Price + Level */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Giá</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Giá</label>
           <input
             type="number"
             name="price"
             value={form.price}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Trình độ</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Trình độ</label>
           <select
             name="level"
             value={form.level}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 text-sm"
           >
             <option value="BEGINNER">Cơ bản</option>
             <option value="INTERMEDIATE">Trung cấp</option>
@@ -133,7 +133,7 @@ export default function CourseInfoForm({ course }: CourseInfoFormProps) {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
         >
           Lưu thay đổi
         </button>

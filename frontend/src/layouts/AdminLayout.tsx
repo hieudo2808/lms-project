@@ -1,13 +1,15 @@
 import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { AdminSidebar } from '../components/admin/AdminSidebar';
-import { Bell, Search, Loader2, LogOut } from 'lucide-react';
+import { Bell, Search, Loader2, LogOut, Menu } from 'lucide-react';
 import { useAuthStore } from '../lib/store';
 import { GET_SYSTEM_STATISTICS } from '../graphql/queries/admin';
 import { client } from '../lib/apollo';
+import { useState } from 'react';
 
 export const AdminLayout = () => {
     const navigate = useNavigate();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const { token, user: storeUser, logout } = useAuthStore();
 
     // Fetch admin data
@@ -36,15 +38,23 @@ export const AdminLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-gray-50 flex overflow-x-hidden">
             {/* SIDEBAR */}
-            <AdminSidebar />
+            <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            <div className="flex-1 ml-64">
+            <div className="flex-1 lg:ml-64 w-full min-w-0">
                 {/* HEADER */}
-                <header className="bg-white h-16 border-b border-gray-200 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
+                <header className="bg-white h-14 sm:h-16 border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm">
+                    {/* Hamburger Menu for mobile */}
+                    <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"
+                    >
+                        <Menu className="w-5 h-5" />
+                    </button>
+
                     {/* Search */}
-                    <div className="flex items-center bg-gray-100 rounded-full px-4 py-2 w-96 border border-transparent focus-within:border-red-300 transition-all">
+                    <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-full max-w-md border border-transparent focus-within:border-red-300 transition-all">
                         <Search className="w-4 h-4 text-gray-400" />
                         <input
                             type="text"
@@ -54,16 +64,16 @@ export const AdminLayout = () => {
                     </div>
 
                     {/* Right actions */}
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3 sm:gap-6">
                         {/* Notification */}
                         <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
-                            <Bell className="w-5 h-5 text-gray-600" />
-                            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                            <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                            <span className="absolute top-1 right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>
 
                         {/* USER PROFILE + LOGOUT */}
                         <div className="relative group">
-                            <div className="flex items-center gap-3 cursor-pointer">
+                            <div className="flex items-center gap-2 sm:gap-3 cursor-pointer">
                                 <div className="relative">
                                     <img
                                         src={
@@ -73,11 +83,11 @@ export const AdminLayout = () => {
                                             )}&background=DC2626&color=fff`
                                         }
                                         alt="Avatar"
-                                        className="w-9 h-9 rounded-full border border-gray-200 object-cover shadow-sm"
+                                        className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-200 object-cover shadow-sm"
                                     />
                                     {loading && (
                                         <div className="absolute inset-0 flex items-center justify-center bg-white/60 rounded-full">
-                                            <Loader2 className="w-4 h-4 animate-spin text-red-600" />
+                                            <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin text-red-600" />
                                         </div>
                                     )}
                                 </div>
@@ -105,7 +115,7 @@ export const AdminLayout = () => {
                 </header>
 
                 {/* CONTENT */}
-                <main className="p-8">
+                <main className="p-4 sm:p-6 lg:p-8 w-full overflow-x-hidden min-w-0">
                     {error && (
                         <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
                             Lỗi kết nối. Vui lòng thử lại.

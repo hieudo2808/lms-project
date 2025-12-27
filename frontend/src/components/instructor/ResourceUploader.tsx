@@ -132,7 +132,7 @@ export const ResourceUploader = ({ lessonId, onClose }: ResourceUploaderProps) =
                     Tài liệu bổ sung
                 </h4>
                 {onClose && (
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
                         <X size={18} />
                     </button>
                 )}
@@ -176,7 +176,7 @@ export const ResourceUploader = ({ lessonId, onClose }: ResourceUploaderProps) =
                         </button>
                     )}
                 </div>
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-xs text-gray-500 mt-2">
                     Hỗ trợ: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ZIP, RAR (max 50MB)
                 </p>
             </div>
@@ -224,7 +224,7 @@ export const ResourceUploader = ({ lessonId, onClose }: ResourceUploaderProps) =
                 </div>
             )}
 
-            {resources.length === 0 && <p className="text-sm text-gray-400 text-center py-4">Chưa có tài liệu nào</p>}
+            {resources.length === 0 && <p className="text-sm text-gray-500 text-center py-4">Chưa có tài liệu nào</p>}
         </div>
     );
 };

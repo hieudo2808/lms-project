@@ -126,7 +126,7 @@ export default function AccountSettingsPage() {
 
         {/* Avatar URL */}
         <div>
-          <label className="text-sm font-medium">Avatar URL</label>
+          <label className="text-sm font-medium text-gray-700">Avatar URL</label>
           <input
             name="avatarUrl"
             value={form.avatarUrl}
@@ -138,7 +138,7 @@ export default function AccountSettingsPage() {
 
         {/* Full name */}
         <div>
-          <label className="text-sm font-medium">Họ và tên</label>
+          <label className="text-sm font-medium text-gray-700">Họ và tên</label>
           <input
             name="fullName"
             value={form.fullName}
@@ -149,7 +149,7 @@ export default function AccountSettingsPage() {
 
         {/* Bio */}
         <div>
-          <label className="text-sm font-medium">Giới thiệu</label>
+          <label className="text-sm font-medium text-gray-700">Giới thiệu</label>
           <textarea
             name="bio"
             value={form.bio}
@@ -179,13 +179,13 @@ export default function AccountSettingsPage() {
 
         <div className="flex items-center gap-3 text-sm">
           <Mail size={16} className="text-gray-400" />
-          <span className="w-24 font-medium">Email</span>
+          <span className="w-24 font-medium text-gray-700">Email</span>
           <span className="text-gray-700">{me.email}</span>
         </div>
 
         <div className="flex items-center gap-3 text-sm">
           <Shield size={16} className="text-gray-400" />
-          <span className="w-24 font-medium">Vai trò</span>
+          <span className="w-24 font-medium text-gray-700">Vai trò</span>
           <span className="font-semibold text-blue-600">{me.roleName}</span>
         </div>
       </div>

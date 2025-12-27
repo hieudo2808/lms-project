@@ -188,7 +188,7 @@ export const CoursesPage = () => {
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+        <div className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[200px]">
           <Search className="w-5 h-5 text-gray-400" />
           <input
             type="text"
@@ -231,128 +231,225 @@ export const CoursesPage = () => {
             <p>Không có khóa học nào</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Khóa học
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Giảng viên
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Trình độ
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Giá
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                    Trạng thái
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredCourses.map((course) => (
-                  <tr key={course.courseId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={
-                            course.thumbnailUrl ||
-                            "https://via.placeholder.com/60x40?text=Course"
-                          }
-                          alt=""
-                          className="w-14 h-10 rounded-lg object-cover"
-                        />
-                        <div className="max-w-[200px]">
-                          <p className="font-medium text-gray-800 truncate">
-                            {course.title}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {formatDate(course.createdAt)}
-                          </p>
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Khóa học
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Giảng viên
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Trình độ
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Giá
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                      Trạng thái
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+                      Thao tác
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredCourses.map((course) => (
+                    <tr key={course.courseId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={
+                              course.thumbnailUrl ||
+                              "https://via.placeholder.com/60x40?text=Course"
+                            }
+                            alt=""
+                            className="w-14 h-10 rounded-lg object-cover"
+                          />
+                          <div className="max-w-full sm:max-w-[200px] truncate">
+                            <p className="font-medium text-gray-800 truncate">
+                              {course.title}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {formatDate(course.createdAt)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-gray-800">
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-gray-800">
+                          {course.instructor?.fullName || "N/A"}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {course.instructor?.email}
+                        </p>
+                      </td>
+                      <td className="px-6 py-4">{getLevelBadge(course.level)}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-800">
+                        {formatCurrency(course.price || 0)}
+                      </td>
+                      <td className="px-6 py-4">
+                        {course.isPublished ? (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            Đã xuất bản
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                            Chờ duyệt
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <a
+                            href={`/courses/${course.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="Xem khóa học"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </a>
+                          {!course.isPublished && (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleApprove(course.courseId, course.title)
+                                }
+                                disabled={approving}
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                                title="Duyệt"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleReject(course.courseId, course.title)
+                                }
+                                disabled={rejecting}
+                                className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors disabled:opacity-50"
+                                title="Từ chối"
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() =>
+                              handleDelete(course.courseId, course.title)
+                            }
+                            disabled={deleting}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                            title="Xóa"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3 p-4">
+              {filteredCourses.map((course) => (
+                <div
+                  key={course.courseId}
+                  className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm"
+                >
+                  <div className="flex gap-3 mb-3">
+                    <img
+                      src={
+                        course.thumbnailUrl ||
+                        "https://via.placeholder.com/80x60?text=Course"
+                      }
+                      alt=""
+                      className="w-20 h-14 rounded-lg object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">
+                        {course.title}
+                      </h3>
+                      <p className="text-xs text-gray-500">
                         {course.instructor?.fullName || "N/A"}
                       </p>
-                      <p className="text-xs text-gray-400">
-                        {course.instructor?.email}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">{getLevelBadge(course.level)}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    {getLevelBadge(course.level)}
+                    <span className="text-sm font-semibold text-gray-800">
                       {formatCurrency(course.price || 0)}
-                    </td>
-                    <td className="px-6 py-4">
-                      {course.isPublished ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                          Đã xuất bản
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
-                          Chờ duyệt
-                        </span>
+                    </span>
+                    {course.isPublished ? (
+                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                        Đã xuất bản
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                        Chờ duyệt
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <span className="text-xs text-gray-500">
+                      {formatDate(course.createdAt)}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <a
+                        href={`/courses/${course.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        title="Xem"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </a>
+                      {!course.isPublished && (
+                        <>
+                          <button
+                            onClick={() =>
+                              handleApprove(course.courseId, course.title)
+                            }
+                            disabled={approving}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                            title="Duyệt"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleReject(course.courseId, course.title)
+                            }
+                            disabled={rejecting}
+                            className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors disabled:opacity-50"
+                            title="Từ chối"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        </>
                       )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <a
-                          href={`/courses/${course.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="Xem khóa học"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </a>
-                        {!course.isPublished && (
-                          <>
-                            <button
-                              onClick={() =>
-                                handleApprove(course.courseId, course.title)
-                              }
-                              disabled={approving}
-                              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                              title="Duyệt"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleReject(course.courseId, course.title)
-                              }
-                              disabled={rejecting}
-                              className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors disabled:opacity-50"
-                              title="Từ chối"
-                            >
-                              <XCircle className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                        <button
-                          onClick={() =>
-                            handleDelete(course.courseId, course.title)
-                          }
-                          disabled={deleting}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                          title="Xóa"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <button
+                        onClick={() =>
+                          handleDelete(course.courseId, course.title)
+                        }
+                        disabled={deleting}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Xóa"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
