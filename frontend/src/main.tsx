@@ -1,33 +1,29 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App.tsx";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App.tsx';
 
-// Apollo Provider
-import { ApolloProvider } from "@apollo/client";
-import { apolloClient } from "./graphql/client";
+import { ApolloProvider } from '@apollo/client';
+import { client as apolloClient } from './lib/apollo';
 
-// Toast notifications
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ApolloProvider client={apolloClient}>
-      <App />
-
-      {/* Đặt ToastContainer ở đây để nó nằm đè lên mọi thứ */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-    </ApolloProvider>
-  </StrictMode>
+createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+        <ApolloProvider client={apolloClient}>
+            <App />
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+        </ApolloProvider>
+    </StrictMode>,
 );

@@ -63,13 +63,9 @@ export const AvatarUploader = ({ currentUrl, onUploadComplete, size = 'md' }: Av
 
             const { uploadUrl, publicUrl } = data.generateImageUploadUrl;
 
-            // 2. Upload to S3
             const response = await fetch(uploadUrl, {
                 method: 'PUT',
                 body: file,
-                headers: {
-                    'Content-Type': file.type,
-                },
             });
 
             if (!response.ok) {

@@ -5,9 +5,8 @@ import com.seikyuuressha.lms.dto.response.UserResponse;
 import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.mapper.UserMapper;
 import com.seikyuuressha.lms.repository.UserRepository;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,48 +18,24 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final SecurityContextService securityContextService;
 
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser() {
-
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new RuntimeException("Unauthorized");
-        }
-
-        UUID userId = (UUID) authentication.getPrincipal();
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+        Users user = securityContextService.getCurrentUser();
         return userMapper.toUserResponse(user);
     }
 
     @Transactional(readOnly = true)
     public UserResponse getUserById(UUID userId) {
-
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         return userMapper.toUserResponse(user);
     }
 
     @Transactional
     public UserResponse updateProfile(UpdateProfileRequest request) {
-
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new RuntimeException("Unauthorized");
-        }
-
-        UUID userId = (UUID) authentication.getPrincipal();
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Users user = securityContextService.getCurrentUser();
 
         if (request.getFullName() != null) {
             user.setFullName(request.getFullName());
@@ -75,5 +50,4 @@ public class UserService {
         userRepository.save(user);
         return userMapper.toUserResponse(user);
     }
-
 }

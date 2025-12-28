@@ -98,4 +98,23 @@ public class SecurityContextService {
         String role = user.getRole().getRoleName();
         return "INSTRUCTOR".equals(role) || "ADMIN".equals(role);
     }
+
+    /**
+     * Check if current user has a specific role.
+     * Returns false if not authenticated.
+     * @param roleName the role to check
+     * @return true if current user has the specified role
+     */
+    public boolean hasRole(String roleName) {
+        try {
+            UUID userId = getOptionalCurrentUserId();
+            if (userId == null) {
+                return false;
+            }
+            Users user = userRepository.findById(userId).orElse(null);
+            return user != null && roleName.equals(user.getRole().getRoleName());
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

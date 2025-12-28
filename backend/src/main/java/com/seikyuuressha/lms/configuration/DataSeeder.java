@@ -29,20 +29,20 @@ public class DataSeeder implements CommandLineRunner {
         if (roleRepository.count() == 0) {
             log.info("Starting data seeding...");
             try {
-                log.info("Roles seeded successfully. Count: " + roleRepository.count());
+                log.info("Roles seeded successfully. Count: {}", roleRepository.count());
                 
                 seedUsers();
-                log.info("Users seeded successfully. Count: " + userRepository.count());
+                log.info("Users seeded successfully. Count: {}", userRepository.count());
                 
                 seedCategories();
-                log.info("Categories seeded successfully. Count: " + categoryRepository.count());
+                log.info("Categories seeded successfully. Count: {}", categoryRepository.count());
                 
                 seedCourses();
-                log.info("Courses seeded successfully. Count: " + courseRepository.count());
+                log.info("Courses seeded successfully. Count: {}", courseRepository.count());
                 
                 log.info("Data seeding completed successfully.");
             } catch (Exception e) {
-                log.error("ERROR during data seeding: " + e.getMessage(), e);
+                log.error("ERROR during data seeding: {}", e.getMessage(), e);
                 throw e;
             }
         } else {

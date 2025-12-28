@@ -1,7 +1,7 @@
 import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { InstructorSidebar } from '../components/instructor/InstructorSidebar';
-import { Bell, Search, Loader2, LogOut, Menu } from 'lucide-react';
+import { Bell, Loader2, LogOut, Menu } from 'lucide-react';
 import { useAuthStore } from '../lib/store';
 import { INSTRUCTOR_DASHBOARD_QUERY } from '../graphql/queries/dashboard';
 import { client } from '../lib/apollo';
@@ -58,18 +58,8 @@ export const InstructorLayout = () => {
                         <Menu className="w-5 h-5" />
                     </button>
 
-                    {/* Search */}
-                    <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2 w-full max-w-md border border-transparent focus-within:border-blue-300 transition-all">
-                        <Search className="w-4 h-4 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm khóa học, bài học..."
-                            className="bg-transparent border-none focus:outline-none text-sm ml-2 w-full text-gray-600 placeholder-gray-400"
-                        />
-                    </div>
-
                     {/* Right actions */}
-                    <div className="flex items-center gap-3 sm:gap-6">
+                    <div className="flex items-center gap-3 sm:gap-6 ml-auto">
                         {/* Notification */}
                         <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
                             <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />

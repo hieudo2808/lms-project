@@ -693,6 +693,19 @@ extend type Mutation {
   removeStudentFromCourse(courseId: UUID!, userId: UUID!): Boolean!
 
   # Admin - User Management
+  createUser(
+    fullName: String!
+    email: String!
+    password: String!
+    roleId: UUID!
+  ): User!
+  updateUser(
+    userId: UUID!
+    fullName: String
+    email: String
+    password: String
+    roleId: UUID
+  ): User!
   updateUserRole(userId: UUID!, roleId: UUID!): User!
   lockUser(userId: UUID!, reason: String!): Boolean!
   unlockUser(userId: UUID!): Boolean!

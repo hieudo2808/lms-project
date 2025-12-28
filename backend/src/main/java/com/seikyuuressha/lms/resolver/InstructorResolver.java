@@ -3,6 +3,9 @@ package com.seikyuuressha.lms.resolver;
 import com.seikyuuressha.lms.dto.request.*;
 import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.service.InstructorService;
+import com.seikyuuressha.lms.service.analytics.RevenueService;
+import com.seikyuuressha.lms.service.course.LessonService;
+import com.seikyuuressha.lms.service.course.ModuleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -19,6 +22,9 @@ import java.util.UUID;
 public class InstructorResolver {
 
     private final InstructorService instructorService;
+    private final ModuleService moduleService;
+    private final LessonService lessonService;
+    private final RevenueService revenueService;
 
     // ==================== COURSE MANAGEMENT ====================
 
@@ -72,59 +78,59 @@ public class InstructorResolver {
         return instructorService.removeCoInstructor(courseId, userId);
     }
 
-    // ==================== MODULE MANAGEMENT ====================
+    // ==================== MODULE MANAGEMENT (Delegated to ModuleService) ====================
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ModuleResponse createModule(@Argument CreateModuleRequest input) {
-        return instructorService.createModule(input);
+        return moduleService.createModule(input);
     }
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ModuleResponse updateModule(@Argument UUID moduleId, @Argument UpdateModuleRequest input) {
-        return instructorService.updateModule(moduleId, input);
+        return moduleService.updateModule(moduleId, input);
     }
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public Boolean deleteModule(@Argument UUID moduleId) {
-        return instructorService.deleteModule(moduleId);
+        return moduleService.deleteModule(moduleId);
     }
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public List<ModuleResponse> reorderModules(@Argument UUID courseId, @Argument List<UUID> moduleIds) {
-        return instructorService.reorderModules(courseId, moduleIds);
+        return moduleService.reorderModules(courseId, moduleIds);
     }
 
-    // ==================== LESSON MANAGEMENT ====================
+    // ==================== LESSON MANAGEMENT (Delegated to LessonService) ====================
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public LessonResponse createLesson(@Argument CreateLessonRequest input) {
-        return instructorService.createLesson(input);
+        return lessonService.createLesson(input);
     }
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public LessonResponse updateLesson(@Argument UUID lessonId, @Argument UpdateLessonRequest input) {
-        return instructorService.updateLesson(lessonId, input);
+        return lessonService.updateLesson(lessonId, input);
     }
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public Boolean deleteLesson(@Argument UUID lessonId) {
-        return instructorService.deleteLesson(lessonId);
+        return lessonService.deleteLesson(lessonId);
     }
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public List<LessonResponse> reorderLessons(@Argument UUID moduleId, @Argument List<UUID> lessonIds) {
-        return instructorService.reorderLessons(moduleId, lessonIds);
+        return lessonService.reorderLessons(moduleId, lessonIds);
     }
 
-    // ==================== DASHBOARD QUERIES ====================
+    // ==================== DASHBOARD QUERIES (Delegated to RevenueService) ====================
 
     @QueryMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
@@ -135,31 +141,31 @@ public class InstructorResolver {
     @QueryMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public Map<String, Object> getCourseRevenue(@Argument UUID courseId) {
-        return instructorService.getCourseRevenue(courseId);
+        return revenueService.getCourseRevenue(courseId);
     }
 
     @QueryMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public List<Map<String, Object>> getStudentProgress(@Argument UUID courseId) {
-        return instructorService.getStudentProgress(courseId);
+        return revenueService.getStudentProgress(courseId);
     }
 
     @QueryMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public long getTotalStudentsCount() {
-        return instructorService.getTotalStudentsCount();
+        return revenueService.getTotalStudentsCount();
     }
 
     @QueryMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public List<Map<String, Object>> getMonthlyRevenue(@Argument int months) {
-        return instructorService.getMonthlyRevenue(months);
+        return revenueService.getMonthlyRevenue(months);
     }
 
     @QueryMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public List<Map<String, Object>> getCourseMonthlyRevenue(@Argument UUID courseId, @Argument int months) {
-        return instructorService.getCourseMonthlyRevenue(courseId, months);
+        return revenueService.getCourseMonthlyRevenue(courseId, months);
     }
 
     @MutationMapping

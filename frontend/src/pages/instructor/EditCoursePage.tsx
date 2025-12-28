@@ -126,7 +126,9 @@ export const EditCoursePage = () => {
                         </button>
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 truncate max-w-[180px] sm:max-w-xs md:max-w-md">{course.title}</h1>
+                                <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 truncate max-w-[180px] sm:max-w-xs md:max-w-md">
+                                    {course.title}
+                                </h1>
                                 <div
                                     className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border whitespace-nowrap ${
                                         course.isPublished
@@ -134,20 +136,29 @@ export const EditCoursePage = () => {
                                             : 'bg-gray-100 text-gray-600 border-gray-200'
                                     }`}
                                 >
-                                    {course.isPublished ? <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
-                                    <span className="hidden xs:inline">{course.isPublished ? 'CÔNG KHAI' : 'NHÁP'}</span>
+                                    {course.isPublished ? (
+                                        <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                    ) : (
+                                        <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                    )}
+                                    <span className="hidden xs:inline">
+                                        {course.isPublished ? 'CÔNG KHAI' : 'NHÁP'}
+                                    </span>
                                 </div>
                             </div>
-                            <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 hidden sm:block">Biên tập nội dung & bài học</p>
+                            <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 hidden sm:block">
+                                Biên tập nội dung & bài học
+                            </p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3">
                         <button
-                            onClick={() => window.open(`/courses/${course.slug}`, '_blank')}
+                            onClick={() => window.open(`/courses/${course.slug}?preview=true`, '_blank')}
                             className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 hover:bg-blue-50 rounded-lg transition-colors"
                         >
-                            <Eye className="w-4 h-4 sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Xem trước</span>
+                            <Eye className="w-4 h-4 sm:w-5 sm:h-5" />{' '}
+                            <span className="hidden sm:inline">Xem trước</span>
                         </button>
                         <button
                             onClick={handleTogglePublish}

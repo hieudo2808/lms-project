@@ -5,11 +5,9 @@ import { toast } from 'react-toastify';
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { Layout } from '../../components/common/Layout';
 import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
 import { useAuthStore } from '../../lib/store';
 import { LOGIN_MUTATION, GOOGLE_LOGIN_MUTATION } from '../../graphql/mutations/auth';
 import type { LoginInput, AuthResponse } from '../../types';
-
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_ACTUAL_CLIENT_ID_HERE';
 
@@ -65,23 +63,30 @@ export const LoginPage = () => {
 
         try {
             await client.resetStore();
-            const { data } = await loginMutation({
-                variables: {
-                    input: {
-                        email,
-                        password,
-                    },
+
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
+                body: JSON.stringify({ email, password }),
             });
 
-            if (!data?.login) {
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Đăng nhập thất bại');
+            }
+
+            const data = await response.json();
+
+            if (!data?.token || !data?.user) {
                 setErrors({ form: 'Đăng nhập thất bại. Không nhận được phản hồi.' });
                 return;
             }
 
-            const { token, user, refreshToken } = data.login;
-
-            localStorage.setItem('refresh_token', refreshToken);
+            const { token, user } = data;
             setAuth(token, user);
 
             toast.success(`Xin chào, ${user.fullName}!`);
@@ -117,9 +122,7 @@ export const LoginPage = () => {
                 return;
             }
 
-            const { token, user, refreshToken } = data.googleLogin;
-
-            localStorage.setItem('refresh_token', refreshToken);
+            const { token, user } = data.googleLogin;
             setAuth(token, user);
 
             toast.success(`Xin chào, ${user.fullName}!`);
@@ -146,78 +149,83 @@ export const LoginPage = () => {
     return (
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
             <Layout>
-            <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-                <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 w-full max-w-md">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-gray-800">Đăng nhập</h1>
+                <div className="min-h-[calc(100vh-200px)] flex items-center justify-center bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+                    <div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 w-full max-w-md">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-gray-800">
+                            Đăng nhập
+                        </h1>
 
-                    {/* Hiển thị lỗi form tổng quát */}
-                    {errors.form && (
-                        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
-                            {errors.form}
-                        </div>
-                    )}
+                        {/* Hiển thị lỗi form tổng quát */}
+                        {errors.form && (
+                            <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
+                                {errors.form}
+                            </div>
+                        )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <Input
-                            type="email"
-                            label="Email"
-                            placeholder="example@email.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            error={errors.email}
-                            disabled={isLoading}
-                        />
-
-                        <Input
-                            type="password"
-                            label="Mật khẩu"
-                            placeholder="Nhập mật khẩu"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            error={errors.password}
-                            disabled={isLoading}
-                        />
-
-                        <div className="flex justify-end">
-                            <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                                Quên mật khẩu?
-                            </Link>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            {isLoading ? 'Đang xử lý...' : 'Đăng nhập'}
-                        </button>
-                    </form>
-
-                    <div className="mt-6 text-center">
-                        <p className="text-gray-600">
-                            Chưa có tài khoản?{' '}
-                            <Link to="/register" className="text-blue-600 font-semibold hover:underline">
-                                Đăng ký ngay
-                            </Link>
-                        </p>
-                    </div>
-
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                        <p className="text-sm text-gray-500 text-center mb-4">Hoặc đăng nhập bằng</p>
-                        <div className="flex justify-center">
-                            <GoogleLogin
-                                onSuccess={handleGoogleSuccess}
-                                onError={handleGoogleError}
-                                theme="outline"
-                                size="large"
-                                text="continue_with"
-                                shape="rectangular"
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <Input
+                                type="email"
+                                label="Email"
+                                placeholder="example@email.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                error={errors.email}
+                                disabled={isLoading}
                             />
+
+                            <Input
+                                type="password"
+                                label="Mật khẩu"
+                                placeholder="Nhập mật khẩu"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                error={errors.password}
+                                disabled={isLoading}
+                            />
+
+                            <div className="flex justify-end">
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                >
+                                    Quên mật khẩu?
+                                </Link>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                {isLoading ? 'Đang xử lý...' : 'Đăng nhập'}
+                            </button>
+                        </form>
+
+                        <div className="mt-6 text-center">
+                            <p className="text-gray-600">
+                                Chưa có tài khoản?{' '}
+                                <Link to="/register" className="text-blue-600 font-semibold hover:underline">
+                                    Đăng ký ngay
+                                </Link>
+                            </p>
+                        </div>
+
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                            <p className="text-sm text-gray-500 text-center mb-4">Hoặc đăng nhập bằng</p>
+                            <div className="flex justify-center">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={handleGoogleError}
+                                    theme="outline"
+                                    size="large"
+                                    text="continue_with"
+                                    shape="rectangular"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </Layout>
+            </Layout>
         </GoogleOAuthProvider>
     );
 };

@@ -13,10 +13,8 @@ import com.seikyuuressha.lms.repository.EnrollmentRepository;
 import com.seikyuuressha.lms.repository.LessonRepository;
 import com.seikyuuressha.lms.repository.PaymentRepository;
 import com.seikyuuressha.lms.repository.ProgressRepository;
-import com.seikyuuressha.lms.repository.UserRepository;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,26 +30,15 @@ public class EnrollmentService {
 
     private final EnrollmentRepository enrollmentRepository;
     private final CourseRepository courseRepository;
-    private final UserRepository userRepository;
     private final CourseService courseService;
     private final ProgressRepository progressRepository;
     private final LessonRepository lessonRepository;
     private final PaymentRepository paymentRepository;
+    private final SecurityContextService securityContextService;
 
     @Transactional
     public EnrollmentResponse enrollCourse(UUID courseId) {
-
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new RuntimeException("Unauthorized");
-        }
-
-        UUID userId = (UUID) authentication.getPrincipal();
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Users user = securityContextService.getCurrentUser();
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
@@ -60,7 +47,7 @@ public class EnrollmentService {
             throw new RuntimeException("Cannot enroll in unpublished course");
         }
 
-        if (enrollmentRepository.existsByUser_UserIdAndCourse_CourseId(userId, courseId)) {
+        if (enrollmentRepository.existsByUser_UserIdAndCourse_CourseId(user.getUserId(), courseId)) {
             throw new RuntimeException("Already enrolled in this course");
         }
 
@@ -73,36 +60,21 @@ public class EnrollmentService {
                 .build();
 
         enrollmentRepository.save(enrollment);
-
         return mapToEnrollmentResponse(enrollment);
     }
 
     @Transactional(readOnly = true)
     public List<EnrollmentResponse> getMyEnrollments() {
+        UUID userId = securityContextService.getCurrentUserId();
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+        List<Enrollment> enrollments = enrollmentRepository.findByUser_UserId(userId);
 
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new RuntimeException("Unauthorized");
-        }
-
-        UUID userId = (UUID) authentication.getPrincipal();
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Lấy tất cả enrollment
-        List<Enrollment> enrollments =
-                enrollmentRepository.findByUser_UserId(user.getUserId());
-
-        // Lọc chỉ những enrollment đã thanh toán thành công hoặc miễn phí
+        // Filter only paid or free enrollments
         return enrollments.stream()
                 .filter(enrollment -> {
                     Optional<Payment> payment = paymentRepository
                             .findByEnrollment_EnrollmentId(enrollment.getEnrollmentId());
-                    // Không có payment (free) hoặc payment SUCCESS
-                    return !payment.isPresent() || "SUCCESS".equals(payment.get().getPaymentStatus());
+                    return payment.isEmpty() || "SUCCESS".equals(payment.get().getPaymentStatus());
                 })
                 .map(this::mapToEnrollmentResponse)
                 .collect(Collectors.toList());
@@ -110,39 +82,31 @@ public class EnrollmentService {
 
     @Transactional(readOnly = true)
     public boolean isEnrolled(UUID courseId) {
-
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || authentication.getPrincipal() == null) {
+        UUID userId = securityContextService.getOptionalCurrentUserId();
+        
+        if (userId == null) {
             return false;
         }
-
-        UUID userId = (UUID) authentication.getPrincipal();
-
-        // Kiểm tra enrollment có tồn tại không
+        
         Optional<Enrollment> enrollmentOpt = enrollmentRepository
                 .findByUser_UserIdAndCourse_CourseId(userId, courseId);
         
-        if (!enrollmentOpt.isPresent()) {
+        if (enrollmentOpt.isEmpty()) {
             return false;
         }
         
         Enrollment enrollment = enrollmentOpt.get();
         
-        // Kiểm tra payment có thành công không
         Optional<Payment> paymentOpt = paymentRepository
                 .findByEnrollment_EnrollmentId(enrollment.getEnrollmentId());
         
-        // Nếu không có payment (khóa học miễn phí) hoặc payment SUCCESS → được phép học
-        return !paymentOpt.isPresent() || "SUCCESS".equals(paymentOpt.get().getPaymentStatus());
+        return paymentOpt.isEmpty() || "SUCCESS".equals(paymentOpt.get().getPaymentStatus());
     }
 
     private EnrollmentResponse mapToEnrollmentResponse(Enrollment enrollment) {
         CourseResponse courseResponse =
                 courseService.getCourseById(enrollment.getCourse().getCourseId());
 
-        // Calculate progress dynamically from lesson progress
         UUID courseId = enrollment.getCourse().getCourseId();
         UUID userId = enrollment.getUser().getUserId();
         

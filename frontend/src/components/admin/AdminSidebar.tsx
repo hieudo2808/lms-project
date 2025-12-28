@@ -78,7 +78,12 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                             Hệ thống
                         </span>
                         <div className="mt-2 space-y-2">
-                            <SidebarItem icon={Settings} label="Cài đặt" to="/admin/settings" onClick={onClose} />
+                            <SidebarItem
+                                icon={Settings}
+                                label="Cài đặt tài khoản"
+                                to="/admin/settings"
+                                onClick={onClose}
+                            />
                         </div>
                     </div>
                 </div>

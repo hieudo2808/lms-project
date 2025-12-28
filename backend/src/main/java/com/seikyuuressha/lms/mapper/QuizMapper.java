@@ -27,6 +27,7 @@ public interface QuizMapper {
 
     @Mapping(target = "quizId", source = "quiz.quizId")
     @Mapping(target = "answers", source = "answers")
+    @Mapping(target = "questionType", source = "type")
     QuestionResponse toQuestionResponse(Question question);
 
     @Mapping(target = "questionId", source = "question.questionId")
@@ -34,15 +35,18 @@ public interface QuizMapper {
 
     @Mapping(target = "userId", source = "user.userId")
     @Mapping(target = "quiz", source = "quiz")
+    @Mapping(target = "startTime", source = "startedAt")
+    @Mapping(target = "endTime", source = "submittedAt")
     @Mapping(target = "userAnswers", ignore = true) // Set manually - needs repository query
     QuizAttemptResponse toQuizAttemptResponse(QuizAttempt attempt);
 
+    @Mapping(target = "answerId", source = "quizAnswerId")
     @Mapping(target = "attemptId", source = "attempt.attemptId")
     @Mapping(target = "questionId", source = "question.questionId")
-    @Mapping(target = "selectedAnswerId", source = "answer", qualifiedByName = "firstSelectedAnswerId")
+    @Mapping(target = "selectedAnswerId", source = "quizAnswer", qualifiedByName = "firstSelectedAnswerId")
     @Mapping(target = "userAnswer", source = "textAnswer")
     @Mapping(target = "pointsAwarded", source = "pointsEarned")
-    QuizAnswerResponse toQuizAnswerResponse(QuizAnswer answer);
+    QuizAnswerResponse toQuizAnswerResponse(QuizAnswer quizAnswer);
 
     @Named("firstSelectedAnswerId")
     default java.util.UUID getFirstSelectedAnswerId(QuizAnswer answer) {

@@ -168,13 +168,20 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
         if (!newModuleTitle.trim()) return;
         try {
             const nextOrder = localModules.length > 0 ? Math.max(...localModules.map((m) => m.order)) + 1 : 1;
-            await createModule({ variables: { input: { courseId, title: newModuleTitle, order: nextOrder } } });
+            const result = await createModule({
+                variables: { input: { courseId, title: newModuleTitle, order: nextOrder } },
+            });
             toast.success('Thêm chương thành công!');
+            const newModule = result.data?.createModule;
+            if (newModule) {
+                setLocalModules((prev) => [...prev, { ...newModule, lessons: newModule.lessons || [] }]);
+                setExpandedModules((prev) => ({ ...prev, [newModule.moduleId]: true }));
+            }
             setNewModuleTitle('');
             setIsAddingModule(false);
-            refetch();
         } catch (error: any) {
             toast.error('Lỗi: ' + error.message);
+            refetch();
         }
     };
 
@@ -183,10 +190,14 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
         try {
             await updateModule({ variables: { moduleId, input: { title: editModuleTitle } } });
             toast.success('Cập nhật thành công!');
+            // Update local state directly (optimistic UI) to preserve scroll and expanded state
+            setLocalModules((prev) =>
+                prev.map((m) => (m.moduleId === moduleId ? { ...m, title: editModuleTitle } : m)),
+            );
             setEditingModuleId(null);
-            refetch();
         } catch (error: any) {
             toast.error('Lỗi: ' + error.message);
+            refetch();
         }
     };
 
@@ -195,9 +206,11 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
         try {
             await deleteModule({ variables: { moduleId } });
             toast.success('Đã xóa chương.');
-            refetch();
+            // Optimistic UI: Remove from local state instead of refetch
+            setLocalModules((prev) => prev.filter((m) => m.moduleId !== moduleId));
         } catch (error: any) {
             toast.error('Lỗi: ' + error.message);
+            refetch(); // Only refetch on error
         }
     };
 
@@ -205,16 +218,21 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
         if (!newLessonTitle.trim()) return;
         try {
             const nextOrder = currentLessons.length > 0 ? Math.max(...currentLessons.map((l) => l.order)) + 1 : 1;
-            await createLesson({
+            const result = await createLesson({
                 variables: { input: { moduleId, title: newLessonTitle, order: nextOrder, content: '', videoUrl: '' } },
             });
             toast.success('Thêm bài học thành công!');
+            const newLesson = result.data?.createLesson;
+            if (newLesson) {
+                setLocalModules((prev) =>
+                    prev.map((m) => (m.moduleId === moduleId ? { ...m, lessons: [...m.lessons, newLesson] } : m)),
+                );
+            }
             setNewLessonTitle('');
-            setAddingLessonToModuleId(null);
             setExpandedModules((prev) => ({ ...prev, [moduleId]: true }));
-            refetch();
         } catch (error: any) {
             toast.error('Lỗi: ' + error.message);
+            refetch();
         }
     };
 
@@ -223,9 +241,15 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
         try {
             await deleteLesson({ variables: { lessonId } });
             toast.success('Đã xóa bài học.');
-            refetch();
+            setLocalModules((prev) =>
+                prev.map((m) => ({
+                    ...m,
+                    lessons: m.lessons.filter((l) => l.lessonId !== lessonId),
+                })),
+            );
         } catch (error: any) {
             toast.error('Lỗi: ' + error.message);
+            refetch();
         }
     };
 
@@ -281,9 +305,7 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                     >
                                                         {/* Drag Handle cho Module */}
                                                         <div {...provided.dragHandleProps} className="flex-shrink-0">
-                                                            <GripVertical
-                                                                className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 cursor-grab active:cursor-grabbing hover:text-gray-600"
-                                                            />
+                                                            <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 cursor-grab active:cursor-grabbing hover:text-gray-600" />
                                                         </div>
                                                         <button className="text-gray-500 flex-shrink-0">
                                                             {expandedModules[module.moduleId] ? (
@@ -348,9 +370,7 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             {...provided.dragHandleProps}
                                                                                             className="flex-shrink-0"
                                                                                         >
-                                                                                            <GripVertical
-                                                                                                className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing hover:text-gray-600"
-                                                                                            />
+                                                                                            <GripVertical className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing hover:text-gray-600" />
                                                                                         </div>
                                                                                         <div
                                                                                             className={`p-1.5 sm:p-2 rounded-full flex-shrink-0 ${
@@ -397,13 +417,16 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             {uploadingLessonId ===
                                                                                             lesson.lessonId ? (
                                                                                                 <>
-                                                                                                    <X className="w-3 h-3" /> <span className="hidden xs:inline">Đóng</span>
+                                                                                                    <X className="w-3 h-3" />{' '}
+                                                                                                    <span className="hidden xs:inline">
+                                                                                                        Đóng
+                                                                                                    </span>
                                                                                                 </>
                                                                                             ) : (
                                                                                                 <>
                                                                                                     {lesson.videoUrl
-                                                                                                        ? 'Đổi'
-                                                                                                        : 'Video'}
+                                                                                                        ? 'Đổi video'
+                                                                                                        : 'Tải video'}
                                                                                                 </>
                                                                                             )}
                                                                                         </button>
@@ -423,7 +446,10 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             }
                                                                                             className="text-[10px] sm:text-xs font-medium text-purple-600 hover:underline flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1 rounded hover:bg-purple-50 whitespace-nowrap"
                                                                                         >
-                                                                                            🧠 <span className="hidden xs:inline">Quiz</span>
+                                                                                            Tạo quiz
+                                                                                            <span className="hidden xs:inline">
+                                                                                                Quiz
+                                                                                            </span>
                                                                                         </button>
 
                                                                                         {/* RESOURCES BUTTON */}
@@ -442,10 +468,13 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             className="text-[10px] sm:text-xs font-medium text-green-600 hover:underline flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1 rounded hover:bg-green-50 whitespace-nowrap"
                                                                                         >
                                                                                             <Paperclip className="w-3 h-3" />
-                                                                                            <span className="hidden xs:inline">{resourceLessonId ===
-                                                                                            lesson.lessonId
-                                                                                                ? 'Đóng'
-                                                                                                : 'TL'}</span>
+                                                                                            Tài liệu
+                                                                                            <span className="hidden xs:inline">
+                                                                                                {resourceLessonId ===
+                                                                                                lesson.lessonId
+                                                                                                    ? 'Đóng'
+                                                                                                    : 'TL'}
+                                                                                            </span>
                                                                                         </button>
 
                                                                                         {/* DELETE */}

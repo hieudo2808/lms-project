@@ -5,6 +5,8 @@ import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.repository.PasswordResetTokenRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +15,7 @@ import java.time.OffsetDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PasswordResetService {
     private final PasswordResetTokenRepository tokenRepository;
     private final UserRepository userRepository;
@@ -70,8 +73,13 @@ public class PasswordResetService {
         return code.toString();
     }
     
+    /**
+     * Cleanup expired tokens every hour.
+     */
+    @Scheduled(fixedRate = 3600000) // 1 hour in milliseconds
     @Transactional
     public void cleanupExpiredTokens() {
         tokenRepository.deleteByExpiresAtBefore(OffsetDateTime.now());
+        log.debug("Expired password reset tokens cleanup completed");
     }
 }

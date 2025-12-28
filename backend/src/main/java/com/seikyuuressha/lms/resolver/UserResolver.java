@@ -88,4 +88,25 @@ public class UserResolver {
     public Boolean deleteUser(@Argument UUID userId) {
         return adminService.deleteUser(userId);
     }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse createUser(
+            @Argument String fullName,
+            @Argument String email,
+            @Argument String password,
+            @Argument UUID roleId) {
+        return adminService.createUser(fullName, email, password, roleId);
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResponse updateUser(
+            @Argument UUID userId,
+            @Argument String fullName,
+            @Argument String email,
+            @Argument String password,
+            @Argument UUID roleId) {
+        return adminService.updateUser(userId, fullName, email, password, roleId);
+    }
 }

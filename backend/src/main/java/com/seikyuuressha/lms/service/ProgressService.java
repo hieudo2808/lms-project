@@ -8,10 +8,9 @@ import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.repository.EnrollmentRepository;
 import com.seikyuuressha.lms.repository.LessonRepository;
 import com.seikyuuressha.lms.repository.ProgressRepository;
-import com.seikyuuressha.lms.repository.UserRepository;
 import com.seikyuuressha.lms.mapper.ProgressMapper;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +24,14 @@ import java.util.stream.Collectors;
 public class ProgressService {
 
     private final ProgressRepository progressRepository;
-    private final UserRepository userRepository;
     private final LessonRepository lessonRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ProgressMapper progressMapper;
+    private final SecurityContextService securityContextService;
 
     @Transactional
     public ProgressResponse updateProgress(UUID lessonId, UpdateProgressRequest request) {
-        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Users user = securityContextService.getCurrentUser();
 
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
@@ -57,29 +54,26 @@ public class ProgressService {
                         .lastWatchedAt(OffsetDateTime.now())
                         .build());
 
-        // Update progress
-        if (request.getWatchedSeconds() != null) {
+        // Update progress - only increase, never decrease
+        if (request.getWatchedSeconds() != null && request.getWatchedSeconds() > progress.getWatchedSeconds()) {
             progress.setWatchedSeconds(request.getWatchedSeconds());
         }
-        if (request.getProgressPercent() != null) {
+        if (request.getProgressPercent() != null && request.getProgressPercent() > progress.getProgressPercent()) {
             progress.setProgressPercent(request.getProgressPercent());
         }
         progress.setLastWatchedAt(OffsetDateTime.now());
 
         progressRepository.save(progress);
-
         return progressMapper.toProgressResponse(progress);
     }
 
     @Transactional(readOnly = true)
     public List<ProgressResponse> getMyProgress(UUID courseId) {
-        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        UUID userId = securityContextService.getCurrentUserId();
 
         List<Progress> progresses = courseId != null
-                ? progressRepository.findByUser_UserIdAndLesson_Module_Course_CourseId(user.getUserId(), courseId)
-                : progressRepository.findByUser_UserId(user.getUserId());
+                ? progressRepository.findByUser_UserIdAndLesson_Module_Course_CourseId(userId, courseId)
+                : progressRepository.findByUser_UserId(userId);
 
         return progresses.stream()
                 .map(progressMapper::toProgressResponse)
@@ -88,12 +82,10 @@ public class ProgressService {
 
     @Transactional(readOnly = true)
     public ProgressResponse getLessonProgress(UUID lessonId) {
-        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        UUID userId = securityContextService.getCurrentUserId();
 
         Progress progress = progressRepository
-                .findByUser_UserIdAndLesson_LessonId(user.getUserId(), lessonId)
+                .findByUser_UserIdAndLesson_LessonId(userId, lessonId)
                 .orElse(null);
 
         return progress != null ? progressMapper.toProgressResponse(progress) : null;

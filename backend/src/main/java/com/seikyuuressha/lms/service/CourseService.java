@@ -42,7 +42,6 @@ public class CourseService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // [FIX QUAN TRỌNG] Kiểm tra quyền xem khóa học chưa xuất bản
         checkCourseAccess(course);
 
         return mapToCourseResponse(course, securityContextService.getOptionalCurrentUserId());
@@ -53,20 +52,33 @@ public class CourseService {
         Course course = courseRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // [FIX QUAN TRỌNG] Kiểm tra quyền xem khóa học chưa xuất bản
         checkCourseAccess(course);
 
         return mapToCourseResponse(course, securityContextService.getOptionalCurrentUserId());
     }
 
-    // === HÀM PHỤ ĐỂ CHECK QUYỀN (Logic mới) ===
     private void checkCourseAccess(Course course) {
         if (!course.isPublished()) {
             UUID currentUserId = securityContextService.getOptionalCurrentUserId();
-            // Nếu là giảng viên của khóa học này thì cho phép xem
-            boolean isOwner = currentUserId != null && course.getInstructor().getUserId().equals(currentUserId);
+            if (currentUserId == null) {
+                throw new RuntimeException("Course is not published");
+            }
             
-            if (!isOwner) {
+            // Check if user is admin
+            boolean isAdmin = securityContextService.hasRole("ADMIN");
+            if (isAdmin) {
+                return; // Admin can view any course
+            }
+            
+            // Check if user is course owner (primary instructor)
+            boolean isOwner = course.getInstructor().getUserId().equals(currentUserId);
+            
+            // Check if user is co-instructor
+            boolean isCoInstructor = courseInstructorRepository
+                    .findByCourseIdAndUserId(course.getCourseId(), currentUserId)
+                    .isPresent();
+            
+            if (!isOwner && !isCoInstructor) {
                 throw new RuntimeException("Course is not published");
             }
         }
@@ -146,7 +158,7 @@ public class CourseService {
         List<LessonResponse> lessons = new ArrayList<>();
         if (module.getLessons() != null) {
             lessons = module.getLessons().stream()
-                    .sorted(Comparator.comparingInt(Lesson::getSortOrder)) // [ĐÚNG: sortOrder]
+                    .sorted(Comparator.comparingInt(Lesson::getSortOrder))
                     .map(lesson -> mapToLessonResponse(lesson, isEnrolled, progressMap))
                     .collect(Collectors.toList());
         }
@@ -154,7 +166,7 @@ public class CourseService {
         return ModuleResponse.builder()
                 .moduleId(module.getModuleId())
                 .title(module.getTitle())
-                .order(module.getSortOrder()) // [ĐÚNG: sortOrder]
+                .order(module.getSortOrder())
                 .lessons(lessons)
                 .build();
     }

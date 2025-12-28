@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.util;
+package com.seikyuuressha.lms.security;
 
 import com.seikyuuressha.lms.entity.Users;
 import io.jsonwebtoken.Claims;
@@ -42,10 +42,6 @@ public class JwtUtil {
         return extractAllClaims(token).get("userId", String.class);
     }
 
-    public String extractRole(String token) {
-        return extractAllClaims(token).get("role", String.class);
-    }
-
     public String extractTokenId(String token) {
         return extractAllClaims(token).get("jti", String.class);
     }
@@ -69,16 +65,6 @@ public class JwtUtil {
 
     private Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
-    }
-
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.getUsername(), expiration);
-    }
-
-    public String generateRefreshToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.getUsername(), refreshExpiration);
     }
 
     public String generateToken(Users user) {

@@ -1,6 +1,6 @@
 package com.seikyuuressha.lms.security;
 
-import com.seikyuuressha.lms.util.JwtUtil;
+import com.seikyuuressha.lms.security.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,6 +60,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     this.userDetailsService.loadUserByUsername(username);
 
             if (jwtUtil.validateToken(jwt, userDetails)) {
+                // Check if user account is active (locked users should be rejected)
+                if (!userDetails.isEnabled()) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\": \"Account is locked\", \"message\": \"Tài khoản của bạn đã bị khóa\"}");
+                    return;
+                }
 
                 UUID userId = UUID.fromString(userIdStr);
 

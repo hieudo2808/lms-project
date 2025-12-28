@@ -1,369 +1,102 @@
 package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.response.*;
-import com.seikyuuressha.lms.entity.*;
-import com.seikyuuressha.lms.mapper.*;
-import com.seikyuuressha.lms.repository.*;
+import com.seikyuuressha.lms.entity.Categories;
+import com.seikyuuressha.lms.mapper.CategoryMapper;
+import com.seikyuuressha.lms.repository.CategoryRepository;
+import com.seikyuuressha.lms.service.admin.CourseApprovalService;
+import com.seikyuuressha.lms.service.admin.StatisticsService;
+import com.seikyuuressha.lms.service.admin.UserManagementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Admin Service - Facade for admin operations.
+ * Delegates to specialized services for SRP compliance.
+ * Keeps category management as it's small and doesn't warrant a separate service.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AdminService {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final CourseRepository courseRepository;
+    private final UserManagementService userManagementService;
+    private final CourseApprovalService courseApprovalService;
+    private final StatisticsService statisticsService;
     private final CategoryRepository categoryRepository;
-    private final EnrollmentRepository enrollmentRepository;
-    private final PaymentRepository paymentRepository;
-    private final UserMapper userMapper;
     private final CategoryMapper categoryMapper;
-    private final PaymentMapper paymentMapper;
 
-    // ==================== USER MANAGEMENT ====================
+    // ==================== USER MANAGEMENT (Delegated) ====================
 
-    /**
-     * Get all users with pagination
-     */
-    @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers(Integer page, Integer limit, String roleName) {
-
-        // Convert 1-based page to 0-based index
-        int pageIndex = (page != null && page > 0) ? page - 1 : 0;
-        int pageSize = (limit != null && limit > 0) ? limit : 20;
-
-        Pageable pageable = PageRequest.of(
-                pageIndex,
-                pageSize,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
-
-        Page<Users> usersPage;
-        if (roleName != null && !roleName.isEmpty()) {
-            usersPage = userRepository.findByRole_RoleName(roleName, pageable);
-        } else {
-            usersPage = userRepository.findAll(pageable);
-        }
-
-        return usersPage.getContent().stream()
-                .map(userMapper::toUserResponse)
-                .collect(Collectors.toList());
+        return userManagementService.getAllUsers(page, limit, roleName);
     }
 
-    /**
-     * Update user role
-     */
-    @Transactional
     public UserResponse updateUserRole(UUID userId, UUID roleId) {
-        
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Roles role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new RuntimeException("Role not found"));
-
-        user.setRole(role);
-        user = userRepository.save(user);
-
-        log.info("User role updated. UserId: {}, NewRole: {}", userId, role.getRoleName());
-        return userMapper.toUserResponse(user);
+        return userManagementService.updateUserRole(userId, roleId);
     }
 
-    /**
-     * Lock user account
-     */
-    @Transactional
     public Boolean lockUser(UUID userId, String reason) {
-        
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if ("ADMIN".equals(user.getRole().getRoleName())) {
-            throw new RuntimeException("Cannot lock admin user");
-        }
-
-        user.setActive(false);
-        userRepository.save(user);
-
-        log.info("User locked. UserId: {}, Reason: {}", userId, reason);
-        return true;
+        return userManagementService.lockUser(userId, reason);
     }
 
-    /**
-     * Unlock user account
-     */
-    @Transactional
     public Boolean unlockUser(UUID userId) {
-        
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        user.setActive(true);
-        userRepository.save(user);
-
-        log.info("User unlocked. UserId: {}", userId);
-        return true;
+        return userManagementService.unlockUser(userId);
     }
 
-    /**
-     * Delete user (soft delete by deactivating)
-     */
-    @Transactional
     public Boolean deleteUser(UUID userId) {
-        
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if ("ADMIN".equals(user.getRole().getRoleName())) {
-            throw new RuntimeException("Cannot delete admin user");
-        }
-
-        // Check if user has enrollments or created content
-        boolean hasEnrollments = enrollmentRepository.existsByUser_UserId(userId);
-        boolean hasCourses = !courseRepository.findByInstructor_UserId(userId).isEmpty();
-
-        if (hasEnrollments || hasCourses) {
-            // Soft delete by deactivating
-            user.setActive(false);
-            userRepository.save(user);
-            log.info("User soft deleted (deactivated). UserId: {}", userId);
-        } else {
-            // Hard delete if no dependencies
-            userRepository.delete(user);
-            log.info("User hard deleted. UserId: {}", userId);
-        }
-
-        return true;
+        return userManagementService.deleteUser(userId);
     }
 
-    // ==================== COURSE MODERATION ====================
+    public UserResponse createUser(String fullName, String email, String password, UUID roleId) {
+        return userManagementService.createUser(fullName, email, password, roleId);
+    }
 
-    /**
-     * Get all courses (admin view)
-     */
-    @Transactional(readOnly = true)
+    public UserResponse updateUser(UUID userId, String fullName, String email, String password, UUID roleId) {
+        return userManagementService.updateUser(userId, fullName, email, password, roleId);
+    }
+
+    // ==================== COURSE MODERATION (Delegated) ====================
+
     public List<CourseResponse> getAllCoursesAdmin(Boolean isPublished, Integer page, Integer limit) {
-        
-
-        // Convert 1-based page to 0-based index
-        int pageIndex = (page != null && page > 0) ? page - 1 : 0;
-        int pageSize = (limit != null && limit > 0) ? limit : 20;
-
-        Pageable pageable = PageRequest.of(
-                pageIndex,
-                pageSize,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
-
-        Page<Course> coursesPage;
-        if (isPublished != null) {
-            coursesPage = courseRepository.findByIsPublished(isPublished, pageable);
-        } else {
-            coursesPage = courseRepository.findAll(pageable);
-        }
-
-        return coursesPage.getContent().stream()
-                .map(this::mapToCourseResponse)
-                .collect(Collectors.toList());
+        return courseApprovalService.getAllCoursesAdmin(isPublished, page, limit);
     }
 
-    /**
-     * Approve course (publish)
-     */
-    @Transactional
     public CourseResponse approveCourse(UUID courseId) {
-        
-
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-
-        course.setPublished(true);
-        course.setUpdatedAt(OffsetDateTime.now());
-        course = courseRepository.save(course);
-
-        log.info("Course approved by admin. CourseId: {}", courseId);
-        return mapToCourseResponse(course);
+        return courseApprovalService.approveCourse(courseId);
     }
 
-    /**
-     * Reject course (unpublish)
-     */
-    @Transactional
     public CourseResponse rejectCourse(UUID courseId, String reason) {
-        
-
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-
-        course.setPublished(false);
-        course.setUpdatedAt(OffsetDateTime.now());
-        course = courseRepository.save(course);
-
-        log.info("Course rejected by admin. CourseId: {}, Reason: {}", courseId, reason);
-        return mapToCourseResponse(course);
+        return courseApprovalService.rejectCourse(courseId, reason);
     }
 
-    /**
-     * Delete course (admin override)
-     */
-    @Transactional
     public Boolean deleteCourseAdmin(UUID courseId) {
-        
-
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-
-        // Admin can delete even with enrollments (after warning)
-        courseRepository.delete(course);
-        log.info("Course deleted by admin. CourseId: {}", courseId);
-        return true;
+        return courseApprovalService.deleteCourseAdmin(courseId);
     }
 
-    // ==================== SYSTEM REPORTS ====================
+    // ==================== SYSTEM REPORTS (Delegated) ====================
 
-    /**
-     * Get system statistics
-     */
-    @Transactional(readOnly = true)
     public SystemStatisticsResponse getSystemStatistics() {
-        
-
-        long totalUsers = userRepository.count();
-        long totalInstructors = userRepository.countByRole_RoleName("INSTRUCTOR");
-        long totalStudents = userRepository.countByRole_RoleName("STUDENT");
-        long totalCourses = courseRepository.count();
-        long publishedCourses = courseRepository.countByIsPublished(true);
-        long unpublishedCourses = courseRepository.countByIsPublished(false);
-        long totalEnrollments = enrollmentRepository.count();
-        long totalPayments = paymentRepository.count();
-
-        List<Payment> completedPayments = paymentRepository.findByPaymentStatus("SUCCESS");
-        BigDecimal totalRevenue = completedPayments.stream()
-                .map(Payment::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        long completedPaymentsCount = completedPayments.size();
-        long pendingPayments = paymentRepository.findByPaymentStatus("PENDING").size();
-        long failedPayments = paymentRepository.findByPaymentStatus("FAILED").size();
-
-        return SystemStatisticsResponse.builder()
-                .totalUsers(totalUsers)
-                .totalInstructors(totalInstructors)
-                .totalStudents(totalStudents)
-                .totalCourses(totalCourses)
-                .publishedCourses(publishedCourses)
-                .unpublishedCourses(unpublishedCourses)
-                .totalEnrollments(totalEnrollments)
-                .totalPayments(totalPayments)
-                .totalRevenue(totalRevenue)
-                .completedPayments(completedPaymentsCount)
-                .pendingPayments(pendingPayments)
-                .failedPayments(failedPayments)
-                .build();
+        return statisticsService.getSystemStatistics();
     }
 
-    /**
-     * Get revenue report
-     */
-    @Transactional(readOnly = true)
     public RevenueReportResponse getRevenueReport(OffsetDateTime startDate, OffsetDateTime endDate) {
-        
-
-        if (startDate == null) {
-            startDate = OffsetDateTime.now().minusMonths(1);
-        }
-        if (endDate == null) {
-            endDate = OffsetDateTime.now();
-        }
-
-        List<Payment> allPayments = paymentRepository.findByCreatedAtBetween(startDate, endDate);
-
-        List<Payment> completedPayments = allPayments.stream()
-                .filter(p -> "SUCCESS".equals(p.getPaymentStatus()))
-                .collect(Collectors.toList());
-
-        BigDecimal totalRevenue = completedPayments.stream()
-                .map(Payment::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        long totalPayments = allPayments.size();
-        long completedCount = completedPayments.size();
-        long pendingCount = allPayments.stream()
-                .filter(p -> "PENDING".equals(p.getPaymentStatus()))
-                .count();
-        long failedCount = allPayments.stream()
-                .filter(p -> "FAILED".equals(p.getPaymentStatus()))
-                .count();
-
-        BigDecimal averagePayment = completedCount > 0 ?
-                totalRevenue.divide(BigDecimal.valueOf(completedCount), 2, java.math.RoundingMode.HALF_UP) :
-                BigDecimal.ZERO;
-
-        return RevenueReportResponse.builder()
-                .totalRevenue(totalRevenue)
-                .totalPayments(totalPayments)
-                .completedPayments(completedCount)
-                .pendingPayments(pendingCount)
-                .failedPayments(failedCount)
-                .averagePayment(averagePayment)
-                .startDate(startDate)
-                .endDate(endDate)
-                .build();
+        return statisticsService.getRevenueReport(startDate, endDate);
     }
 
-    /**
-     * Get all payments (admin view)
-     */
-    @Transactional(readOnly = true)
     public List<PaymentResponse> getAllPayments(Integer page, Integer limit, String status) {
-        
-
-        // Convert 1-based page to 0-based index
-        int pageIndex = (page != null && page > 0) ? page - 1 : 0;
-        int pageSize = (limit != null && limit > 0) ? limit : 20;
-
-        Pageable pageable = PageRequest.of(
-                pageIndex,
-                pageSize,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
-
-        Page<Payment> paymentsPage;
-        if (status != null && !status.isEmpty()) {
-            // Map to original DB values: SUCCESS, PENDING, FAILED
-            String paymentStatus = status.toUpperCase();
-            paymentsPage = paymentRepository.findByPaymentStatus(paymentStatus, pageable);
-        } else {
-            paymentsPage = paymentRepository.findAll(pageable);
-        }
-
-        return paymentsPage.getContent().stream()
-                .map(paymentMapper::toPaymentResponse)
-                .collect(Collectors.toList());
+        return statisticsService.getAllPayments(page, limit, status);
     }
 
     // ==================== CATEGORY MANAGEMENT ====================
 
-    /**
-     * Get all categories
-     */
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream()
@@ -371,12 +104,8 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Create a new category
-     */
     @Transactional
     public CategoryResponse createCategory(String name, String slug, String description) {
-        // Check if slug already exists
         if (categoryRepository.findBySlug(slug).isPresent()) {
             throw new RuntimeException("Slug đã tồn tại: " + slug);
         }
@@ -392,15 +121,11 @@ public class AdminService {
         return categoryMapper.toCategoryResponse(category);
     }
 
-    /**
-     * Update a category
-     */
     @Transactional
     public CategoryResponse updateCategory(UUID categoryId, String name, String slug, String description) {
         Categories category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
 
-        // Check slug uniqueness if changed
         if (slug != null && !slug.equals(category.getSlug())) {
             if (categoryRepository.findBySlug(slug).isPresent()) {
                 throw new RuntimeException("Slug đã tồn tại: " + slug);
@@ -420,15 +145,11 @@ public class AdminService {
         return categoryMapper.toCategoryResponse(category);
     }
 
-    /**
-     * Delete a category
-     */
     @Transactional
     public Boolean deleteCategory(UUID categoryId) {
         Categories category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
 
-        // Check if category has courses
         if (category.getCourses() != null && !category.getCourses().isEmpty()) {
             throw new RuntimeException("Không thể xóa danh mục đang có khóa học");
         }
@@ -436,24 +157,5 @@ public class AdminService {
         categoryRepository.delete(category);
         log.info("Category deleted. CategoryId: {}", categoryId);
         return true;
-    }
-
-    // ==================== HELPER METHODS ====================
-
-    private CourseResponse mapToCourseResponse(Course course) {
-        return CourseResponse.builder()
-                .courseId(course.getCourseId())
-                .title(course.getTitle())
-                .slug(course.getSlug())
-                .description(course.getDescription())
-                .thumbnailUrl(course.getThumbnailUrl())
-                .level(course.getLevel())
-                .price(course.getPrice())
-                .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
-                .instructor(userMapper.toInstructorResponse(course.getInstructor()))
-                .createdAt(course.getCreatedAt())
-                .updatedAt(course.getUpdatedAt())
-                .isPublished(course.isPublished())
-                .build();
     }
 }

@@ -3,6 +3,8 @@ package com.seikyuuressha.lms.resolver;
 import com.seikyuuressha.lms.dto.request.*;
 import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.service.QuizService;
+import com.seikyuuressha.lms.service.quiz.QuestionService;
+import com.seikyuuressha.lms.service.quiz.QuizAttemptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -18,6 +20,8 @@ import java.util.UUID;
 public class QuizResolver {
 
     private final QuizService quizService;
+    private final QuestionService questionService;
+    private final QuizAttemptService quizAttemptService;
 
     // ==================== QUERY METHODS (Authenticated Users) ====================
 
@@ -36,7 +40,7 @@ public class QuizResolver {
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
     public List<QuizAttemptResponse> getMyQuizAttempts(@Argument UUID quizId) {
-        return quizService.getMyQuizAttempts(quizId);
+        return quizAttemptService.getMyQuizAttempts(quizId);
     }
 
     // ==================== INSTRUCTOR/ADMIN METHODS (Quiz Management) ====================
@@ -50,25 +54,25 @@ public class QuizResolver {
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public QuestionResponse createQuestion(@Argument CreateQuestionRequest input) {
-        return quizService.createQuestion(input);
+        return questionService.createQuestion(input);
     }
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public AnswerResponse createAnswer(@Argument CreateAnswerRequest input) {
-        return quizService.createAnswer(input);
+        return questionService.createAnswer(input);
     }
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public QuestionResponse updateQuestion(@Argument UUID questionId, @Argument UpdateQuestionRequest input) {
-        return quizService.updateQuestion(questionId, input);
+        return questionService.updateQuestion(questionId, input);
     }
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public AnswerResponse updateAnswer(@Argument UUID answerId, @Argument UpdateAnswerRequest input) {
-        return quizService.updateAnswer(answerId, input);
+        return questionService.updateAnswer(answerId, input);
     }
 
     @MutationMapping
@@ -83,32 +87,32 @@ public class QuizResolver {
         return quizService.updateQuiz(quizId, input);
     }
 
-    // ==================== STUDENT METHODS (Quiz Taking) ====================
+    // ==================== STUDENT METHODS (Quiz Taking - Delegated to QuizAttemptService) ====================
 
     @MutationMapping
     @PreAuthorize("isAuthenticated()")
     public QuizAttemptResponse startQuizAttempt(@Argument UUID quizId) {
-        return quizService.startQuizAttempt(quizId);
+        return quizAttemptService.startQuizAttempt(quizId);
     }
 
     @MutationMapping
     @PreAuthorize("isAuthenticated()")
     public QuizAnswerResponse submitQuizAnswer(@Argument UUID attemptId, @Argument SubmitQuizAnswerRequest input) {
-        return quizService.submitQuizAnswer(attemptId, input);
+        return quizAttemptService.submitQuizAnswer(attemptId, input);
     }
 
     @MutationMapping
     @PreAuthorize("isAuthenticated()")
     public QuizAttemptResponse finishQuizAttempt(@Argument UUID attemptId) {
-        return quizService.finishQuizAttempt(attemptId);
+        return quizAttemptService.finishQuizAttempt(attemptId);
     }
 
-    // ==================== INSTRUCTOR/ADMIN METHODS (Delete) ====================
+    // ==================== INSTRUCTOR/ADMIN METHODS (Delete - Delegated to QuestionService) ====================
     
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public Boolean deleteQuestion(@Argument UUID questionId) {
-        return quizService.deleteQuestion(questionId);
+        return questionService.deleteQuestion(questionId);
     }
 
     @MutationMapping

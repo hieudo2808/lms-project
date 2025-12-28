@@ -45,11 +45,9 @@ public class ImageService {
                 UUID.randomUUID(), 
                 fileExtension);
 
-        // Generate pre-signed URL
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(s3Key)
-                .contentType(contentType)
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()

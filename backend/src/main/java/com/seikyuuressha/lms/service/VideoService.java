@@ -6,6 +6,8 @@ import com.seikyuuressha.lms.dto.response.VideoResponse;
 import com.seikyuuressha.lms.entity.Lesson;
 import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.entity.Video;
+import com.seikyuuressha.lms.mapper.VideoMapper;
+import com.seikyuuressha.lms.repository.CourseInstructorRepository;
 import com.seikyuuressha.lms.repository.LessonRepository;
 import com.seikyuuressha.lms.repository.VideoRepository;
 import com.seikyuuressha.lms.service.common.SecurityContextService;
@@ -33,9 +35,11 @@ public class VideoService {
 
     private final VideoRepository videoRepository;
     private final LessonRepository lessonRepository;
+    private final CourseInstructorRepository courseInstructorRepository;
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
     private final SecurityContextService securityContextService;
+    private final VideoMapper videoMapper;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
@@ -50,11 +54,16 @@ public class VideoService {
     public PresignedUrlResponse generateUploadUrl(VideoUploadRequest request) {
         Users currentUser = securityContextService.getCurrentUser();
         
-        // Verify lesson exists and user is instructor
+        // Verify lesson exists and user is instructor or co-instructor
         Lesson lesson = lessonRepository.findById(request.getLessonId())
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
-        if (!lesson.getModule().getCourse().getInstructor().getUserId().equals(currentUser.getUserId())) {
+        UUID courseId = lesson.getModule().getCourse().getCourseId();
+        UUID userId = currentUser.getUserId();
+        boolean isPrimaryInstructor = lesson.getModule().getCourse().getInstructor().getUserId().equals(userId);
+        boolean isCoInstructor = courseInstructorRepository.existsByCourseIdAndUserId(courseId, userId);
+        
+        if (!isPrimaryInstructor && !isCoInstructor) {
             throw new RuntimeException("Only the instructor can upload videos for this lesson");
         }
 
@@ -275,28 +284,22 @@ public class VideoService {
         return String.format("videos/%s/%s/%s%s", instructorId, lessonId, timestamp, extension);
     }
 
+    /**
+     * Map Video entity to VideoResponse DTO with stream URL
+     */
     private VideoResponse mapToVideoResponse(Video video) {
-        String streamUrl = null;
-
+        VideoResponse response = videoMapper.toVideoResponse(video);
+        
+        // Set stream URL if video is completed
         if (video.getProcessingStatus() == Video.ProcessingStatus.COMPLETED) {
             try {
-                streamUrl = getVideoStreamUrl(video.getLesson().getLessonId());
+                response.setStreamUrl(getVideoStreamUrl(video.getLesson().getLessonId()));
             } catch (Exception e) {
                 log.warn("Failed to generate stream URL: {}", e.getMessage());
             }
         }
-
-        return VideoResponse.builder()
-                .videoId(video.getVideoId())
-                .lessonId(video.getLesson().getLessonId())
-                .originalFilename(video.getOriginalFilename())
-                .fileSize(video.getFileSize())
-                .mimeType(video.getMimeType())
-                .durationSeconds(video.getDurationSeconds())
-                .processingStatus(video.getProcessingStatus().name())
-                .streamUrl(streamUrl)
-                .uploadedAt(video.getUploadedAt())
-                .build();
+        
+        return response;
     }
 
 }

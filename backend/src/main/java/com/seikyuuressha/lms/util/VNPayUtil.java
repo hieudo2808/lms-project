@@ -3,8 +3,11 @@ package com.seikyuuressha.lms.util;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Random;
 
+/**
+ * Utility class for VNPay payment integration.
+ */
 public class VNPayUtil {
 
     public static String hmacSHA512(String key, String data) {
@@ -25,20 +28,6 @@ public class VNPayUtil {
             sb.append(String.format("%02x", b));
         }
         return sb.toString();
-    }
-
-    public static String getPaymentURL(Map<String, String> params, String payUrl) {
-        StringBuilder query = new StringBuilder();
-        params.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> {
-                    if (query.length() > 0) {
-                        query.append('&');
-                    }
-                    query.append(entry.getKey()).append('=').append(entry.getValue());
-                });
-
-        return payUrl + "?" + query;
     }
 
     public static String getRandomNumber(int length) {

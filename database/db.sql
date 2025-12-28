@@ -28,7 +28,7 @@ CREATE TABLE Users (
     createdAt DATETIMEOFFSET DEFAULT GETDATE(),
     isActive BIT DEFAULT 1,
 	failedLoginAttempts INT NOT NULL DEFAULT 0,
-    blockUntil DATETIMEOFFSET
+    lockUntil DATETIMEOFFSET
 );
 
 -- ============================================
@@ -257,9 +257,8 @@ CREATE TABLE Answers (
 -- 16. QuizAttempts Table (Lần thi của học viên)
 -- ============================================
 CREATE TABLE QuizAttempts (
-    attemptId UNIQUEIDENTIFIER PRIMARY KEY,
+    attemptId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
     quizId UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES Quizzes(quizId) ON UPDATE CASCADE ON DELETE CASCADE,
-    -- [SAFE] Ngắt cascade User
     userId UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES Users(userId) ON UPDATE NO ACTION ON DELETE NO ACTION,
     attemptNumber INT NOT NULL,
     startedAt DATETIMEOFFSET NOT NULL DEFAULT GETDATE(),
@@ -276,7 +275,7 @@ CREATE TABLE QuizAttempts (
 -- 17. QuizAnswers Table (Câu trả lời của học viên)
 -- ============================================
 CREATE TABLE QuizAnswers (
-    quizAnswerId UNIQUEIDENTIFIER PRIMARY KEY,
+    quizAnswerId UNIQUEIDENTIFIER NOT NULL PRIMARY KEY,
     -- ƯU TIÊN 1: Xóa Attempt thì xóa luôn câu trả lời của lần thi đó (CASCADE)
     attemptId UNIQUEIDENTIFIER NOT NULL FOREIGN KEY REFERENCES QuizAttempts(attemptId) ON UPDATE CASCADE ON DELETE CASCADE,
     

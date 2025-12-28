@@ -8,14 +8,17 @@ interface AuthStore {
     _hasHydrated: boolean;
     setAuth: (token: string, user: User) => void;
     updateUser: (user: User) => void;
-    logout: () => void;
+    updateToken: (token: string) => void;
+    logout: () => Promise<void>;
     setHasHydrated: (state: boolean) => void;
+    isAuthenticated: () => boolean;
 }
 
 export const useAuthStore = create<AuthStore>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             token: null,
+            refreshToken: null,
             user: null,
             _hasHydrated: false,
 
@@ -27,13 +30,31 @@ export const useAuthStore = create<AuthStore>()(
                 set({ user });
             },
 
-            logout: () => {
-                localStorage.removeItem('refresh_token');
+            updateToken: (token: string) => {
+                set({ token });
+            },
+
+            logout: async () => {
+                // Call REST endpoint to clear HTTP-only cookie
+                const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+                try {
+                    await fetch(`${API_URL}/auth/logout`, {
+                        method: 'POST',
+                        credentials: 'include',
+                    });
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
                 set({ token: null, user: null });
             },
 
             setHasHydrated: (state: boolean) => {
                 set({ _hasHydrated: state });
+            },
+
+            isAuthenticated: () => {
+                const state = get();
+                return !!state.token && !!state.user;
             },
         }),
         {
@@ -41,6 +62,10 @@ export const useAuthStore = create<AuthStore>()(
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);
             },
+            partialize: (state) => ({
+                token: state.token,
+                user: state.user,
+            }),
         },
     ),
 );

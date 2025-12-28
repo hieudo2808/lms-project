@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 
 import { Layout } from '../../components/common/Layout';
@@ -35,6 +35,8 @@ const tabs = [
 export const CourseDetailPage = () => {
     const { slug } = useParams();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isPreviewMode = searchParams.get('preview') === 'true';
     const { user } = useAuthStore();
 
     const [courseId, setCourseId] = useState<string | null>(null);
@@ -438,22 +440,29 @@ export const CourseDetailPage = () => {
 
                             {selectedLesson && (
                                 <div className="space-y-4">
-                                    <div className="flex gap-3">
-                                        <textarea
-                                            value={commentText}
-                                            onChange={(e) => setCommentText(e.target.value)}
-                                            placeholder="Chia sẻ thắc mắc của bạn..."
-                                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            rows={3}
-                                        />
-                                        <button
-                                            onClick={handleAddComment}
-                                            disabled={isCommentSubmitting || !commentText.trim()}
-                                            className="h-fit bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
-                                        >
-                                            {isCommentSubmitting ? 'Đang gửi...' : 'Gửi'}
-                                        </button>
-                                    </div>
+                                    {!isPreviewMode && (
+                                        <div className="flex gap-3">
+                                            <textarea
+                                                value={commentText}
+                                                onChange={(e) => setCommentText(e.target.value)}
+                                                placeholder="Chia sẻ thắc mắc của bạn..."
+                                                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                rows={3}
+                                            />
+                                            <button
+                                                onClick={handleAddComment}
+                                                disabled={isCommentSubmitting || !commentText.trim()}
+                                                className="h-fit bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+                                            >
+                                                {isCommentSubmitting ? 'Đang gửi...' : 'Gửi'}
+                                            </button>
+                                        </div>
+                                    )}
+                                    {isPreviewMode && (
+                                        <p className="text-amber-600 text-sm italic">
+                                            👁️ Chế độ xem trước - Không thể bình luận
+                                        </p>
+                                    )}
 
                                     {commentsLoading && <p className="text-gray-500">Đang tải bình luận...</p>}
                                     {!commentsLoading && (commentsData?.getCommentsByLesson?.length || 0) === 0 && (
@@ -569,42 +578,48 @@ export const CourseDetailPage = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col gap-3">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-sm font-semibold text-gray-700">Chọn sao:</span>
-                                    <div className="flex gap-2">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                onClick={() => setReviewRating(star)}
-                                                className={`w-10 h-10 rounded-full border flex items-center justify-center ${
-                                                    reviewRating >= star
-                                                        ? 'bg-amber-100 border-amber-300 text-amber-600'
-                                                        : 'border-gray-200 text-gray-400'
-                                                }`}
-                                            >
-                                                ⭐
-                                            </button>
-                                        ))}
+                            {!isPreviewMode ? (
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm font-semibold text-gray-700">Chọn sao:</span>
+                                        <div className="flex gap-2">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <button
+                                                    key={star}
+                                                    onClick={() => setReviewRating(star)}
+                                                    className={`w-10 h-10 rounded-full border flex items-center justify-center ${
+                                                        reviewRating >= star
+                                                            ? 'bg-amber-100 border-amber-300 text-amber-600'
+                                                            : 'border-gray-200 text-gray-400'
+                                                    }`}
+                                                >
+                                                    ⭐
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <textarea
+                                        value={reviewComment}
+                                        onChange={(e) => setReviewComment(e.target.value)}
+                                        placeholder="Ghi lại cảm nhận của bạn..."
+                                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        rows={3}
+                                    />
+                                    <div className="flex justify-end">
+                                        <button
+                                            onClick={handleSubmitReview}
+                                            disabled={isReviewSubmitting}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+                                        >
+                                            {reviewsData?.myReviewForCourse ? 'Cập nhật đánh giá' : 'Gửi đánh giá'}
+                                        </button>
                                     </div>
                                 </div>
-                                <textarea
-                                    value={reviewComment}
-                                    onChange={(e) => setReviewComment(e.target.value)}
-                                    placeholder="Ghi lại cảm nhận của bạn..."
-                                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    rows={3}
-                                />
-                                <div className="flex justify-end">
-                                    <button
-                                        onClick={handleSubmitReview}
-                                        disabled={isReviewSubmitting}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
-                                    >
-                                        {reviewsData?.myReviewForCourse ? 'Cập nhật đánh giá' : 'Gửi đánh giá'}
-                                    </button>
-                                </div>
-                            </div>
+                            ) : (
+                                <p className="text-amber-600 text-sm italic bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                    👁️ Chế độ xem trước - Không thể đánh giá khóa học
+                                </p>
+                            )}
 
                             <div className="space-y-4">
                                 {reviewList.map((review: any) => (
@@ -681,12 +696,16 @@ export const CourseDetailPage = () => {
                                                     <span>Điểm đạt: {quiz.passingScore}</span>
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={() => navigate(`/student/quizzes/${quiz.quizId}`)}
-                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
-                                            >
-                                                Làm quiz
-                                            </button>
+                                            {isPreviewMode ? (
+                                                <span className="text-amber-600 text-sm italic">👁️ Xem trước</span>
+                                            ) : (
+                                                <button
+                                                    onClick={() => navigate(`/student/quizzes/${quiz.quizId}`)}
+                                                    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700"
+                                                >
+                                                    Làm quiz
+                                                </button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -704,13 +723,24 @@ export const CourseDetailPage = () => {
                             {((course.price ?? 0) * 1.5).toLocaleString()} đ
                         </p>
 
-                        <button
-                            onClick={handleEnroll}
-                            disabled={isEnrollLoading}
-                            className="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition-all shadow-md active:transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
-                        >
-                            {isEnrolled ? 'Vào học' : isEnrollLoading ? 'Đang xử lý...' : 'Đăng ký ngay'}
-                        </button>
+                        {isPreviewMode ? (
+                            <div className="w-full bg-amber-100 border border-amber-300 text-amber-800 font-semibold py-4 px-4 rounded-lg text-center">
+                                <div className="flex items-center justify-center gap-2 mb-1">
+                                    <span>👁️</span> Chế độ xem trước
+                                </div>
+                                <p className="text-sm font-normal text-amber-700">
+                                    Bạn đang xem trước khóa học với tư cách giảng viên/quản trị viên
+                                </p>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleEnroll}
+                                disabled={isEnrollLoading}
+                                className="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition-all shadow-md active:transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {isEnrolled ? 'Vào học' : isEnrollLoading ? 'Đang xử lý...' : 'Đăng ký ngay'}
+                            </button>
+                        )}
 
                         {isEnrolled && (
                             <button

@@ -12,13 +12,11 @@ export const Navbar = () => {
 
     const isAuthPage = ['/login', '/register'].includes(location.pathname);
 
-    // Query GET_ME để lấy user data mới nhất (bao gồm avatar)
     const { data: meData } = useQuery(GET_ME_QUERY, {
-        skip: !_hasHydrated || !token || isAuthPage, // Chỉ query khi đã login và store đã hydrate
-        fetchPolicy: 'cache-and-network', // Luôn fetch để có data mới nhất
+        skip: !_hasHydrated || !token || isAuthPage,
+        fetchPolicy: 'cache-and-network',
     });
 
-    // Sync user data từ GET_ME vào store
     useEffect(() => {
         if (meData?.me && token) {
             setAuth(token, meData.me);
@@ -26,20 +24,15 @@ export const Navbar = () => {
     }, [meData, token, setAuth]);
 
     const user = meData?.me || storedUser;
-    
-    // Chỉ check authentication sau khi store đã hydrate xong
     const isAuthenticated = _hasHydrated && !!token;
 
-    
     const [showExploreMenu, setShowExploreMenu] = useState(false);
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-    // Refs for click outside detection
     const exploreMenuRef = useRef<HTMLDivElement>(null);
     const userMenuRef = useRef<HTMLDivElement>(null);
 
-    // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (exploreMenuRef.current && !exploreMenuRef.current.contains(event.target as Node)) {
@@ -54,16 +47,14 @@ export const Navbar = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Nếu chưa hydrate xong, hiển thị skeleton đơn giản
     if (!_hasHydrated) {
         return (
             <nav className="bg-white shadow-lg sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2">
                         <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            🎓 LMS
+                            EduNova
                         </div>
-                        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Platform</span>
                     </Link>
                     <div className="w-32 h-8 bg-gray-200 animate-pulse rounded"></div>
                 </div>
@@ -73,21 +64,16 @@ export const Navbar = () => {
 
     const handleLogout = async () => {
         try {
-            // Revoke Google session if exists
             if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
                 try {
                     (window as any).google.accounts.id.disableAutoSelect();
-                    // Also try to revoke the session
                     (window as any).google.accounts.id.revoke(user?.email || '', () => {});
-                } catch (e) {
-                    // Ignore Google logout errors
-                }
+                } catch (e) {}
             }
-            
-            // Clear Apollo cache và reset store
+
             await client.clearStore();
             await client.resetStore();
-            
+
             logout();
             navigate('/login', { replace: true });
         } catch (error) {
@@ -100,7 +86,6 @@ export const Navbar = () => {
     const handleExplore = (level?: string) => {
         setShowExploreMenu(false);
         if (level) {
-            // Capitalize first letter to match backend format
             const capitalizedLevel = level.charAt(0).toUpperCase() + level.slice(1);
             navigate(`/courses?level=${capitalizedLevel}`);
         } else {
@@ -115,9 +100,8 @@ export const Navbar = () => {
                     {/* Logo */}
                     <Link to="/" className="flex items-center gap-2">
                         <div className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            🎓 LMS
+                            EduNova
                         </div>
-                        <span className="hidden sm:inline text-xs font-semibold text-gray-600 uppercase tracking-wider">Platform</span>
                     </Link>
 
                     {/* Desktop Navigation */}
@@ -128,38 +112,37 @@ export const Navbar = () => {
                                 onClick={() => setShowExploreMenu(!showExploreMenu)}
                                 className="text-gray-700 hover:text-blue-600 font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
                             >
-                                🔍 Khám phá
+                                Khám phá
                                 <span className={`text-sm transition-transform ${showExploreMenu ? 'rotate-180' : ''}`}>
                                     ▼
                                 </span>
                             </button>
 
-                            {/* Dropdown Menu */}
                             {showExploreMenu && (
                                 <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden z-[100]">
                                     <button
                                         onClick={() => handleExplore()}
                                         className="w-full text-left px-4 py-3 hover:bg-blue-50 text-gray-700 font-medium transition-colors border-b border-gray-100"
                                     >
-                                        📚 Tất cả khóa học
+                                        Tất cả khóa học
                                     </button>
                                     <button
                                         onClick={() => handleExplore('beginner')}
                                         className="w-full text-left px-4 py-3 hover:bg-green-50 text-gray-700 font-medium transition-colors border-b border-gray-100"
                                     >
-                                        🌱 Cơ bản
+                                        Cơ bản
                                     </button>
                                     <button
                                         onClick={() => handleExplore('intermediate')}
                                         className="w-full text-left px-4 py-3 hover:bg-yellow-50 text-gray-700 font-medium transition-colors border-b border-gray-100"
                                     >
-                                        📈 Trung bình
+                                        Trung bình
                                     </button>
                                     <button
                                         onClick={() => handleExplore('advanced')}
                                         className="w-full text-left px-4 py-3 hover:bg-purple-50 text-gray-700 font-medium transition-colors"
                                     >
-                                        🚀 Nâng cao
+                                        Nâng cao
                                     </button>
                                 </div>
                             )}
@@ -171,13 +154,13 @@ export const Navbar = () => {
                                     to="/dashboard/my-courses"
                                     className="text-gray-700 hover:text-blue-600 font-medium transition-colors whitespace-nowrap"
                                 >
-                                    📖 Khóa học của tôi
+                                    Khóa học của tôi
                                 </Link>
                                 <Link
                                     to="/dashboard/certificates"
                                     className="text-gray-700 hover:text-blue-600 font-medium transition-colors whitespace-nowrap"
                                 >
-                                    🏆 Chứng chỉ
+                                    Chứng chỉ
                                 </Link>
                             </>
                         )}
@@ -190,8 +173,8 @@ export const Navbar = () => {
                                     className="flex items-center gap-2 hover:opacity-80 transition-opacity whitespace-nowrap"
                                 >
                                     {user?.avatarUrl ? (
-                                        <img 
-                                            src={user.avatarUrl} 
+                                        <img
+                                            src={user.avatarUrl}
                                             alt={user.fullName}
                                             className="w-8 h-8 rounded-full object-cover border-2 border-blue-500"
                                         />
@@ -203,12 +186,13 @@ export const Navbar = () => {
                                     <span className="text-sm font-medium text-gray-700 hidden xl:inline">
                                         {user?.fullName?.split(' ')[0] || 'User'}
                                     </span>
-                                    <span className={`text-sm transition-transform ${showUserMenu ? 'rotate-180' : ''}`}>
+                                    <span
+                                        className={`text-sm transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
+                                    >
                                         ▼
                                     </span>
                                 </button>
 
-                                {/* User Dropdown Menu */}
                                 {showUserMenu && (
                                     <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden z-[100]">
                                         <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
@@ -220,7 +204,7 @@ export const Navbar = () => {
                                             onClick={() => setShowUserMenu(false)}
                                             className="block px-4 py-3 hover:bg-blue-50 text-gray-700 font-medium transition-colors border-b border-gray-100"
                                         >
-                                            ⚙️ Cài đặt tài khoản
+                                            Cài đặt tài khoản
                                         </Link>
                                         <button
                                             onClick={() => {
@@ -229,7 +213,7 @@ export const Navbar = () => {
                                             }}
                                             className="w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 font-medium transition-colors"
                                         >
-                                            🚪 Đăng xuất
+                                            Đăng xuất
                                         </button>
                                     </div>
                                 )}
@@ -240,13 +224,13 @@ export const Navbar = () => {
                                     to="/login"
                                     className="text-gray-700 hover:text-blue-600 font-medium transition-colors whitespace-nowrap"
                                 >
-                                    🔑 Đăng nhập
+                                    Đăng nhập
                                 </Link>
                                 <Link
                                     to="/register"
                                     className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all whitespace-nowrap"
                                 >
-                                    ✨ Đăng ký
+                                    Đăng ký
                                 </Link>
                             </div>
                         )}
@@ -259,9 +243,19 @@ export const Navbar = () => {
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {showMobileMenu ? (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
                             ) : (
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 6h16M4 12h16M4 18h16"
+                                />
                             )}
                         </svg>
                     </button>
@@ -278,7 +272,7 @@ export const Navbar = () => {
                                 }}
                                 className="w-full text-left px-4 py-2 text-gray-700 hover:bg-blue-50 rounded-lg font-medium"
                             >
-                                📚 Tất cả khóa học
+                                Tất cả khóa học
                             </button>
                             <button
                                 onClick={() => {
@@ -287,7 +281,7 @@ export const Navbar = () => {
                                 }}
                                 className="w-full text-left px-4 py-2 text-gray-700 hover:bg-green-50 rounded-lg font-medium"
                             >
-                                🌱 Cơ bản
+                                Cơ bản
                             </button>
                             <button
                                 onClick={() => {
@@ -296,7 +290,7 @@ export const Navbar = () => {
                                 }}
                                 className="w-full text-left px-4 py-2 text-gray-700 hover:bg-yellow-50 rounded-lg font-medium"
                             >
-                                📈 Trung bình
+                                Trung bình
                             </button>
                             <button
                                 onClick={() => {
@@ -305,7 +299,7 @@ export const Navbar = () => {
                                 }}
                                 className="w-full text-left px-4 py-2 text-gray-700 hover:bg-purple-50 rounded-lg font-medium"
                             >
-                                🚀 Nâng cao
+                                Nâng cao
                             </button>
 
                             {isAuthenticated && (
@@ -315,21 +309,21 @@ export const Navbar = () => {
                                         onClick={() => setShowMobileMenu(false)}
                                         className="block px-4 py-2 text-gray-700 hover:bg-blue-50 rounded-lg font-medium"
                                     >
-                                        📖 Khóa học của tôi
+                                        Khóa học của tôi
                                     </Link>
                                     <Link
                                         to="/dashboard/certificates"
                                         onClick={() => setShowMobileMenu(false)}
                                         className="block px-4 py-2 text-gray-700 hover:bg-blue-50 rounded-lg font-medium"
                                     >
-                                        🏆 Chứng chỉ
+                                        Chứng chỉ
                                     </Link>
                                     <Link
                                         to="/dashboard/settings"
                                         onClick={() => setShowMobileMenu(false)}
                                         className="block px-4 py-2 text-gray-700 hover:bg-blue-50 rounded-lg font-medium"
                                     >
-                                        ⚙️ Cài đặt tài khoản
+                                        Cài đặt tài khoản
                                     </Link>
                                     <button
                                         onClick={() => {
@@ -338,7 +332,7 @@ export const Navbar = () => {
                                         }}
                                         className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg font-medium"
                                     >
-                                        🚪 Đăng xuất
+                                        Đăng xuất
                                     </button>
                                 </>
                             )}
@@ -350,14 +344,14 @@ export const Navbar = () => {
                                         onClick={() => setShowMobileMenu(false)}
                                         className="block px-4 py-2 text-center text-gray-700 hover:text-blue-600 font-medium rounded-lg border border-gray-300"
                                     >
-                                        🔑 Đăng nhập
+                                        Đăng nhập
                                     </Link>
                                     <Link
                                         to="/register"
                                         onClick={() => setShowMobileMenu(false)}
                                         className="block px-4 py-2 text-center bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium"
                                     >
-                                        ✨ Đăng ký
+                                        Đăng ký
                                     </Link>
                                 </div>
                             )}

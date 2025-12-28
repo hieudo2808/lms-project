@@ -1,6 +1,8 @@
-package com.seikyuuressha.lms.configuration;
+package com.seikyuuressha.lms.security.config;
 
+import com.seikyuuressha.lms.configuration.PepperBCryptEncoder;
 import com.seikyuuressha.lms.security.JwtAuthenticationFilter;
+import com.seikyuuressha.lms.security.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -35,13 +37,14 @@ import java.util.List;
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final com.seikyuuressha.lms.security.RateLimitFilter rateLimitFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final UserDetailsService userDetailsService;
     
     private final String[] PUBLIC_ENDPOINTS = {
             "/graphql",
             "/graphiql/**",
-            "/actuator/**"
+            "/actuator/**",
+            "/api/auth/**"  // REST auth endpoints for cookie-based auth
     };
 
     @Value("${app.cors.allowed-origins}")
@@ -86,13 +89,11 @@ public class SecurityConfig {
                         .referrerPolicy(ref -> ref
                                 .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                         )
-                        // HSTS - Force HTTPS for 1 year
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .maxAgeInSeconds(31536000)
                                 .includeSubDomains(true)
                                 .preload(true)
                         )
-                        // CSP - Whitelist trusted sources
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives(
                                         "default-src 'self'; " +

@@ -12,7 +12,7 @@ import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.mapper.UserMapper;
 import com.seikyuuressha.lms.repository.RoleRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
-import com.seikyuuressha.lms.util.JwtUtil;
+import com.seikyuuressha.lms.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -159,8 +159,7 @@ public class AuthService {
             if (existingUser.isPresent()) {
                 user = existingUser.get();
                 
-                // Update avatar if changed
-                if (pictureUrl != null && !pictureUrl.equals(user.getAvatarUrl())) {
+                if (pictureUrl != null && (user.getAvatarUrl() == null || user.getAvatarUrl().isEmpty())) {
                     user.setAvatarUrl(pictureUrl);
                     user = userRepository.save(user);
                 }
