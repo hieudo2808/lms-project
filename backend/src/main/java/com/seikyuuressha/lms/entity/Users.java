@@ -39,6 +39,13 @@ public class Users {
 
     boolean isActive;
 
+    // Account lockout fields
+    @Column(nullable = false)
+    @Builder.Default
+    int failedLoginAttempts = 0;
+
+    OffsetDateTime blockUntil;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "roleId", nullable = false)
     Roles role;

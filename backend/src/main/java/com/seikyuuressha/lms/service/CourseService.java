@@ -6,11 +6,9 @@ import com.seikyuuressha.lms.repository.CourseRepository;
 import com.seikyuuressha.lms.repository.CourseInstructorRepository;
 import com.seikyuuressha.lms.repository.EnrollmentRepository;
 import com.seikyuuressha.lms.repository.ProgressRepository;
-import com.seikyuuressha.lms.repository.UserRepository;
-import com.seikyuuressha.lms.repository.VideoRepository; 
+import com.seikyuuressha.lms.repository.VideoRepository;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,8 +23,8 @@ public class CourseService {
     private final CourseInstructorRepository courseInstructorRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ProgressRepository progressRepository;
-    private final UserRepository userRepository;
     private final VideoRepository videoRepository;
+    private final SecurityContextService securityContextService;
 
     @Transactional(readOnly = true)
     public List<CourseResponse> getAllPublishedCourses(UUID categoryId) {
@@ -47,7 +45,7 @@ public class CourseService {
         // [FIX QUAN TRỌNG] Kiểm tra quyền xem khóa học chưa xuất bản
         checkCourseAccess(course);
 
-        return mapToCourseResponse(course, getCurrentUserId());
+        return mapToCourseResponse(course, securityContextService.getOptionalCurrentUserId());
     }
 
     @Transactional(readOnly = true)
@@ -58,13 +56,13 @@ public class CourseService {
         // [FIX QUAN TRỌNG] Kiểm tra quyền xem khóa học chưa xuất bản
         checkCourseAccess(course);
 
-        return mapToCourseResponse(course, getCurrentUserId());
+        return mapToCourseResponse(course, securityContextService.getOptionalCurrentUserId());
     }
 
     // === HÀM PHỤ ĐỂ CHECK QUYỀN (Logic mới) ===
     private void checkCourseAccess(Course course) {
         if (!course.isPublished()) {
-            UUID currentUserId = getCurrentUserId();
+            UUID currentUserId = securityContextService.getOptionalCurrentUserId();
             // Nếu là giảng viên của khóa học này thì cho phép xem
             boolean isOwner = currentUserId != null && course.getInstructor().getUserId().equals(currentUserId);
             
@@ -73,20 +71,6 @@ public class CourseService {
             }
         }
     }
-
-    private UUID getCurrentUserId() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    if (authentication == null || authentication.getPrincipal() == null) {
-        return null;
-    }
-
-    if (authentication.getPrincipal() instanceof UUID) {
-        return (UUID) authentication.getPrincipal(); // ✅ ĐÚNG
-    }
-
-    return null;
-}
 
     private CourseResponse mapToCourseResponseWithoutModules(Course course) {
         return CourseResponse.builder()

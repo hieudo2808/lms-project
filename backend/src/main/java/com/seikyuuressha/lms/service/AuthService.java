@@ -9,9 +9,9 @@ import com.seikyuuressha.lms.dto.request.RegisterRequest;
 import com.seikyuuressha.lms.dto.response.AuthResponse;
 import com.seikyuuressha.lms.entity.Roles;
 import com.seikyuuressha.lms.entity.Users;
+import com.seikyuuressha.lms.mapper.UserMapper;
 import com.seikyuuressha.lms.repository.RoleRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
-import com.seikyuuressha.lms.mapper.UserMapper;
 import com.seikyuuressha.lms.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -38,6 +40,7 @@ public class AuthService {
     private final UserDetailsService userDetailsService;
     private final UserMapper userMapper;
     private final PasswordResetService passwordResetService;
+    private final com.seikyuuressha.lms.repository.InvalidatedTokenRepository invalidatedTokenRepository;
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
@@ -73,18 +76,43 @@ public class AuthService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
-
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-
         Users user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
+        if (user.getBlockUntil() != null && user.getBlockUntil().isAfter(OffsetDateTime.now())) {
+            long minutesRemaining = java.time.Duration.between(OffsetDateTime.now(), user.getBlockUntil()).toMinutes();
+            throw new RuntimeException("Account locked. Try again in " + minutesRemaining + " minutes.");
+        }
+
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+
+            // Reset failed attempts on successful login
+            if (user.getFailedLoginAttempts() > 0) {
+                user.setFailedLoginAttempts(0);
+                user.setBlockUntil(null);
+                userRepository.save(user);
+            }
+
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            // Increment failed attempts
+            user.setFailedLoginAttempts(user.getFailedLoginAttempts() + 1);
+
+            // Lock account after 5 failed attempts
+            if (user.getFailedLoginAttempts() >= 5) {
+                user.setBlockUntil(OffsetDateTime.now().plusMinutes(15));
+            }
+            userRepository.save(user);
+
+            throw new RuntimeException("Invalid credentials");
+        }
 
         if (!user.isActive()) {
             throw new RuntimeException("User account is inactive");
@@ -178,5 +206,79 @@ public class AuthService {
         // Encode password before passing to service
         String encodedPassword = passwordEncoder.encode(newPassword);
         passwordResetService.resetPassword(resetCode, encodedPassword);
+    }
+
+    /**
+     * Refresh access token using refresh token (with rotation)
+     */
+    @Transactional
+    public AuthResponse refreshAccessToken(String refreshToken) {
+        try {
+            // Extract info from refresh token
+            String tokenId = jwtUtil.extractTokenId(refreshToken);
+            String email = jwtUtil.extractUsername(refreshToken);
+            Date expiration = jwtUtil.extractExpiration(refreshToken);
+
+            // Check if token has been invalidated
+            if (tokenId != null && invalidatedTokenRepository.existsByTokenId(tokenId)) {
+                throw new RuntimeException("Refresh token has been revoked");
+            }
+
+            // Find user
+            Users user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (!user.isActive()) {
+                throw new RuntimeException("User account is inactive");
+            }
+
+            // Invalidate old refresh token (rotation)
+            if (tokenId != null) {
+                com.seikyuuressha.lms.entity.InvalidatedToken invalidated =
+                        com.seikyuuressha.lms.entity.InvalidatedToken.builder()
+                                .tokenId(tokenId)
+                                .expiryTime(OffsetDateTime.ofInstant(expiration.toInstant(), ZoneOffset.UTC))
+                                .invalidatedAt(OffsetDateTime.now())
+                                .build();
+                invalidatedTokenRepository.save(invalidated);
+            }
+
+            // Generate new tokens
+            String newAccessToken = jwtUtil.generateToken(user);
+            String newRefreshToken = jwtUtil.generateRefreshToken(user);
+
+            return AuthResponse.builder()
+                    .token(newAccessToken)
+                    .refreshToken(newRefreshToken)
+                    .user(userMapper.toUserResponse(user))
+                    .build();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid refresh token: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Logout - invalidate refresh token
+     */
+    @Transactional
+    public boolean logout(String refreshToken) {
+        try {
+            String tokenId = jwtUtil.extractTokenId(refreshToken);
+            Date expiration = jwtUtil.extractExpiration(refreshToken);
+
+            if (tokenId != null) {
+                com.seikyuuressha.lms.entity.InvalidatedToken invalidated =
+                        com.seikyuuressha.lms.entity.InvalidatedToken.builder()
+                                .tokenId(tokenId)
+                                .expiryTime(OffsetDateTime.ofInstant(expiration.toInstant(), ZoneOffset.UTC))
+                                .invalidatedAt(OffsetDateTime.now())
+                                .build();
+                invalidatedTokenRepository.save(invalidated);
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -16,5 +16,6 @@ public class PresignedUrlResponse {
     private UUID videoId;
     private String uploadUrl;
     private String s3Key;
+    private String publicUrl; // For images - the public accessible URL after upload
     private Long expiresIn; // seconds
 }

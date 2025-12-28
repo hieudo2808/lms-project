@@ -39,6 +39,8 @@ import { AdminDashboardPage } from './pages/admin/DashboardPage';
 import { UsersPage as AdminUsersPage } from './pages/admin/UsersPage';
 import { CoursesPage as AdminCoursesPage } from './pages/admin/CoursesPage';
 import { CategoriesPage } from './pages/admin/CategoriesPage';
+import { PaymentsPage as AdminPaymentsPage } from './pages/admin/PaymentsPage';
+import { SettingsPage as AdminSettingsPage } from './pages/admin/SettingsPage';
 
 import { ProtectedRoute, RoleBasedRoute, GuestRoute } from './components/auth';
 
@@ -66,7 +68,7 @@ function App() {
                     <Route path="/courses/:slug/lesson/:lessonId" element={<LessonDetailPage />} />
                     <Route path="/student/quizzes/:quizId" element={<QuizTakingPage />} />
                     <Route path="/student/quizzes/:quizId/history" element={<QuizHistoryPage />} />
-                    
+
                     {/* Payment Routes */}
                     <Route path="/payment/:courseId" element={<PaymentPage />} />
                     <Route path="/payment/callback" element={<PaymentCallbackPage />} />
@@ -103,8 +105,8 @@ function App() {
                             <Route path="users" element={<AdminUsersPage />} />
                             <Route path="categories" element={<CategoriesPage />} />
                             <Route path="courses" element={<AdminCoursesPage />} />
-                            <Route path="payments" element={<Placeholder text="Quản lý thanh toán" />} />
-                            <Route path="settings" element={<Placeholder text="Cài đặt hệ thống" />} />
+                            <Route path="payments" element={<AdminPaymentsPage />} />
+                            <Route path="settings" element={<AdminSettingsPage />} />
                         </Route>
                     </Route>
                 </Route>
@@ -115,7 +117,3 @@ function App() {
 }
 
 export default App;
-
-const Placeholder = ({ text }: { text: string }) => (
-    <div className="p-10 text-center font-medium text-gray-500">{text} (Đang phát triển)</div>
-);

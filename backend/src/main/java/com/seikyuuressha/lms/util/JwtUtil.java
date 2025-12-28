@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Component
@@ -43,6 +44,10 @@ public class JwtUtil {
 
     public String extractRole(String token) {
         return extractAllClaims(token).get("role", String.class);
+    }
+
+    public String extractTokenId(String token) {
+        return extractAllClaims(token).get("jti", String.class);
     }
 
     public Date extractExpiration(String token) {
@@ -87,6 +92,8 @@ public class JwtUtil {
     public String generateRefreshToken(Users user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getUserId().toString());
+        claims.put("jti", UUID.randomUUID().toString());
+        claims.put("tokenType", "REFRESH");
 
         return createToken(claims, user.getEmail(), refreshExpiration);
     }

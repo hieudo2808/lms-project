@@ -41,4 +41,14 @@ public class AuthResolver {
         authService.resetPassword(resetCode, newPassword);
         return true;
     }
+
+    @MutationMapping
+    public AuthResponse refreshAccessToken(@Argument String refreshToken) {
+        return authService.refreshAccessToken(refreshToken);
+    }
+
+    @MutationMapping
+    public Boolean logout(@Argument String refreshToken) {
+        return authService.logout(refreshToken);
+    }
 }

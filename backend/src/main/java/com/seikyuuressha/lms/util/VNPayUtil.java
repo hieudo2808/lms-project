@@ -38,7 +38,7 @@ public class VNPayUtil {
                     query.append(entry.getKey()).append('=').append(entry.getValue());
                 });
 
-        return payUrl + "?" + query.toString();
+        return payUrl + "?" + query;
     }
 
     public static String getRandomNumber(int length) {

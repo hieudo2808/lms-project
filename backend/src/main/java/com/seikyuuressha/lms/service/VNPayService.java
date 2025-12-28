@@ -87,7 +87,7 @@ public class VNPayService {
             String vnpSecureHash = VNPayUtil.hmacSHA512(vnpHashSecret, hashData.toString());
             query.append("&vnp_SecureHash=").append(vnpSecureHash);
 
-            return vnpPayUrl + "?" + query.toString();
+            return vnpPayUrl + "?" + query;
         } catch (Exception e) {
             log.error("Error creating VNPay payment URL", e);
             throw new RuntimeException("Failed to create payment URL");
@@ -133,11 +133,7 @@ public class VNPayService {
     }
 
     private String encodeValue(String value) {
-        try {
-            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException e) {
-            return value;
-        }
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     public String generateTransactionId() {

@@ -10,9 +10,8 @@ import com.seikyuuressha.lms.mapper.ReviewMapper;
 import com.seikyuuressha.lms.repository.CourseRepository;
 import com.seikyuuressha.lms.repository.ReviewRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +29,11 @@ public class ReviewService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final ReviewMapper reviewMapper;
+    private final SecurityContextService securityContextService;
 
     @Transactional
     public ReviewResponse createReview(CreateReviewRequest request) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -61,7 +61,7 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponse updateReview(UUID reviewId, UpdateReviewRequest request) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found"));
 
@@ -83,7 +83,7 @@ public class ReviewService {
 
     @Transactional
     public Boolean deleteReview(UUID reviewId) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found"));
 
@@ -119,7 +119,7 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public ReviewResponse getMyReviewForCourse(UUID courseId) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -132,18 +132,4 @@ public class ReviewService {
         return review != null && review.getIsActive() ? reviewMapper.toReviewResponse(review) : null;
     }
 
-    private UUID getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userIdStr = authentication.getName();
-        
-        try {
-            // Token chứa UUID -> Parse trực tiếp
-            return UUID.fromString(userIdStr);
-        } catch (IllegalArgumentException e) {
-            // Fallback: Nếu token chứa email (trường hợp cũ)
-            Users user = userRepository.findByEmail(userIdStr)
-                    .orElseThrow(() -> new RuntimeException("User not found by email/id: " + userIdStr));
-            return user.getUserId();
-        }
-    }
 }

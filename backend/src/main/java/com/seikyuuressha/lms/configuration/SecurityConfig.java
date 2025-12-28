@@ -35,6 +35,7 @@ import java.util.List;
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final com.seikyuuressha.lms.security.RateLimitFilter rateLimitFilter;
     private final UserDetailsService userDetailsService;
     
     private final String[] PUBLIC_ENDPOINTS = {
@@ -68,7 +69,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .anyRequest().authenticated() // Require authentication for all other endpoints
+                        .anyRequest().authenticated()
                 )
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -76,13 +77,32 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(header -> header
                         .contentTypeOptions(Customizer.withDefaults())
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
-                        .xssProtection(xXssConfig -> xXssConfig.headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
+                        .xssProtection(xss -> xss.headerValue(XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
                         .referrerPolicy(ref -> ref
                                 .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                        )
+                        // HSTS - Force HTTPS for 1 year
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .maxAgeInSeconds(31536000)
+                                .includeSubDomains(true)
+                                .preload(true)
+                        )
+                        // CSP - Whitelist trusted sources
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives(
+                                        "default-src 'self'; " +
+                                        "script-src 'self' https://apis.google.com https://accounts.google.com; " +
+                                        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                                        "font-src 'self' https://fonts.gstatic.com; " +
+                                        "img-src 'self' data: https:; " +
+                                        "connect-src 'self' https://api.vnpay.vn; " +
+                                        "frame-src https://accounts.google.com"
+                                )
                         )
                 );
 

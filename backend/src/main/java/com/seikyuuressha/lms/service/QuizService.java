@@ -5,9 +5,8 @@ import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.entity.Module;
 import com.seikyuuressha.lms.repository.*;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +29,7 @@ public class QuizService {
     private final ModuleRepository moduleRepository;
     private final LessonRepository lessonRepository;
     private final UserRepository userRepository;
+    private final SecurityContextService securityContextService;
 
     @Transactional
     public QuizResponse createQuiz(CreateQuizRequest request) {
@@ -194,7 +194,7 @@ public class QuizService {
 
         try {
             // Lấy thông tin người dùng hiện tại
-            Users currentUser = getCurrentUser();
+            Users currentUser = securityContextService.getCurrentUser();
             String role = currentUser.getRole().getRoleName();
 
             // Kiểm tra: Nếu là Admin HOẶC là Giảng viên của chính khóa học này
@@ -225,7 +225,7 @@ public class QuizService {
 
         // Allow instructors to access their own unpublished quizzes for editing
         if (!quiz.getIsPublished()) {
-            Users currentUser = getCurrentUser();
+            Users currentUser = securityContextService.getCurrentUser();
             if (currentUser.getRole().getRoleName().equals("INSTRUCTOR")) {
                 // Check if the current instructor owns this course
                 if (!quiz.getCourse().getInstructor().getUserId().equals(currentUser.getUserId())) {
@@ -262,7 +262,7 @@ public class QuizService {
 
     @Transactional
     public QuizAttemptResponse startQuizAttempt(UUID quizId) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -404,7 +404,7 @@ public class QuizService {
 
     @Transactional(readOnly = true)
     public List<QuizAttemptResponse> getMyQuizAttempts(UUID quizId) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -505,14 +505,4 @@ public class QuizService {
                 .build();
     }
 
-    private UUID getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return UUID.fromString(authentication.getName());
-    }
-
-    private Users getCurrentUser() {
-        UUID userId = getCurrentUserId();
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
 }

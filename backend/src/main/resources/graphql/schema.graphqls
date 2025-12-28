@@ -417,6 +417,8 @@ type Mutation {
   googleLogin(idToken: String!): AuthResponse!
   requestPasswordReset(email: String!): Boolean!
   resetPassword(resetCode: String!, newPassword: String!): Boolean!
+  refreshAccessToken(refreshToken: String!): AuthResponse!
+  logout(refreshToken: String!): Boolean!
 
   # User
   updateProfile(input: UpdateProfileInput!): User!
@@ -474,6 +476,12 @@ type Mutation {
     fileSize: Long!
   ): LessonResourceResponse!
   deleteLessonResource(resourceId: UUID!): Boolean!
+
+  # Image Upload
+  generateImageUploadUrl(
+    fileName: String!
+    contentType: String!
+  ): ImageUploadUrlResponse!
 }
 
 # ===== LESSON RESOURCES =====
@@ -490,6 +498,13 @@ type LessonResourceResponse {
 type ResourceUploadUrlResponse {
   uploadUrl: String!
   s3Key: String!
+}
+
+type ImageUploadUrlResponse {
+  uploadUrl: String!
+  s3Key: String!
+  publicUrl: String!
+  expiresIn: Long
 }
 
 # ===== NEW TYPES & INPUTS FOR MEDIA, INSTRUCTOR, ADMIN =====

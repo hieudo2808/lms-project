@@ -7,13 +7,11 @@ import com.seikyuuressha.lms.entity.Lesson;
 import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.entity.Video;
 import com.seikyuuressha.lms.repository.LessonRepository;
-import com.seikyuuressha.lms.repository.UserRepository;
 import com.seikyuuressha.lms.repository.VideoRepository;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -35,9 +33,9 @@ public class VideoService {
 
     private final VideoRepository videoRepository;
     private final LessonRepository lessonRepository;
-    private final UserRepository userRepository;
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
+    private final SecurityContextService securityContextService;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
@@ -50,7 +48,7 @@ public class VideoService {
      */
     @Transactional
     public PresignedUrlResponse generateUploadUrl(VideoUploadRequest request) {
-        Users currentUser = getCurrentUser();
+        Users currentUser = securityContextService.getCurrentUser();
         
         // Verify lesson exists and user is instructor
         Lesson lesson = lessonRepository.findById(request.getLessonId())
@@ -124,7 +122,7 @@ public class VideoService {
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
 
-        Users currentUser = getCurrentUser();
+        Users currentUser = securityContextService.getCurrentUser();
         if (!video.getLesson().getModule().getCourse().getInstructor().getUserId().equals(currentUser.getUserId())) {
             throw new RuntimeException("Unauthorized");
         }
@@ -226,7 +224,7 @@ public class VideoService {
      */
     @Transactional(readOnly = true)
     public List<VideoResponse> getMyVideos() {
-        Users currentUser = getCurrentUser();
+        Users currentUser = securityContextService.getCurrentUser();
         List<Video> videos = videoRepository.findByInstructorId(currentUser.getUserId());
         
         return videos.stream()
@@ -242,7 +240,7 @@ public class VideoService {
         Video video = videoRepository.findById(videoId)
                 .orElseThrow(() -> new RuntimeException("Video not found"));
 
-        Users currentUser = getCurrentUser();
+        Users currentUser = securityContextService.getCurrentUser();
         if (!video.getLesson().getModule().getCourse().getInstructor().getUserId().equals(currentUser.getUserId())) {
             throw new RuntimeException("Only the instructor can delete this video");
         }
@@ -301,22 +299,4 @@ public class VideoService {
                 .build();
     }
 
-    private Users getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("Unauthorized");
-        }
-
-        String principal = authentication.getName();
-
-        try {
-            UUID userId = UUID.fromString(principal);
-            return userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-        } catch (IllegalArgumentException ex) {
-            // Fallback for tokens that still use email as principal
-            return userRepository.findByEmail(principal)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-        }
-    }
 }

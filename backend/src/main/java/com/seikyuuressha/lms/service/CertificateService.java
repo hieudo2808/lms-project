@@ -21,11 +21,10 @@ import com.seikyuuressha.lms.dto.response.CertificateResponse;
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.mapper.CertificateMapper;
 import com.seikyuuressha.lms.repository.*;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -57,13 +56,14 @@ public class CertificateService {
     private final CertificateMapper certificateMapper;
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
+    private final SecurityContextService securityContextService;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
     @Transactional
     public CertificateResponse generateCertificate(UUID courseId) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -154,7 +154,7 @@ public class CertificateService {
 
     @Transactional(readOnly = true)
     public List<CertificateResponse> getMyCertificates() {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -172,7 +172,7 @@ public class CertificateService {
 
     @Transactional(readOnly = true)
     public CertificateResponse getCertificateByCourse(UUID courseId) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -278,8 +278,8 @@ public class CertificateService {
 
         // Tiêu đề chính "CERTIFICATE"
         Paragraph certTitle = new Paragraph("CERTIFICATE")
-                .setFont(titleFont).setFontSize(50).setFontColor(goldColor)
-                .setTextAlignment(TextAlignment.CENTER).setBold()
+                .setFont(PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD)).setFontSize(50).setFontColor(goldColor)
+                .setTextAlignment(TextAlignment.CENTER)
                 .setMarginTop(20);
         contentDiv.add(certTitle);
 
@@ -300,8 +300,8 @@ public class CertificateService {
 
         // "This is to certify that"
         Paragraph introText = new Paragraph("This is to certify that")
-                .setFont(textFont).setFontSize(14).setFontColor(grayColor)
-                .setTextAlignment(TextAlignment.CENTER).setItalic();
+                .setFont(PdfFontFactory.createFont(StandardFonts.HELVETICA_OBLIQUE)).setFontSize(14).setFontColor(grayColor)
+                .setTextAlignment(TextAlignment.CENTER);
         contentDiv.add(introText);
 
         // TÊN HỌC VIÊN (Lớn nhất)
@@ -344,7 +344,7 @@ public class CertificateService {
                 .setBorder(Border.NO_BORDER);
 
         // Cột 2: Chữ ký (Giả lập)
-        Cell signCell = new Cell().add(new Paragraph("Do Hieu").setFont(nameFont).setFontSize(18).setFontColor(whiteColor).setTextAlignment(TextAlignment.CENTER).setItalic())
+        Cell signCell = new Cell().add(new Paragraph("Do Hieu").setFont(PdfFontFactory.createFont(StandardFonts.TIMES_BOLDITALIC)).setFontSize(18).setFontColor(whiteColor).setTextAlignment(TextAlignment.CENTER))
                 .add(new Paragraph("______________________").setFontColor(goldColor).setTextAlignment(TextAlignment.CENTER))
                 .add(new Paragraph("Instructor Signature").setFont(textFont).setFontSize(10).setFontColor(grayColor).setTextAlignment(TextAlignment.CENTER))
                 .setBorder(Border.NO_BORDER);
@@ -425,16 +425,4 @@ public class CertificateService {
         return "LMS-" + year + "-" + randomPart;
     }
 
-    private UUID getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userIdStr = authentication.getName();
-
-        try {
-            return UUID.fromString(userIdStr);
-        } catch (IllegalArgumentException e) {
-            Users user = userRepository.findByEmail(userIdStr)
-                    .orElseThrow(() -> new RuntimeException("User not found by email/id: " + userIdStr));
-            return user.getUserId();
-        }
-    }
 }

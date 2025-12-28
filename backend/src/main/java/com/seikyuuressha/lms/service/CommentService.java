@@ -10,9 +10,8 @@ import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.repository.CommentRepository;
 import com.seikyuuressha.lms.repository.LessonRepository;
 import com.seikyuuressha.lms.repository.UserRepository;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,10 +27,11 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final LessonRepository lessonRepository;
     private final UserRepository userRepository;
+    private final SecurityContextService securityContextService;
 
     @Transactional
     public CommentResponse createComment(CreateCommentRequest request) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -59,7 +59,7 @@ public class CommentService {
 
     @Transactional
     public CommentResponse updateComment(UUID commentId, UpdateCommentRequest request) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
@@ -76,7 +76,7 @@ public class CommentService {
 
     @Transactional
     public Boolean deleteComment(UUID commentId) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
@@ -208,18 +208,4 @@ public class CommentService {
                 .build();
     }
 
-    private UUID getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userIdStr = authentication.getName();
-        
-        try {
-            // Token chứa UUID -> Parse trực tiếp
-            return UUID.fromString(userIdStr);
-        } catch (IllegalArgumentException e) {
-            // Fallback: Nếu token chứa email (trường hợp cũ)
-            Users user = userRepository.findByEmail(userIdStr)
-                    .orElseThrow(() -> new RuntimeException("User not found by email/id: " + userIdStr));
-            return user.getUserId();
-        }
-    }
 }

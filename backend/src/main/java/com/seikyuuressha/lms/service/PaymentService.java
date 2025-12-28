@@ -5,10 +5,9 @@ import com.seikyuuressha.lms.dto.response.PaymentResponse;
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.mapper.PaymentMapper;
 import com.seikyuuressha.lms.repository.*;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +29,11 @@ public class PaymentService {
     private final EnrollmentRepository enrollmentRepository;
     private final VNPayService vnPayService;
     private final PaymentMapper paymentMapper;
+    private final SecurityContextService securityContextService;
 
     @Transactional
     public PaymentResponse initiatePayment(InitiatePaymentRequest request, String ipAddress) {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -121,7 +121,7 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public List<PaymentResponse> getMyPayments() {
-        UUID userId = getCurrentUserId();
+        UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -139,8 +139,4 @@ public class PaymentService {
         return paymentMapper.toPaymentResponse(payment);
     }
 
-    private UUID getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return UUID.fromString(authentication.getName());
-    }
 }

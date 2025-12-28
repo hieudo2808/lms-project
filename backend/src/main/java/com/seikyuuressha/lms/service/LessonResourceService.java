@@ -5,12 +5,10 @@ import com.seikyuuressha.lms.entity.LessonResource;
 import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.repository.LessonRepository;
 import com.seikyuuressha.lms.repository.LessonResourceRepository;
-import com.seikyuuressha.lms.repository.UserRepository;
+import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -18,7 +16,6 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -36,9 +33,9 @@ public class LessonResourceService {
 
     private final LessonResourceRepository lessonResourceRepository;
     private final LessonRepository lessonRepository;
-    private final UserRepository userRepository;
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
+    private final SecurityContextService securityContextService;
 
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
@@ -48,7 +45,7 @@ public class LessonResourceService {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
-        Users currentUser = getCurrentUser();
+        Users currentUser = securityContextService.getCurrentUser();
         if (!lesson.getModule().getCourse().getInstructor().getUserId().equals(currentUser.getUserId())) {
             throw new RuntimeException("Only the instructor can upload resources for this lesson");
         }
@@ -79,7 +76,7 @@ public class LessonResourceService {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
-        Users currentUser = getCurrentUser();
+        Users currentUser = securityContextService.getCurrentUser();
         if (!lesson.getModule().getCourse().getInstructor().getUserId().equals(currentUser.getUserId())) {
             throw new RuntimeException("Only the instructor can add resources for this lesson");
         }
@@ -119,7 +116,7 @@ public class LessonResourceService {
         LessonResource resource = lessonResourceRepository.findById(resourceId)
                 .orElseThrow(() -> new RuntimeException("Resource not found"));
 
-        Users currentUser = getCurrentUser();
+        Users currentUser = securityContextService.getCurrentUser();
         if (!resource.getLesson().getModule().getCourse().getInstructor().getUserId().equals(currentUser.getUserId())) {
             throw new RuntimeException("Only the instructor can delete this resource");
         }
@@ -152,17 +149,4 @@ public class LessonResourceService {
         return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 
-    private Users getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userIdStr = authentication.getName();
-        
-        try {
-            UUID userId = UUID.fromString(userIdStr);
-            return userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-        } catch (IllegalArgumentException e) {
-            return userRepository.findByEmail(userIdStr)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-        }
-    }
 }
