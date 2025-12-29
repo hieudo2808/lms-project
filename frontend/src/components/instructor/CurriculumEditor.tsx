@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useMutation } from '@apollo/client';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-// Import Mutations
 import {
     CREATE_MODULE_MUTATION,
     UPDATE_MODULE_MUTATION,
@@ -33,7 +32,6 @@ import {
 import { VideoUploader } from './VideoUploader';
 import { ResourceUploader } from './ResourceUploader';
 
-// === TYPES ===
 interface Lesson {
     lessonId: string;
     title: string;
@@ -56,13 +54,10 @@ interface CurriculumEditorProps {
 }
 
 const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, refetch }) => {
-    // State quản lý danh sách local để kéo thả mượt mà (Optimistic UI)
     const navigate = useNavigate();
     const [localModules, setLocalModules] = useState<Module[]>([]);
 
-    // Sync props với state local khi dữ liệu từ server thay đổi
     useEffect(() => {
-        // Sắp xếp dữ liệu đầu vào cho chuẩn
         const sortedModules = [...modules]
             .sort((a, b) => a.order - b.order)
             .map((m) => ({
@@ -72,7 +67,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
         setLocalModules(sortedModules);
     }, [modules]);
 
-    // State UI
     const [isAddingModule, setIsAddingModule] = useState(false);
     const [newModuleTitle, setNewModuleTitle] = useState('');
     const [editingModuleId, setEditingModuleId] = useState<string | null>(null);
@@ -83,7 +77,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
     const [uploadingLessonId, setUploadingLessonId] = useState<string | null>(null);
     const [resourceLessonId, setResourceLessonId] = useState<string | null>(null);
 
-    // === MUTATIONS ===
     const [createModule] = useMutation(CREATE_MODULE_MUTATION);
     const [updateModule] = useMutation(UPDATE_MODULE_MUTATION);
     const [deleteModule] = useMutation(DELETE_MODULE_MUTATION);
@@ -93,25 +86,21 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
     const [deleteLesson] = useMutation(DELETE_LESSON_MUTATION);
     const [reorderLessons] = useMutation(REORDER_LESSONS_MUTATION);
 
-    // === HANDLERS ===
     const toggleModule = (moduleId: string) => {
         setExpandedModules((prev) => ({ ...prev, [moduleId]: !prev[moduleId] }));
     };
 
-    // --- DRAG & DROP HANDLER (Logic quan trọng nhất) ---
     const onDragEnd = async (result: DropResult) => {
         const { source, destination, type } = result;
-        if (!destination) return; // Kéo ra ngoài thì hủy
+        if (!destination) return;
 
-        // 1. KÉO THẢ MODULE
         if (type === 'MODULE') {
             const items = Array.from(localModules);
             const [reorderedItem] = items.splice(source.index, 1);
             items.splice(destination.index, 0, reorderedItem);
 
-            setLocalModules(items); // Cập nhật giao diện ngay lập tức
+            setLocalModules(items);
 
-            // Gọi API cập nhật backend
             try {
                 await reorderModules({
                     variables: {
@@ -121,16 +110,14 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                 });
             } catch (err) {
                 toast.error('Lỗi sắp xếp chương');
-                refetch(); // Hoàn tác nếu lỗi
+                refetch();
             }
         }
 
-        // 2. KÉO THẢ LESSON
         if (type === 'LESSON') {
             const sourceModuleId = source.droppableId;
             const destModuleId = destination.droppableId;
 
-            // Chỉ hỗ trợ sắp xếp trong cùng 1 module (để đơn giản logic)
             if (sourceModuleId === destModuleId) {
                 const moduleIndex = localModules.findIndex((m) => m.moduleId === sourceModuleId);
                 const updatedModule = { ...localModules[moduleIndex] };
@@ -145,7 +132,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                 newLocalModules[moduleIndex] = updatedModule;
                 setLocalModules(newLocalModules);
 
-                // Gọi API
                 try {
                     await reorderLessons({
                         variables: {
@@ -163,7 +149,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
         }
     };
 
-    // --- CRUD FUNCTIONS ---
     const handleCreateModule = async () => {
         if (!newModuleTitle.trim()) return;
         try {
@@ -190,7 +175,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
         try {
             await updateModule({ variables: { moduleId, input: { title: editModuleTitle } } });
             toast.success('Cập nhật thành công!');
-            // Update local state directly (optimistic UI) to preserve scroll and expanded state
             setLocalModules((prev) =>
                 prev.map((m) => (m.moduleId === moduleId ? { ...m, title: editModuleTitle } : m)),
             );
@@ -206,11 +190,10 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
         try {
             await deleteModule({ variables: { moduleId } });
             toast.success('Đã xóa chương.');
-            // Optimistic UI: Remove from local state instead of refetch
             setLocalModules((prev) => prev.filter((m) => m.moduleId !== moduleId));
         } catch (error: any) {
             toast.error('Lỗi: ' + error.message);
-            refetch(); // Only refetch on error
+            refetch();
         }
     };
 
@@ -266,7 +249,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                 <Droppable droppableId="all-modules" type="MODULE">
                     {(provided) => (
                         <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
-                            {/* LIST MODULES */}
                             {localModules.map((module, index) => (
                                 <Draggable key={module.moduleId} draggableId={module.moduleId} index={index}>
                                     {(provided) => (
@@ -275,7 +257,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                             {...provided.draggableProps}
                                             className="border border-gray-200 rounded-lg bg-gray-50 overflow-hidden"
                                         >
-                                            {/* MODULE HEADER */}
                                             <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-100 hover:bg-gray-200 group">
                                                 {editingModuleId === module.moduleId ? (
                                                     <div className="flex items-center gap-2 flex-1">
@@ -303,7 +284,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                         className="flex items-center gap-2 sm:gap-3 flex-1 cursor-pointer min-w-0"
                                                         onClick={() => toggleModule(module.moduleId)}
                                                     >
-                                                        {/* Drag Handle cho Module */}
                                                         <div {...provided.dragHandleProps} className="flex-shrink-0">
                                                             <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 cursor-grab active:cursor-grabbing hover:text-gray-600" />
                                                         </div>
@@ -341,7 +321,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                 )}
                                             </div>
 
-                                            {/* MODULE CONTENT (LESSONS) */}
                                             {expandedModules[module.moduleId] && (
                                                 <div className="p-4 bg-white border-t border-gray-200 space-y-2">
                                                     <Droppable droppableId={module.moduleId} type="LESSON">
@@ -365,7 +344,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                             >
                                                                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                                                                                     <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                                                                                        {/* Drag Handle cho Lesson */}
                                                                                         <div
                                                                                             {...provided.dragHandleProps}
                                                                                             className="flex-shrink-0"
@@ -399,12 +377,11 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                         ) : null}
                                                                                     </div>
                                                                                     <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
-                                                                                        {/* VIDEO BUTTON */}
                                                                                         <button
                                                                                             onClick={() => {
                                                                                                 setResourceLessonId(
                                                                                                     null,
-                                                                                                ); // Close resources panel
+                                                                                                );
                                                                                                 setUploadingLessonId(
                                                                                                     uploadingLessonId ===
                                                                                                         lesson.lessonId
@@ -431,7 +408,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             )}
                                                                                         </button>
 
-                                                                                        {/* QUIZ BUTTON 🔥 */}
                                                                                         <button
                                                                                             onClick={() =>
                                                                                                 navigate(
@@ -452,12 +428,11 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             </span>
                                                                                         </button>
 
-                                                                                        {/* RESOURCES BUTTON */}
                                                                                         <button
                                                                                             onClick={() => {
                                                                                                 setUploadingLessonId(
                                                                                                     null,
-                                                                                                ); // Close video panel
+                                                                                                );
                                                                                                 setResourceLessonId(
                                                                                                     resourceLessonId ===
                                                                                                         lesson.lessonId
@@ -477,7 +452,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             </span>
                                                                                         </button>
 
-                                                                                        {/* DELETE */}
                                                                                         <button
                                                                                             onClick={() =>
                                                                                                 handleDeleteLesson(
@@ -490,7 +464,7 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                         </button>
                                                                                     </div>
                                                                                 </div>
-                                                                                {/* VIDEO UPLOADER */}
+
                                                                                 {uploadingLessonId ===
                                                                                     lesson.lessonId && (
                                                                                     <div className="mt-4 pl-10 border-t pt-4">
@@ -499,12 +473,10 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                             onUploadComplete={(
                                                                                                 newVideoUrl,
                                                                                             ) => {
-                                                                                                // 1. Đóng form upload
                                                                                                 setUploadingLessonId(
                                                                                                     null,
                                                                                                 );
 
-                                                                                                // 2. Cập nhật ngay lập tức vào localModules (Optimistic UI)
                                                                                                 if (newVideoUrl) {
                                                                                                     setLocalModules(
                                                                                                         (prevModules) =>
@@ -540,14 +512,12 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                                                                     );
                                                                                                 }
 
-                                                                                                // 3. Refetch để đồng bộ dữ liệu thật từ server
                                                                                                 refetch();
                                                                                             }}
                                                                                         />
                                                                                     </div>
                                                                                 )}
 
-                                                                                {/* RESOURCE UPLOADER */}
                                                                                 {resourceLessonId ===
                                                                                     lesson.lessonId && (
                                                                                     <div className="mt-4 pl-10">
@@ -570,7 +540,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                                                         )}
                                                     </Droppable>
 
-                                                    {/* ADD LESSON FORM */}
                                                     {addingLessonToModuleId === module.moduleId ? (
                                                         <div className="ml-10 flex gap-2 items-center mt-3 animate-in fade-in">
                                                             <input
@@ -622,7 +591,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                 </Droppable>
             </DragDropContext>
 
-            {/* ADD MODULE BUTTON */}
             {!isAddingModule && (
                 <button
                     onClick={() => setIsAddingModule(true)}
@@ -632,7 +600,6 @@ const CurriculumEditor: React.FC<CurriculumEditorProps> = ({ courseId, modules, 
                 </button>
             )}
 
-            {/* ADD MODULE FORM */}
             {isAddingModule && (
                 <div className="mt-4 border-2 border-dashed border-blue-300 bg-blue-50 p-4 rounded-xl flex gap-3 animate-in fade-in">
                     <input

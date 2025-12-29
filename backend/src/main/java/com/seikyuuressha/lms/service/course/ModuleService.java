@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.course;
+﻿package com.seikyuuressha.lms.service.course;
 
 import com.seikyuuressha.lms.dto.request.CreateModuleRequest;
 import com.seikyuuressha.lms.dto.request.UpdateModuleRequest;
@@ -22,10 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service for Module CRUD operations.
- * Extracted from InstructorService to comply with Single Responsibility Principle.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -38,14 +34,11 @@ public class ModuleService {
     private final SecurityContextService securityContextService;
     private final LessonMapper lessonMapper;
 
-    /**
-     * Create a new module for a course.
-     */
+    
     @Transactional
     public ModuleResponse createModule(CreateModuleRequest request) {
         Course course = getCourseByIdAndVerifyOwnership(request.getCourseId());
 
-        // Determine order
         int order = request.getOrder() != null ? request.getOrder() :
                 course.getModules().size() + 1;
 
@@ -61,9 +54,7 @@ public class ModuleService {
         return mapToModuleResponse(module);
     }
 
-    /**
-     * Update an existing module.
-     */
+    
     @Transactional
     public ModuleResponse updateModule(UUID moduleId, UpdateModuleRequest request) {
         Module module = getModuleByIdAndVerifyOwnership(moduleId);
@@ -79,9 +70,7 @@ public class ModuleService {
         return mapToModuleResponse(module);
     }
 
-    /**
-     * Delete a module (only if it has no lessons).
-     */
+    
     @Transactional
     public Boolean deleteModule(UUID moduleId) {
         Module module = getModuleByIdAndVerifyOwnership(moduleId);
@@ -95,16 +84,13 @@ public class ModuleService {
         return true;
     }
 
-    /**
-     * Reorder modules within a course.
-     */
+    
     @Transactional
     public List<ModuleResponse> reorderModules(UUID courseId, List<UUID> moduleIds) {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
 
         List<Module> modules = moduleRepository.findAllById(moduleIds);
         
-        // Verify all modules belong to this course
         boolean allBelongToCourse = modules.stream()
                 .allMatch(m -> m.getCourse().getCourseId().equals(courseId));
         
@@ -112,7 +98,6 @@ public class ModuleService {
             throw new RuntimeException("Some modules do not belong to this course");
         }
 
-        // Update order
         for (int i = 0; i < moduleIds.size(); i++) {
             UUID moduleId = moduleIds.get(i);
             Module module = modules.stream()
@@ -130,9 +115,7 @@ public class ModuleService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get a module by ID with ownership verification.
-     */
+    
     public Module getModuleByIdAndVerifyOwnership(UUID moduleId) {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new RuntimeException("Module not found"));
@@ -152,9 +135,7 @@ public class ModuleService {
         return module;
     }
 
-    /**
-     * Get a course by ID with ownership verification.
-     */
+    
     public Course getCourseByIdAndVerifyOwnership(UUID courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
@@ -173,9 +154,7 @@ public class ModuleService {
         return course;
     }
 
-    /**
-     * Map Module entity to ModuleResponse DTO.
-     */
+    
     public ModuleResponse mapToModuleResponse(Module module) {
         List<LessonResponse> lessons = module.getLessons() != null
                 ? module.getLessons().stream()
@@ -184,7 +163,7 @@ public class ModuleService {
                             LessonResponse response = lessonMapper.toLessonResponseSimple(lesson);
                             var videoOpt = videoRepository.findByLesson_LessonId(lesson.getLessonId());
                             if (videoOpt.isPresent()) {
-                                response.setVideoUrl("video:" + lesson.getLessonId());
+                                response.setVideoUrl("stream:" + lesson.getLessonId());
                             }
                             return response;
                         })

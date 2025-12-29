@@ -1,16 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 
-// === SỬA ĐƯỜNG DẪN IMPORT ===
 import { Layout } from '../../components/common/Layout';
-import { CourseList } from '../../components/student/CourseList'; // Component hiển thị danh sách khóa học
+import { CourseList } from '../../components/student/CourseList';
 import { GET_ALL_COURSES } from '../../graphql/queries/course';
 import type { Course } from '../../types';
-// ============================
 
 export const HomePage = () => {
-    // Gọi API Backend
     const { data, loading, error } = useQuery(GET_ALL_COURSES);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -19,7 +16,6 @@ export const HomePage = () => {
     const coursesRef = useRef<HTMLDivElement>(null);
     const statsRef = useRef<HTMLDivElement>(null);
 
-    // Map dữ liệu từ Backend sang Frontend
     const courses: Course[] =
         data?.getAllCourses?.map((c: any) => ({
             id: c.courseId,
@@ -43,7 +39,6 @@ export const HomePage = () => {
             totalDuration: c.totalDuration || 0,
             totalLessons: c.totalLessons || 0,
             isPublished: true,
-            // Rating sẽ được fetch riêng nếu cần
             rating: undefined,
             reviewCount: undefined,
         })) || [];
@@ -71,7 +66,6 @@ export const HomePage = () => {
             course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             course.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        // Case-insensitive level comparison (backend: "Beginner", frontend param: "beginner")
         const matchesLevel = !filterLevel || course.level?.toLowerCase() === filterLevel.toLowerCase();
 
         return matchesSearch && matchesLevel;
@@ -112,7 +106,6 @@ export const HomePage = () => {
                 </div>
             </section>
 
-            {/* Stats Section */}
             <section ref={statsRef} className="bg-white py-12 border-b">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="grid grid-cols-3 gap-8 text-center">
@@ -132,7 +125,6 @@ export const HomePage = () => {
                 </div>
             </section>
 
-            {/* Filter Section */}
             <section className="bg-gray-50 py-8 sticky top-16 z-40 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -166,7 +158,6 @@ export const HomePage = () => {
                 </div>
             </section>
 
-            {/* Course List */}
             <section ref={coursesRef} className="max-w-7xl mx-auto px-4 py-16">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">Khóa học phổ biến</h2>
                 {error ? (

@@ -1,4 +1,4 @@
-export interface User {
+﻿export interface User {
   userId: string;      
   fullName: string;
   email: string;
@@ -61,7 +61,6 @@ export interface Course {
   price?: number | null;   
   categoryName?: string | null;
   
-  // Rating & Reviews
   rating?: number;
   reviewCount?: number;
   

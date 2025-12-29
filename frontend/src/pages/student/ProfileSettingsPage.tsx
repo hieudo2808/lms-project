@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
 import { User, Mail, Calendar, Shield, Save } from 'lucide-react';
@@ -9,24 +9,20 @@ import { UPDATE_PROFILE_MUTATION } from '../../graphql/mutations/user';
 import { AvatarUploader } from '../../components/common/AvatarUploader';
 
 export default function ProfileSettingsPage() {
-    /* ================= QUERY ================= */
     const { data, loading, error } = useQuery(GET_ME_QUERY, {
         fetchPolicy: 'network-only',
     });
 
-    /* ================= MUTATION ================= */
     const [updateProfile, { loading: saving }] = useMutation(UPDATE_PROFILE_MUTATION, {
         refetchQueries: [{ query: GET_ME_QUERY }],
     });
 
-    /* ================= STATE ================= */
     const [form, setForm] = useState({
         fullName: '',
         bio: '',
         avatarUrl: '',
     });
 
-    /* ================= SYNC DATA ================= */
     useEffect(() => {
         if (data?.me) {
             setForm({
@@ -37,7 +33,6 @@ export default function ProfileSettingsPage() {
         }
     }, [data]);
 
-    /* ================= HANDLERS ================= */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
@@ -65,7 +60,6 @@ export default function ProfileSettingsPage() {
         }
     };
 
-    /* ================= LOADING & ERROR STATES ================= */
     if (loading) {
         return (
             <Layout>
@@ -93,17 +87,14 @@ export default function ProfileSettingsPage() {
 
     const me = data.me;
 
-    /* ================= UI ================= */
     return (
         <Layout>
             <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
-                {/* ===== HEADER ===== */}
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl p-8">
                     <h1 className="text-3xl font-bold mb-2">⚙️ Cài đặt tài khoản</h1>
                     <p className="text-blue-100">Quản lý thông tin cá nhân và hồ sơ của bạn</p>
                 </div>
 
-                {/* ===== PROFILE OVERVIEW CARD ===== */}
                 <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                     <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                         <User className="w-5 h-5 text-blue-600" />
@@ -114,7 +105,7 @@ export default function ProfileSettingsPage() {
                         <img
                             src={
                                 me.avatarUrl ||
-                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                `https:
                                     me.fullName,
                                 )}&background=6366f1&color=fff&size=128`
                             }
@@ -140,9 +131,7 @@ export default function ProfileSettingsPage() {
                         </div>
                     </div>
 
-                    {/* ===== EDIT FORM ===== */}
                     <div className="space-y-6">
-                        {/* Họ và tên */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Họ và tên <span className="text-red-500">*</span>
@@ -157,7 +146,6 @@ export default function ProfileSettingsPage() {
                             />
                         </div>
 
-                        {/* Bio / Giới thiệu */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 Giới thiệu bản thân
@@ -173,7 +161,6 @@ export default function ProfileSettingsPage() {
                             <p className="text-xs text-gray-500 mt-1">Tối đa 500 ký tự</p>
                         </div>
 
-                        {/* Avatar Upload */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-3">Ảnh đại diện</label>
                             <AvatarUploader
@@ -183,7 +170,6 @@ export default function ProfileSettingsPage() {
                             />
                         </div>
 
-                        {/* Save Button */}
                         <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
                             <button
                                 onClick={handleSave}
@@ -206,7 +192,6 @@ export default function ProfileSettingsPage() {
                     </div>
                 </div>
 
-                {/* ===== ACCOUNT INFO (READ-ONLY) ===== */}
                 <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
                     <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                         <Shield className="w-5 h-5 text-gray-600" />

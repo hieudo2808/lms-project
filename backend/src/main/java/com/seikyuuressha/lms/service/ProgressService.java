@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.request.UpdateProgressRequest;
 import com.seikyuuressha.lms.dto.response.ProgressResponse;
@@ -36,13 +36,11 @@ public class ProgressService {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
 
-        // Check if user is enrolled in the course
         UUID courseId = lesson.getModule().getCourse().getCourseId();
         if (!enrollmentRepository.existsByUser_UserIdAndCourse_CourseId(user.getUserId(), courseId)) {
             throw new RuntimeException("Not enrolled in this course");
         }
 
-        // Find or create progress
         Progress progress = progressRepository
                 .findByUser_UserIdAndLesson_LessonId(user.getUserId(), lessonId)
                 .orElse(Progress.builder()
@@ -54,7 +52,6 @@ public class ProgressService {
                         .lastWatchedAt(OffsetDateTime.now())
                         .build());
 
-        // Update progress - only increase, never decrease
         if (request.getWatchedSeconds() != null && request.getWatchedSeconds() > progress.getWatchedSeconds()) {
             progress.setWatchedSeconds(request.getWatchedSeconds());
         }

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,16 +37,16 @@ public class Payment {
     BigDecimal amount;
 
     @Column(name = "currency")
-    String currency; // VND (default)
+    String currency;
 
     @Column(name = "paymentMethod")
-    String paymentMethod; // VNPAY, MOMO, ZALOPAY, BANK_TRANSFER
+    String paymentMethod;
 
     @Column(name = "paymentStatus")
-    String paymentStatus; // SUCCESS, PENDING, FAILED
+    String paymentStatus;
 
     @Column(unique = true)
-    String transactionId; // VNPay transaction ID
+    String transactionId;
 
     String vnpayOrderInfo;
     String vnpayResponseCode;
@@ -69,7 +69,6 @@ public class Payment {
         }
     }
 
-    // Helper methods
     public boolean isSuccess() {
         return "SUCCESS".equals(paymentStatus);
     }

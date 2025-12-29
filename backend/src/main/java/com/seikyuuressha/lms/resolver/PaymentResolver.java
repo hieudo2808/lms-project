@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+﻿package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.InitiatePaymentRequest;
 import com.seikyuuressha.lms.dto.response.PaymentResponse;
@@ -24,8 +24,6 @@ public class PaymentResolver {
 
     private final PaymentService paymentService;
     private final AdminService adminService;
-
-    // ==================== USER QUERIES ====================
 
     @QueryMapping
     public List<PaymentResponse> getMyPayments() {
@@ -63,8 +61,6 @@ public class PaymentResolver {
         }
         return xfHeader.split(",")[0];
     }
-
-    // ==================== ADMIN: PAYMENT REPORTS ====================
 
     @QueryMapping
     @PreAuthorize("hasRole('ADMIN')")

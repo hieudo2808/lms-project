@@ -1,9 +1,8 @@
-import { useNavigate } from 'react-router-dom';
+﻿import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { DollarSign, Users, BookOpen, Star, TrendingUp, Loader2, BookX, Edit3 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// Import queries
 import { INSTRUCTOR_DASHBOARD_QUERY } from '../../graphql/queries/dashboard';
 import { GET_MONTHLY_REVENUE } from '../../graphql/queries/instructor';
 
@@ -44,7 +43,6 @@ export const DashboardPage = () => {
             </div>
         );
 
-    // Hiển thị lỗi chi tiết nếu có
     if (error)
         return (
             <div className="p-8 text-center">
@@ -58,17 +56,14 @@ export const DashboardPage = () => {
     const user = data?.me;
     const courses = data?.getMyCourses || [];
 
-    // --- TÍNH TOÁN CHỈ SỐ ---
     const totalCourses = courses.length;
     const publishedCourses = courses.filter((c: any) => c.isPublished).length;
     const draftCourses = totalCourses - publishedCourses;
 
-    // Sắp xếp: Lấy 5 khóa học mới nhất trong danh sách (vì đã bỏ trường updatedAt do lỗi Backend)
     const recentCourses = [...courses].slice(-5).reverse();
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
-            {/* Welcome Section */}
             <div className="flex justify-between items-end">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Xin chào, {user?.fullName || 'Giảng viên'}! 👋</h1>
@@ -82,7 +77,6 @@ export const DashboardPage = () => {
                 </button>
             </div>
 
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     title="Tổng khóa học"
@@ -115,7 +109,6 @@ export const DashboardPage = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Biểu đồ doanh thu */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -149,7 +142,6 @@ export const DashboardPage = () => {
                     </div>
                 </div>
 
-                {/* Khóa học gần đây */}
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col">
                     <h2 className="text-lg font-bold text-gray-800 mb-6">Khóa học gần đây</h2>
 

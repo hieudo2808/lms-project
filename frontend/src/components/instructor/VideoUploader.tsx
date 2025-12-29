@@ -1,10 +1,9 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { useMutation } from '@apollo/client';
 import axios from 'axios';
 import { UploadCloud, CheckCircle, AlertCircle, Loader2, FileVideo, X, MousePointerClick } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-// Import Mutations
 import { GENERATE_UPLOAD_URL_MUTATION, CONFIRM_UPLOAD_MUTATION } from '../../graphql/mutations/video';
 
 interface VideoUploaderProps {
@@ -13,32 +12,24 @@ interface VideoUploaderProps {
 }
 
 export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUploadComplete }) => {
-    // State quản lý file
     const [file, setFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [videoDuration, setVideoDuration] = useState<number | null>(null);
 
-    // State quản lý tiến trình
     const [uploadProgress, setUploadProgress] = useState(0);
     const [status, setStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
 
-    // Refs
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // GraphQL Mutations
     const [generateUrl] = useMutation(GENERATE_UPLOAD_URL_MUTATION);
     const [confirmUpload] = useMutation(CONFIRM_UPLOAD_MUTATION);
 
-    // --- HANDLERS ---
-
     const handleFileSelect = (selectedFile: File) => {
-        // Validate định dạng
         if (!selectedFile.type.startsWith('video/')) {
             toast.error('Vui lòng chỉ chọn file Video (MP4, MOV,...)');
             return;
         }
-        // Validate dung lượng (Ví dụ giới hạn 2GB)
         if (selectedFile.size > 2 * 1024 * 1024 * 1024) {
             toast.error('File quá lớn! Vui lòng chọn file dưới 2GB.');
             return;
@@ -48,7 +39,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
         setStatus('idle');
         setErrorMessage('');
 
-        // Extract video duration using HTML5 Video element
         const video = document.createElement('video');
         video.preload = 'metadata';
         video.onloadedmetadata = () => {
@@ -95,7 +85,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
             setStatus('uploading');
             setUploadProgress(0);
 
-            // 1. Lấy Presigned URL
             const { data: urlData } = await generateUrl({
                 variables: {
                     input: {
@@ -109,7 +98,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
 
             const { uploadUrl, videoId } = urlData.generateVideoUploadUrl;
 
-            // 2. Upload lên S3
             await axios.put(uploadUrl, file, {
                 headers: { 'Content-Type': file.type },
                 onUploadProgress: (progressEvent) => {
@@ -118,7 +106,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                 },
             });
 
-            // 3. Confirm với Backend (include duration)
             setStatus('processing');
             await confirmUpload({
                 variables: {
@@ -130,9 +117,8 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
             setStatus('success');
             toast.success('Upload video thành công!');
 
-            // Đợi 1.5s cho người dùng nhìn thấy thông báo thành công rồi mới đóng
             setTimeout(() => {
-                onUploadComplete('processing'); // Truyền flag để UI biết đã có video
+                onUploadComplete('processing');
             }, 1500);
         } catch (error: any) {
             console.error('Upload error:', error);
@@ -149,9 +135,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    // --- RENDER ---
-
-    // 1. Success State
     if (status === 'success') {
         return (
             <div className="flex flex-col items-center justify-center p-8 bg-green-50 border border-green-200 rounded-xl animate-in fade-in">
@@ -164,7 +147,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
         );
     }
 
-    // 2. Processing State
     if (status === 'processing') {
         return (
             <div className="flex flex-col items-center justify-center p-8 bg-blue-50 border border-blue-200 rounded-xl animate-pulse">
@@ -177,7 +159,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
 
     return (
         <div className="w-full">
-            {/* Drag & Drop Zone */}
+            
             {!file && (
                 <div
                     onDragOver={handleDragOver}
@@ -195,23 +177,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                 >
                     <input
                         type="file"
-                        accept="video/*"
-                        className="hidden"
-                        ref={fileInputRef}
-                        onChange={handleInputChange}
-                    />
-                    <div className="bg-blue-100 p-4 rounded-full mb-4">
-                        <UploadCloud className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <p className="text-gray-700 font-medium text-lg">Kéo thả video vào đây</p>
-                    <p className="text-gray-500 text-sm mt-1 mb-4">hoặc nhấn để chọn file từ máy tính</p>
-                    <div className="text-xs text-gray-400 flex items-center gap-2">
-                        <FileVideo size={14} /> Hỗ trợ MP4, MKV, MOV (Tối đa 2GB)
-                    </div>
-                </div>
-            )}
-
-            {/* Selected File & Progress */}
+                        accept="video}
             {file && (
                 <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm animate-in slide-in-from-bottom-2">
                     <div className="flex items-start justify-between mb-4">
@@ -230,7 +196,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                             </div>
                         </div>
 
-                        {/* Nút hủy chọn (chỉ hiện khi chưa upload hoặc lỗi) */}
+                        
                         {(status === 'idle' || status === 'error') && (
                             <button
                                 onClick={() => setFile(null)}
@@ -241,7 +207,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                         )}
                     </div>
 
-                    {/* Upload Button */}
+                    
                     {status === 'idle' && (
                         <button
                             onClick={handleUpload}
@@ -251,7 +217,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                         </button>
                     )}
 
-                    {/* Progress Bar */}
+                    
                     {status === 'uploading' && (
                         <div>
                             <div className="flex justify-between text-xs text-blue-600 font-semibold mb-1">
@@ -267,7 +233,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                         </div>
                     )}
 
-                    {/* Error Message */}
+                    
                     {status === 'error' && (
                         <div className="mt-3 bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-start gap-2">
                             <AlertCircle size={16} className="mt-0.5 shrink-0" />

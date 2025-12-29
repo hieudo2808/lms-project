@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.course;
+﻿package com.seikyuuressha.lms.service.course;
 
 import com.seikyuuressha.lms.dto.request.CreateLessonRequest;
 import com.seikyuuressha.lms.dto.request.UpdateLessonRequest;
@@ -22,10 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service for Lesson CRUD operations.
- * Extracted from InstructorService to comply with Single Responsibility Principle.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -40,14 +36,11 @@ public class LessonService {
     private final SecurityContextService securityContextService;
     private final LessonMapper lessonMapper;
 
-    /**
-     * Create a new lesson for a module.
-     */
+    
     @Transactional
     public LessonResponse createLesson(CreateLessonRequest request) {
         Module module = getModuleByIdAndVerifyOwnership(request.getModuleId());
 
-        // Determine order
         int order = request.getOrder() != null ? request.getOrder() :
                 module.getLessons().size() + 1;
 
@@ -65,9 +58,7 @@ public class LessonService {
         return lessonMapper.toLessonResponseSimple(lesson);
     }
 
-    /**
-     * Update an existing lesson.
-     */
+    
     @Transactional
     public LessonResponse updateLesson(UUID lessonId, UpdateLessonRequest request) {
         Lesson lesson = getLessonByIdAndVerifyOwnership(lessonId);
@@ -89,20 +80,15 @@ public class LessonService {
         return lessonMapper.toLessonResponseSimple(lesson);
     }
 
-    /**
-     * Delete a lesson.
-     * Handles cascade deletion of related quizzes, videos, etc.
-     */
+    
     @Transactional
     public Boolean deleteLesson(UUID lessonId) {
         Lesson lesson = getLessonByIdAndVerifyOwnership(lessonId);
 
-        // Check if lesson has progress records
         if (progressRepository.existsByLesson_LessonId(lessonId)) {
             throw new RuntimeException("Cannot delete lesson with student progress");
         }
 
-        // Cascade delete quiz-related data in correct order (due to FK NO ACTION constraints)
         quizRepository.deleteQuizAnswerSelectionsByLessonId(lessonId);
         quizRepository.deleteQuizAnswersByLessonId(lessonId);
         quizRepository.deleteQuizAttemptsByLessonId(lessonId);
@@ -111,7 +97,6 @@ public class LessonService {
         quizRepository.deleteByLesson_LessonId(lessonId);
         log.info("Deleted quiz cascade for lesson. LessonId: {}", lessonId);
 
-        // Delete associated video
         videoRepository.findByLesson_LessonId(lessonId).ifPresent(video -> {
             videoRepository.delete(video);
             log.info("Deleted video for lesson. VideoId: {}", video.getVideoId());
@@ -122,16 +107,13 @@ public class LessonService {
         return true;
     }
 
-    /**
-     * Reorder lessons within a module.
-     */
+    
     @Transactional
     public List<LessonResponse> reorderLessons(UUID moduleId, List<UUID> lessonIds) {
         Module module = getModuleByIdAndVerifyOwnership(moduleId);
 
         List<Lesson> lessons = lessonRepository.findAllById(lessonIds);
         
-        // Verify all lessons belong to this module
         boolean allBelongToModule = lessons.stream()
                 .allMatch(l -> l.getModule().getModuleId().equals(moduleId));
         
@@ -139,7 +121,6 @@ public class LessonService {
             throw new RuntimeException("Some lessons do not belong to this module");
         }
 
-        // Update order
         for (int i = 0; i < lessonIds.size(); i++) {
             UUID lessonId = lessonIds.get(i);
             Lesson lesson = lessons.stream()
@@ -157,9 +138,7 @@ public class LessonService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get a lesson by ID with ownership verification.
-     */
+    
     public Lesson getLessonByIdAndVerifyOwnership(UUID lessonId) {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new RuntimeException("Lesson not found"));
@@ -179,9 +158,7 @@ public class LessonService {
         return lesson;
     }
 
-    /**
-     * Get a module by ID with ownership verification.
-     */
+    
     private Module getModuleByIdAndVerifyOwnership(UUID moduleId) {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new RuntimeException("Module not found"));

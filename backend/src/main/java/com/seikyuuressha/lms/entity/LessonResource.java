@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,7 +34,7 @@ public class LessonResource {
     String resourceUrl;
 
     @Column(length = 50)
-    String resourceType; // PDF, DOC, ZIP, etc.
+    String resourceType;
 
     @Column
     Long fileSize;

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.entity.Categories;
 import com.seikyuuressha.lms.repository.CategoryRepository;
@@ -8,10 +8,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Service for Category queries.
- * Category CRUD operations are in AdminService.
- */
 @Service
 @RequiredArgsConstructor
 public class CategoryService {

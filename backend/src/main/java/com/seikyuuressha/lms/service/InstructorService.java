@@ -1,12 +1,12 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.request.*;
 import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.entity.Module;
-import com.seikyuuressha.lms.mapper.LessonMapper;
 import com.seikyuuressha.lms.mapper.UserMapper;
 import com.seikyuuressha.lms.repository.*;
+import com.seikyuuressha.lms.service.common.CourseResponseMapper;
 import com.seikyuuressha.lms.service.common.SecurityContextService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +17,6 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service for Instructor course management operations.
- * Module/Lesson operations moved to ModuleService/LessonService.
- * Revenue operations moved to RevenueService.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,16 +28,11 @@ public class InstructorService {
     private final ProgressRepository progressRepository;
     private final UserRepository userRepository;
     private final CourseInstructorRepository courseInstructorRepository;
-    private final VideoRepository videoRepository;
     private final SecurityContextService securityContextService;
+    private final CourseResponseMapper courseResponseMapper;
     private final UserMapper userMapper;
-    private final LessonMapper lessonMapper;
 
-    // ==================== COURSE MANAGEMENT ====================
-
-    /**
-     * Create a new course
-     */
+    
     @Transactional
     public CourseResponse createCourse(CreateCourseRequest request) {
         Users instructor = securityContextService.getCurrentInstructor();
@@ -69,12 +59,10 @@ public class InstructorService {
         course = courseRepository.save(course);
         log.info("Course created. CourseId: {}, Instructor: {}", course.getCourseId(), instructor.getEmail());
 
-        return mapToCourseResponse(course);
+        return courseResponseMapper.toCourseResponseForInstructor(course);
     }
 
-    /**
-     * Update existing course
-     */
+    
     @Transactional
     public CourseResponse updateCourse(UUID courseId, UpdateCourseRequest request) {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
@@ -109,12 +97,10 @@ public class InstructorService {
         course.setUpdatedAt(OffsetDateTime.now());
         course = courseRepository.save(course);
 
-        return mapToCourseResponse(course);
+        return courseResponseMapper.toCourseResponseForInstructor(course);
     }
 
-    /**
-     * Delete course
-     */
+    
     @Transactional
     public Boolean deleteCourse(UUID courseId) {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
@@ -128,9 +114,7 @@ public class InstructorService {
         return true;
     }
 
-    /**
-     * Publish course
-     */
+    
     @Transactional
     public CourseResponse publishCourse(UUID courseId) {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
@@ -151,12 +135,10 @@ public class InstructorService {
         course = courseRepository.save(course);
 
         log.info("Course published. CourseId: {}", courseId);
-        return mapToCourseResponse(course);
+        return courseResponseMapper.toCourseResponseForInstructor(course);
     }
 
-    /**
-     * Unpublish course
-     */
+    
     @Transactional
     public CourseResponse unpublishCourse(UUID courseId) {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
@@ -166,30 +148,25 @@ public class InstructorService {
         course = courseRepository.save(course);
 
         log.info("Course unpublished. CourseId: {}", courseId);
-        return mapToCourseResponse(course);
+        return courseResponseMapper.toCourseResponseForInstructor(course);
     }
 
-    /**
-     * Get instructor's courses (including courses where user is co-instructor)
-     */
+    
     @Transactional(readOnly = true)
     public List<CourseResponse> getMyCourses() {
         Users instructor = securityContextService.getCurrentInstructor();
         UUID userId = instructor.getUserId();
         
-        // Get courses where user is primary instructor
         List<Course> ownedCourses = courseRepository.findByInstructor_UserId(userId);
         
-        // Get courses where user is co-instructor
         List<CourseInstructor> coInstructorEntries = courseInstructorRepository.findByUserId(userId);
         List<Course> coInstructorCourses = coInstructorEntries.stream()
                 .map(ci -> courseRepository.findById(ci.getCourseId()).orElse(null))
                 .filter(course -> course != null)
                 .collect(Collectors.toList());
         
-        // Combine and deduplicate
-        java.util.Set<UUID> seenIds = new java.util.HashSet<>();
-        List<Course> allCourses = new java.util.ArrayList<>();
+        Set<UUID> seenIds = new HashSet<>();
+        List<Course> allCourses = new ArrayList<>();
         
         for (Course course : ownedCourses) {
             if (seenIds.add(course.getCourseId())) {
@@ -203,15 +180,11 @@ public class InstructorService {
         }
 
         return allCourses.stream()
-                .map(this::mapToCourseResponse)
+                .map(courseResponseMapper::toCourseResponseForInstructor)
                 .collect(Collectors.toList());
     }
 
-    // ==================== CO-INSTRUCTOR MANAGEMENT ====================
-
-    /**
-     * Add a co-instructor to a course
-     */
+    
     @Transactional
     public CoInstructorResponse addCoInstructor(UUID courseId, String email) {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
@@ -250,9 +223,7 @@ public class InstructorService {
         return mapToCoInstructorResponse(courseInstructor, coInstructor);
     }
 
-    /**
-     * Remove a co-instructor from a course
-     */
+    
     @Transactional
     public boolean removeCoInstructor(UUID courseId, UUID userId) {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
@@ -275,11 +246,7 @@ public class InstructorService {
         return true;
     }
 
-    // ==================== ENROLLMENT MANAGEMENT ====================
-
-    /**
-     * Get course enrollments
-     */
+    
     @Transactional(readOnly = true)
     public List<EnrollmentResponse> getCourseEnrollments(UUID courseId) {
         getCourseByIdAndVerifyOwnership(courseId);
@@ -290,9 +257,7 @@ public class InstructorService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Remove a student from a course
-     */
+    
     @Transactional
     public boolean removeStudentFromCourse(UUID courseId, UUID userId) {
         getCourseByIdAndVerifyOwnership(courseId);
@@ -307,8 +272,6 @@ public class InstructorService {
         return true;
     }
 
-    // ==================== HELPER METHODS ====================
-
     public Course getCourseByIdAndVerifyOwnership(UUID courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
@@ -316,7 +279,6 @@ public class InstructorService {
         Users currentUser = securityContextService.getCurrentInstructor();
         UUID userId = currentUser.getUserId();
         
-        // Check if user is primary instructor, co-instructor, or admin
         boolean isPrimaryInstructor = course.getInstructor().getUserId().equals(userId);
         boolean isCoInstructor = courseInstructorRepository.existsByCourseIdAndUserId(courseId, userId);
         boolean isAdmin = "ADMIN".equals(currentUser.getRole().getRoleName());
@@ -327,8 +289,6 @@ public class InstructorService {
 
         return course;
     }
-
-    // ==================== MAPPING METHODS ====================
 
     private CoInstructorResponse mapToCoInstructorResponse(CourseInstructor ci, Users user) {
         return CoInstructorResponse.builder()
@@ -341,68 +301,10 @@ public class InstructorService {
                 .build();
     }
 
-    private Integer calculateTotalLessons(Course course) {
-        if (course.getModules() == null) {
-            return 0;
-        }
-        return course.getModules().stream()
-                .mapToInt(module -> module.getLessons() != null ? module.getLessons().size() : 0)
-                .sum();
-    }
-
-    private CourseResponse mapToCourseResponse(Course course) {
-        List<ModuleResponse> modules = course.getModules() != null 
-                ? course.getModules().stream()
-                        .sorted(Comparator.comparingInt(Module::getSortOrder))
-                        .map(this::mapToModuleResponse)
-                        .collect(Collectors.toList())
-                : Collections.emptyList();
-
-        return CourseResponse.builder()
-                .courseId(course.getCourseId())
-                .title(course.getTitle())
-                .slug(course.getSlug())
-                .description(course.getDescription())
-                .thumbnailUrl(course.getThumbnailUrl())
-                .level(course.getLevel())
-                .price(course.getPrice())
-                .categoryName(course.getCategory() != null ? course.getCategory().getName() : null)
-                .instructor(userMapper.toInstructorResponse(course.getInstructor()))
-                .createdAt(course.getCreatedAt())
-                .updatedAt(course.getUpdatedAt())
-                .isPublished(course.isPublished())
-                .modules(modules)
-                .totalLessons(calculateTotalLessons(course))
-                .build();
-    }
-
-    private ModuleResponse mapToModuleResponse(Module module) {
-        List<LessonResponse> lessons = module.getLessons() != null
-                ? module.getLessons().stream()
-                        .sorted(Comparator.comparingInt(Lesson::getSortOrder))
-                        .map(lesson -> {
-                            LessonResponse response = lessonMapper.toLessonResponseSimple(lesson);
-                            var videoOpt = videoRepository.findByLesson_LessonId(lesson.getLessonId());
-                            if (videoOpt.isPresent()) {
-                                response.setVideoUrl("video:" + lesson.getLessonId());
-                            }
-                            return response;
-                        })
-                        .collect(Collectors.toList())
-                : Collections.emptyList();
-
-        return ModuleResponse.builder()
-                .moduleId(module.getModuleId())
-                .title(module.getTitle())
-                .order(module.getSortOrder())
-                .lessons(lessons)
-                .build();
-    }
-
     private EnrollmentResponse mapToEnrollmentResponse(Enrollment enrollment) {
         return EnrollmentResponse.builder()
                 .enrollmentId(enrollment.getEnrollmentId())
-                .course(mapToCourseResponse(enrollment.getCourse()))
+                .course(courseResponseMapper.toCourseResponseWithoutModules(enrollment.getCourse()))
                 .enrolledAt(enrollment.getEnrolledAt())
                 .progressPercent(enrollment.getProgressPercent())
                 .build();

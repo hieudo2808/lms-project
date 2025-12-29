@@ -1,9 +1,5 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
-/**
- * Instructor: lấy danh sách khóa học của tôi
- * Map với Query.getMyCourses (InstructorResolver)
- */
 export const GET_MY_COURSES_QUERY = gql`
     query GetMyCourses {
         getMyCourses {
@@ -25,9 +21,6 @@ export const GET_MY_COURSES_QUERY = gql`
     }
 `;
 
-/**
- * Instructor: Lấy danh sách học viên đăng ký khóa học
- */
 export const GET_COURSE_ENROLLMENTS = gql`
     query GetCourseEnrollments($courseId: UUID!) {
         getCourseEnrollments(courseId: $courseId) {
@@ -42,9 +35,6 @@ export const GET_COURSE_ENROLLMENTS = gql`
     }
 `;
 
-/**
- * Instructor: Lấy doanh thu của khóa học
- */
 export const GET_COURSE_REVENUE = gql`
     query GetCourseRevenue($courseId: UUID!) {
         getCourseRevenue(courseId: $courseId) {
@@ -57,9 +47,6 @@ export const GET_COURSE_REVENUE = gql`
     }
 `;
 
-/**
- * Instructor: Lấy tiến độ học viên trong khóa học
- */
 export const GET_STUDENT_PROGRESS = gql`
     query GetStudentProgress($courseId: UUID!) {
         getStudentProgress(courseId: $courseId) {
@@ -74,9 +61,6 @@ export const GET_STUDENT_PROGRESS = gql`
     }
 `;
 
-/**
- * Instructor: Lấy doanh thu theo tháng
- */
 export const GET_MONTHLY_REVENUE = gql`
     query GetMonthlyRevenue($months: Int!) {
         getMonthlyRevenue(months: $months) {
@@ -86,9 +70,6 @@ export const GET_MONTHLY_REVENUE = gql`
     }
 `;
 
-/**
- * Instructor: Lấy doanh thu theo tháng cho khóa học cụ thể
- */
 export const GET_COURSE_MONTHLY_REVENUE = gql`
     query GetCourseMonthlyRevenue($courseId: UUID!, $months: Int!) {
         getCourseMonthlyRevenue(courseId: $courseId, months: $months) {

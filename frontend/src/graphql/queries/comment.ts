@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const GET_COMMENTS_BY_LESSON = gql`
   query GetCommentsByLesson($lessonId: UUID!) {

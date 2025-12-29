@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import { gql } from '@apollo/client';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -61,10 +61,8 @@ export const VideoPlayer = ({ videoUrl, title, duration, onWatchedUpdate }: Vide
             const currentTime = video.currentTime;
             const totalDuration = video.duration || 0;
 
-            // Only count forward progress (not seeking backwards)
             const timeDelta = currentTime - lastTimeRef.current;
             if (timeDelta > 0 && timeDelta < 2) {
-                // Normal playback (< 2 second jump)
                 accumulatedSecondsRef.current += timeDelta;
             }
             lastTimeRef.current = currentTime;

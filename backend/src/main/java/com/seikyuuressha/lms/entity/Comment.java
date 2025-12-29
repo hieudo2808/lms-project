@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,7 +33,7 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parentId")
-    Comment parentComment; // For nested replies
+    Comment parentComment;
 
     @Column(nullable = false)
     Boolean isActive;

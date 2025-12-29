@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.response;
+﻿package com.seikyuuressha.lms.dto.response;
 
 import com.seikyuuressha.lms.entity.Payment;
 import lombok.*;
@@ -19,11 +19,11 @@ public class PaymentResponse {
     UUID courseId;
     UUID enrollmentId;
     BigDecimal amount;
-    String paymentProvider;      // Original DB: paymentMethod (VNPAY, MOMO, etc.)
+    String paymentProvider;
     String transactionId;
     String vnpayResponseCode;
-    String paymentStatus;        // Original DB: paymentStatus (SUCCESS, PENDING, FAILED)
-    String paymentUrl;           // For redirect URL in initiatePayment response
+    String paymentStatus;
+    String paymentUrl;
     OffsetDateTime paidAt;
     OffsetDateTime createdAt;
 }

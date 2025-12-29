@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+﻿import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { Layout } from '../../components/common/Layout';
 import { GET_COURSE_BY_SLUG } from '../../graphql/queries/course';
@@ -60,7 +60,6 @@ export const CourseProgressPage = () => {
 
     const progressList: Progress[] = progressData?.myProgress || [];
 
-    // Calculate statistics
     const totalLessons =
         course?.modules?.reduce((sum: number, module: any) => sum + (module.lessons?.length || 0), 0) || 0;
 
@@ -127,7 +126,6 @@ export const CourseProgressPage = () => {
     return (
         <Layout>
             <div className="max-w-6xl mx-auto px-4 py-8">
-                {/* Header */}
                 <button
                     onClick={() => navigate(`/courses/${slug}`)}
                     className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 font-medium"
@@ -143,7 +141,6 @@ export const CourseProgressPage = () => {
                     <p className="text-gray-600 text-lg">{course.title}</p>
                 </div>
 
-                {/* Statistics Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
                         <div className="flex items-center justify-between mb-2">
@@ -180,7 +177,6 @@ export const CourseProgressPage = () => {
                     </div>
                 </div>
 
-                {/* Overall Progress Bar */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-8">
                     <h2 className="text-lg font-bold text-gray-900 mb-4">Tổng quan</h2>
                     <div className="relative">
@@ -195,7 +191,6 @@ export const CourseProgressPage = () => {
                     </div>
                 </div>
 
-                {/* Certificate Section - Show when completed >= 90% */}
                 {overallProgress >= 90 && (
                     <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 shadow-sm border-2 border-amber-200 mb-8">
                         <div className="flex items-center justify-between">
@@ -239,7 +234,6 @@ export const CourseProgressPage = () => {
                     </div>
                 )}
 
-                {/* Modules & Lessons Progress */}
                 <div className="space-y-6">
                     {course.modules?.map((module: any, moduleIndex: number) => {
                         const moduleLessons = module.lessons || [];
@@ -255,7 +249,6 @@ export const CourseProgressPage = () => {
                                 key={module.moduleId}
                                 className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
                             >
-                                {/* Module Header */}
                                 <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-6 border-b border-gray-200">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-xl font-bold text-gray-900">
@@ -267,7 +260,6 @@ export const CourseProgressPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Lessons List */}
                                 <div className="divide-y divide-gray-100">
                                     {moduleLessons.map((lesson: any) => {
                                         const lessonProgress = progressList.find((p) => p.lessonId === lesson.lessonId);
@@ -298,7 +290,6 @@ export const CourseProgressPage = () => {
                                                             </p>
                                                         )}
 
-                                                        {/* Progress Bar */}
                                                         <div className="flex items-center gap-3">
                                                             <div className="flex-1 bg-gray-200 rounded-full h-2">
                                                                 <div

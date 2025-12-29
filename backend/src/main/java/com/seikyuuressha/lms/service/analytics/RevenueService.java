@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.analytics;
+﻿package com.seikyuuressha.lms.service.analytics;
 
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.entity.Module;
@@ -14,10 +14,6 @@ import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.util.*;
 
-/**
- * Service for Revenue and Analytics operations.
- * Extracted from InstructorService to comply with Single Responsibility Principle.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,9 +30,7 @@ public class RevenueService {
     private static final String[] MONTH_NAMES = {"", "Thg 1", "Thg 2", "Thg 3", "Thg 4", "Thg 5", "Thg 6", 
                                                   "Thg 7", "Thg 8", "Thg 9", "Thg 10", "Thg 11", "Thg 12"};
 
-    /**
-     * Get revenue statistics for a specific course.
-     */
+    
     @Transactional(readOnly = true)
     public Map<String, Object> getCourseRevenue(UUID courseId) {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
@@ -62,9 +56,7 @@ public class RevenueService {
         return revenue;
     }
 
-    /**
-     * Get student progress for a course.
-     */
+    
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getStudentProgress(UUID courseId) {
         Course course = getCourseByIdAndVerifyOwnership(courseId);
@@ -106,25 +98,20 @@ public class RevenueService {
         return studentData;
     }
 
-    /**
-     * Get total unique students count across all instructor's courses.
-     */
+    
     @Transactional(readOnly = true)
     public long getTotalStudentsCount() {
         Users instructor = securityContextService.getCurrentInstructor();
         UUID userId = instructor.getUserId();
         
-        // Get owned courses
         List<Course> ownedCourses = courseRepository.findByInstructor_UserId(userId);
         
-        // Get co-instructor courses
         List<CourseInstructor> coInstructorEntries = courseInstructorRepository.findByUserId(userId);
         List<Course> coInstructorCourses = coInstructorEntries.stream()
                 .map(ci -> courseRepository.findById(ci.getCourseId()).orElse(null))
                 .filter(course -> course != null)
                 .collect(java.util.stream.Collectors.toList());
         
-        // Combine all courses
         Set<UUID> seenCourseIds = new HashSet<>();
         List<Course> allCourses = new ArrayList<>();
         for (Course course : ownedCourses) {
@@ -145,9 +132,7 @@ public class RevenueService {
                 .count();
     }
 
-    /**
-     * Get monthly revenue for the last N months.
-     */
+    
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getMonthlyRevenue(int months) {
         Users instructor = securityContextService.getCurrentInstructor();
@@ -159,9 +144,7 @@ public class RevenueService {
         return buildMonthlyRevenueList(rawData, months);
     }
 
-    /**
-     * Get monthly revenue for a specific course.
-     */
+    
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getCourseMonthlyRevenue(UUID courseId, int months) {
         getCourseByIdAndVerifyOwnership(courseId);
@@ -175,7 +158,6 @@ public class RevenueService {
     private List<Map<String, Object>> buildMonthlyRevenueList(List<Object[]> rawData, int months) {
         Map<String, BigDecimal> revenueByMonth = new LinkedHashMap<>();
         
-        // Initialize months with zero
         for (int i = months - 1; i >= 0; i--) {
             OffsetDateTime date = OffsetDateTime.now().minusMonths(i);
             int month = date.getMonthValue();
@@ -184,7 +166,6 @@ public class RevenueService {
             revenueByMonth.put(key, BigDecimal.ZERO);
         }
         
-        // Fill in actual data
         for (Object[] row : rawData) {
             int year = ((Number) row[0]).intValue();
             int month = ((Number) row[1]).intValue();
@@ -195,7 +176,6 @@ public class RevenueService {
             }
         }
         
-        // Convert to list
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map.Entry<String, BigDecimal> entry : revenueByMonth.entrySet()) {
             Map<String, Object> item = new HashMap<>();
@@ -207,9 +187,7 @@ public class RevenueService {
         return result;
     }
 
-    /**
-     * Get a course by ID with ownership verification.
-     */
+    
     private Course getCourseByIdAndVerifyOwnership(UUID courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
@@ -217,7 +195,6 @@ public class RevenueService {
         Users currentUser = securityContextService.getCurrentInstructor();
         UUID userId = currentUser.getUserId();
         
-        // Check if user is primary instructor, co-instructor, or admin
         boolean isPrimaryInstructor = course.getInstructor().getUserId().equals(userId);
         boolean isCoInstructor = courseInstructorRepository.existsByCourseIdAndUserId(courseId, userId);
         boolean isAdmin = "ADMIN".equals(currentUser.getRole().getRoleName());

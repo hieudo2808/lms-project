@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.request.CreateCommentRequest;
 import com.seikyuuressha.lms.dto.request.UpdateCommentRequest;
@@ -44,7 +44,6 @@ public class CommentService {
                     .orElseThrow(() -> new RuntimeException("Parent comment not found"));
         }
 
-        // Create new comment - let Hibernate generate ID
         Comment comment = Comment.builder()
                 .lesson(lesson)
                 .user(user)
@@ -68,7 +67,7 @@ public class CommentService {
         }
 
         comment.setContent(request.getContent());
-        comment.setUpdatedAt(OffsetDateTime.now()); // Explicitly set updatedAt
+        comment.setUpdatedAt(OffsetDateTime.now());
 
         comment = commentRepository.save(comment);
         return mapToResponse(comment);
@@ -127,7 +126,6 @@ public class CommentService {
                 .isActive(comment.getUser().isActive())
                 .build();
 
-        // Map parent comment if exists
         CommentResponse parentCommentResponse = null;
         if (comment.getParentComment() != null) {
             Comment parent = comment.getParentComment();
@@ -156,7 +154,6 @@ public class CommentService {
                     .build();
         }
 
-        // Load replies if this is a top-level comment
         List<CommentResponse> replies = null;
         if (comment.getParentComment() == null) {
             List<Comment> replyComments = commentRepository
@@ -183,7 +180,7 @@ public class CommentService {
                                     .content(reply.getContent())
                                     .parentCommentId(comment.getCommentId())
                                     .parentComment(null) // Don't include full parent in replies
-                                    .replies(null) // No nested replies
+                                    .replies(null)
                                     .isActive(reply.getIsActive())
                                     .createdAt(reply.getCreatedAt())
                                     .updatedAt(reply.getUpdatedAt())

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.request;
+﻿package com.seikyuuressha.lms.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,11 +13,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CreateQuizRequest {
-    UUID courseId; // Optional if lessonId is provided
+    UUID courseId;
 
-    UUID moduleId; // Optional
+    UUID moduleId;
 
-    UUID lessonId; // Optional
+    UUID lessonId;
 
     @NotBlank(message = "Title is required")
     String title;
@@ -27,7 +27,7 @@ public class CreateQuizRequest {
     @NotNull(message = "Passing score is required")
     Integer passingScore;
 
-    Integer timeLimit; // in minutes
+    Integer timeLimit;
 
     Integer maxAttempts;
 }

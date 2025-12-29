@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const GET_COURSE_REVIEWS = gql`
   query GetCourseReviews($courseId: UUID!) {

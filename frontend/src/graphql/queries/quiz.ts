@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const GET_QUIZ_BY_LESSON = gql`
   query GetQuizzesByLesson($lessonId: UUID!) {

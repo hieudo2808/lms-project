@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/client';
+﻿import { useQuery } from '@apollo/client';
 import { gql } from '@apollo/client';
 
 const GET_COURSE_STATS = gql`

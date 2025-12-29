@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+﻿package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.CreateCategoryRequest;
 import com.seikyuuressha.lms.dto.request.UpdateCategoryRequest;
@@ -23,8 +23,6 @@ public class CategoryResolver {
     private final AdminService adminService;
     private final CategoryService categoryService;
 
-    // ==================== PUBLIC QUERIES ====================
-
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
     public List<CategoryResponse> getAllCategories() {
@@ -40,8 +38,6 @@ public class CategoryResolver {
     public Categories getCategoryBySlug(@Argument String slug) {
         return categoryService.getCategoryBySlug(slug);
     }
-
-    // ==================== ADMIN: CATEGORY MANAGEMENT ====================
 
     @MutationMapping
     @PreAuthorize("hasRole('ADMIN')")

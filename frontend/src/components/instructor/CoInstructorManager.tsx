@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { Users, Plus, X, Loader2, UserPlus, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -76,7 +76,6 @@ export const CoInstructorManager = ({ courseId, coInstructors, isOwner, refetch 
                 )}
             </div>
 
-            {/* Add Form */}
             {showAddForm && (
                 <form onSubmit={handleAdd} className="mb-4 p-4 bg-indigo-50 rounded-lg">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Email giảng viên</label>
@@ -111,7 +110,6 @@ export const CoInstructorManager = ({ courseId, coInstructors, isOwner, refetch 
                 </form>
             )}
 
-            {/* Instructor List */}
             <div className="space-y-3">
                 {coInstructors.map((ci) => (
                     <div key={ci.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

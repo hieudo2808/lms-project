@@ -1,4 +1,4 @@
-import { ApolloClient, InMemoryCache, createHttpLink, from, Observable } from '@apollo/client';
+﻿import { ApolloClient, InMemoryCache, createHttpLink, from, Observable } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { useAuthStore } from './store';
@@ -33,12 +33,11 @@ const authLink = setContext((_, { headers }) => {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
-// Token refresh logic - uses REST API with HTTP-only cookie
 async function refreshAccessToken(): Promise<string | null> {
     try {
         const response = await fetch(`${API_URL}/auth/refresh`, {
             method: 'POST',
-            credentials: 'include', // Send cookies automatically
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -51,7 +50,6 @@ async function refreshAccessToken(): Promise<string | null> {
         const result = await response.json();
 
         if (result.token && result.user) {
-            // Update store with new access token
             useAuthStore.getState().setAuth(result.token, result.user);
             return result.token;
         }
@@ -67,7 +65,6 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
     console.log('[ErrorLink] Called with graphQLErrors:', graphQLErrors, 'networkError:', networkError);
     if (graphQLErrors) {
         for (const err of graphQLErrors) {
-            // Check for Spring Security auth errors
             const isAuthError =
                 err.extensions?.classification === 'FORBIDDEN' || err.message?.includes('Access denied');
 
@@ -102,7 +99,6 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
                         })
                         .catch((error) => {
                             console.error('[Token Refresh] Error:', error);
-                            // Don't auto-logout on network errors - might be HMR reload
                             observer.error(error);
                         });
                 });

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.admin;
+﻿package com.seikyuuressha.lms.service.admin;
 
 import com.seikyuuressha.lms.dto.response.UserResponse;
 import com.seikyuuressha.lms.entity.Roles;
@@ -22,10 +22,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Service for admin user management operations.
- * Extracted from AdminService for SRP compliance.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -38,9 +34,7 @@ public class UserManagementService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Get all users with pagination
-     */
+    
     @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers(Integer page, Integer limit, String roleName) {
         int pageIndex = (page != null && page > 0) ? page - 1 : 0;
@@ -60,9 +54,7 @@ public class UserManagementService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Update user role
-     */
+    
     @Transactional
     public UserResponse updateUserRole(UUID userId, UUID roleId) {
         Users user = userRepository.findById(userId)
@@ -78,9 +70,7 @@ public class UserManagementService {
         return userMapper.toUserResponse(user);
     }
 
-    /**
-     * Lock user account
-     */
+    
     @Transactional
     public Boolean lockUser(UUID userId, String reason) {
         Users user = userRepository.findById(userId)
@@ -97,9 +87,7 @@ public class UserManagementService {
         return true;
     }
 
-    /**
-     * Unlock user account
-     */
+    
     @Transactional
     public Boolean unlockUser(UUID userId) {
         Users user = userRepository.findById(userId)
@@ -112,9 +100,7 @@ public class UserManagementService {
         return true;
     }
 
-    /**
-     * Delete user (soft delete by deactivating)
-     */
+    
     @Transactional
     public Boolean deleteUser(UUID userId) {
         Users user = userRepository.findById(userId)
@@ -139,9 +125,7 @@ public class UserManagementService {
         return true;
     }
 
-    /**
-     * Create new user (admin only)
-     */
+    
     @Transactional
     public UserResponse createUser(String fullName, String email, String password, UUID roleId) {
         if (userRepository.existsByEmail(email)) {
@@ -165,15 +149,12 @@ public class UserManagementService {
         return userMapper.toUserResponse(user);
     }
 
-    /**
-     * Update user info (admin only)
-     */
+    
     @Transactional
     public UserResponse updateUser(UUID userId, String fullName, String email, String password, UUID roleId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Check email uniqueness if changed
         if (email != null && !email.equals(user.getEmail())) {
             if (userRepository.existsByEmail(email)) {
                 throw new RuntimeException("Email already exists");

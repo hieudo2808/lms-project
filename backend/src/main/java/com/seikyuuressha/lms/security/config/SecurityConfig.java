@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.security.config;
+﻿package com.seikyuuressha.lms.security.config;
 
 import com.seikyuuressha.lms.configuration.PepperBCryptEncoder;
 import com.seikyuuressha.lms.security.JwtAuthenticationFilter;
@@ -44,7 +44,7 @@ public class SecurityConfig {
             "/graphql",
             "/graphiql/**",
             "/actuator/**",
-            "/api/auth/**"  // REST auth endpoints for cookie-based auth
+            "/api/auth/**"
     };
 
     @Value("${app.cors.allowed-origins}")
@@ -52,7 +52,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new PepperBCryptEncoder(15);
+        return new PepperBCryptEncoder(12);
     }
 
     @Bean

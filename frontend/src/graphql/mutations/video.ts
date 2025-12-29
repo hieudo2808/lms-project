@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const GENERATE_UPLOAD_URL_MUTATION = gql`
     mutation GenerateVideoUploadUrl($input: VideoUploadInput!) {

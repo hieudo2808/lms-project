@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const GENERATE_IMAGE_UPLOAD_URL = gql`
     mutation GenerateImageUploadUrl($fileName: String!, $contentType: String!) {

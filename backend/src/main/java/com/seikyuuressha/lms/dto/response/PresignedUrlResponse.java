@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.response;
+﻿package com.seikyuuressha.lms.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +16,6 @@ public class PresignedUrlResponse {
     private UUID videoId;
     private String uploadUrl;
     private String s3Key;
-    private String publicUrl; // For images - the public accessible URL after upload
-    private Long expiresIn; // seconds
+    private String publicUrl;
+    private Long expiresIn;
 }

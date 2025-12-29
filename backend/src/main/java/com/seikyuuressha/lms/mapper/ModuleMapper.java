@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.mapper;
+﻿package com.seikyuuressha.lms.mapper;
 
 import com.seikyuuressha.lms.dto.response.LessonResponse;
 import com.seikyuuressha.lms.dto.response.ModuleResponse;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public interface ModuleMapper {
 
     @Mapping(target = "order", source = "sortOrder")
-    @Mapping(target = "lessons", ignore = true) // Set manually for proper sorting
+    @Mapping(target = "lessons", ignore = true)
     ModuleResponse toModuleResponse(Module module);
 
     @Mapping(target = "order", source = "sortOrder")

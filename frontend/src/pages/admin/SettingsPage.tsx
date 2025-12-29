@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
 import { User, Mail, Shield, Settings, Save, Loader2 } from 'lucide-react';
@@ -8,24 +8,20 @@ import { UPDATE_PROFILE_MUTATION } from '../../graphql/mutations/user';
 import { AvatarUploader } from '../../components/common/AvatarUploader';
 
 export const SettingsPage = () => {
-    /* ================= QUERY ================= */
     const { data, loading, error } = useQuery(GET_ME_QUERY, {
         fetchPolicy: 'network-only',
     });
 
-    /* ================= MUTATION ================= */
     const [updateProfile, { loading: saving }] = useMutation(UPDATE_PROFILE_MUTATION, {
         refetchQueries: [{ query: GET_ME_QUERY }],
     });
 
-    /* ================= STATE ================= */
     const [form, setForm] = useState({
         fullName: '',
         bio: '',
         avatarUrl: '',
     });
 
-    /* ================= SYNC DATA ================= */
     useEffect(() => {
         if (data?.me) {
             setForm({
@@ -36,7 +32,6 @@ export const SettingsPage = () => {
         }
     }, [data]);
 
-    /* ================= HANDLERS ================= */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
@@ -64,7 +59,6 @@ export const SettingsPage = () => {
         }
     };
 
-    /* ================= LOADING/ERROR ================= */
     if (loading) {
         return (
             <div className="flex items-center justify-center py-20">
@@ -79,10 +73,8 @@ export const SettingsPage = () => {
 
     const me = data.me;
 
-    /* ================= UI ================= */
     return (
         <div className="max-w-4xl space-y-8">
-            {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <Settings className="w-6 h-6" /> Cài đặt tài khoản
@@ -90,12 +82,11 @@ export const SettingsPage = () => {
                 <p className="text-gray-500 text-sm">Quản lý thông tin cá nhân và hồ sơ quản trị viên</p>
             </div>
 
-            {/* Profile Overview */}
             <div className="bg-white border rounded-xl p-6 flex items-center gap-6">
                 <img
                     src={
                         me.avatarUrl ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        `https:
                             me.fullName,
                         )}&background=dc2626&color=fff`
                     }
@@ -114,13 +105,11 @@ export const SettingsPage = () => {
                 </div>
             </div>
 
-            {/* Edit Profile */}
             <div className="bg-white border rounded-xl p-6 space-y-5">
                 <h2 className="font-semibold flex items-center gap-2 text-gray-800">
                     <User size={18} /> Thông tin cá nhân
                 </h2>
 
-                {/* Avatar Upload */}
                 <div>
                     <label className="text-sm font-medium text-gray-700 block mb-2">Ảnh đại diện</label>
                     <AvatarUploader
@@ -130,7 +119,6 @@ export const SettingsPage = () => {
                     />
                 </div>
 
-                {/* Full name */}
                 <div>
                     <label className="text-sm font-medium text-gray-700">Họ và tên</label>
                     <input
@@ -141,7 +129,6 @@ export const SettingsPage = () => {
                     />
                 </div>
 
-                {/* Bio */}
                 <div>
                     <label className="text-sm font-medium text-gray-700">Giới thiệu</label>
                     <textarea
@@ -153,7 +140,6 @@ export const SettingsPage = () => {
                     />
                 </div>
 
-                {/* Save Button */}
                 <div className="flex justify-end">
                     <button
                         onClick={handleSave}
@@ -166,7 +152,6 @@ export const SettingsPage = () => {
                 </div>
             </div>
 
-            {/* Account Info (Read Only) */}
             <div className="bg-white border rounded-xl p-6 space-y-4">
                 <h2 className="font-semibold flex items-center gap-2 text-gray-800">
                     <Shield size={18} /> Thông tin tài khoản

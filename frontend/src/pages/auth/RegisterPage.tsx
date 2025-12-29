@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
 import { Layout } from '../../components/common/Layout';
@@ -36,7 +36,6 @@ export const RegisterPage = () => {
     const navigate = useNavigate();
     const { setAuth, token, user } = useAuthStore();
 
-    // Redirect nếu đã đăng nhập
     useEffect(() => {
         if (token && user) {
             if (user.roleName === 'INSTRUCTOR' || user.roleName === 'ADMIN') {
@@ -126,7 +125,6 @@ export const RegisterPage = () => {
             }
 
             const { token, user } = data.register;
-            // Note: refresh_token is now handled by HTTP-only cookie
             setAuth(token, user);
 
             navigate('/dashboard/my-courses');

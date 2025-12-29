@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,7 +31,7 @@ public class QuizAttempt {
     Users user;
 
     @Column(nullable = false)
-    Integer attemptNumber; // 1st, 2nd, 3rd attempt
+    Integer attemptNumber;
 
     @Column(nullable = false)
     OffsetDateTime startedAt;
@@ -39,19 +39,19 @@ public class QuizAttempt {
     OffsetDateTime submittedAt;
 
     @Column(nullable = false)
-    Integer totalScore; // Score achieved
+    Integer totalScore;
 
     @Column(nullable = false)
-    Integer maxScore; // Maximum possible score
+    Integer maxScore;
 
-    Double percentage; // Score percentage
+    Double percentage;
 
     @Column(name = "attempt_status", nullable = false)
     @Enumerated(EnumType.STRING)
     AttemptStatus status;
 
     @Column(nullable = false)
-    Boolean passed; // Whether user passed based on passingScore
+    Boolean passed;
 
     @OneToMany(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

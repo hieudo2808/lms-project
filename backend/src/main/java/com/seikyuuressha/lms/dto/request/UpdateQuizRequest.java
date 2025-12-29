@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.request;
+﻿package com.seikyuuressha.lms.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +19,7 @@ public class UpdateQuizRequest {
     @NotNull(message = "Passing score is required")
     Integer passingScore;
 
-    Integer timeLimit; // in minutes
+    Integer timeLimit;
 
     Integer maxAttempts;
 

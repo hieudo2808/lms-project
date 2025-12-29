@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.response.PresignedUrlResponse;
 import com.seikyuuressha.lms.entity.Users;
@@ -32,13 +32,10 @@ public class ImageService {
     @Value("${aws.s3.region}")
     private String region;
 
-    /**
-     * Generate pre-signed URL for image upload (avatar, thumbnails, etc.)
-     */
+    
     public PresignedUrlResponse generateImageUploadUrl(String fileName, String contentType) {
         Users currentUser = securityContextService.getCurrentUser();
 
-        // Generate unique S3 key for images
         String fileExtension = getFileExtension(fileName);
         String s3Key = String.format("images/avatars/%s/%s.%s", 
                 currentUser.getUserId(), 
@@ -57,7 +54,6 @@ public class ImageService {
 
         PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
 
-        // Generate public URL (assuming bucket is configured for public read)
         String publicUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", 
                 bucketName, region, s3Key);
 

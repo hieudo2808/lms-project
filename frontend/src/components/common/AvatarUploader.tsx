@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import { useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
 import { Camera, Loader2, Upload, X } from 'lucide-react';
@@ -27,33 +27,28 @@ export const AvatarUploader = ({ currentUrl, onUploadComplete, size = 'md' }: Av
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
         if (!file.type.startsWith('image/')) {
             toast.error('Vui lòng chọn file ảnh');
             return;
         }
 
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             toast.error('Ảnh quá lớn! Tối đa 5MB');
             return;
         }
 
-        // Show preview
         const reader = new FileReader();
         reader.onloadend = () => {
             setPreviewUrl(reader.result as string);
         };
         reader.readAsDataURL(file);
 
-        // Upload
         await handleUpload(file);
     };
 
     const handleUpload = async (file: File) => {
         setUploading(true);
         try {
-            // 1. Get presigned URL
             const { data } = await generateUploadUrl({
                 variables: {
                     fileName: file.name,
@@ -72,7 +67,6 @@ export const AvatarUploader = ({ currentUrl, onUploadComplete, size = 'md' }: Av
                 throw new Error('Upload failed');
             }
 
-            // 3. Notify parent with public URL
             onUploadComplete(publicUrl);
             toast.success('Tải ảnh thành công!');
         } catch (err: any) {
@@ -98,7 +92,6 @@ export const AvatarUploader = ({ currentUrl, onUploadComplete, size = 'md' }: Av
 
     return (
         <div className="flex items-center gap-4">
-            {/* Avatar Display */}
             <div className="relative">
                 <div
                     className={`${sizeClasses[size]} rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center`}
@@ -109,7 +102,6 @@ export const AvatarUploader = ({ currentUrl, onUploadComplete, size = 'md' }: Av
                         <Camera className="w-8 h-8 text-gray-400" />
                     )}
 
-                    {/* Loading overlay */}
                     {uploading && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
                             <Loader2 className="w-6 h-6 animate-spin text-white" />
@@ -117,7 +109,6 @@ export const AvatarUploader = ({ currentUrl, onUploadComplete, size = 'md' }: Av
                     )}
                 </div>
 
-                {/* Clear button */}
                 {previewUrl && !uploading && (
                     <button
                         onClick={handleClearPreview}
@@ -128,7 +119,6 @@ export const AvatarUploader = ({ currentUrl, onUploadComplete, size = 'md' }: Av
                 )}
             </div>
 
-            {/* Upload Button */}
             <div>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
                 <button

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.response;
+﻿package com.seikyuuressha.lms.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -18,7 +18,7 @@ public class CommentResponse {
     UserResponse user;
     String content;
     UUID parentCommentId;
-    CommentResponse parentComment; // Full parent comment object for GraphQL
+    CommentResponse parentComment;
     List<CommentResponse> replies;
     Boolean isActive;
     OffsetDateTime createdAt;

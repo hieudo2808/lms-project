@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+﻿package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.UpdateProfileRequest;
 import com.seikyuuressha.lms.dto.response.RoleResponse;
@@ -24,8 +24,6 @@ public class UserResolver {
     private final UserService userService;
     private final AdminService adminService;
     private final RoleRepository roleRepository;
-
-    // ==================== USER QUERIES ====================
 
     @QueryMapping
     @PreAuthorize("isAuthenticated()")

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Course {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID) // Đây là dòng sửa lỗi DataSeeder
+    @GeneratedValue(strategy = GenerationType.UUID)
     UUID courseId;
 
     @Column(nullable = false, length = 200)
@@ -35,7 +35,7 @@ public class Course {
     String thumbnailUrl;
 
     @Column(length = 50)
-    String level; // Beginner, Intermediate, Advanced
+    String level;
 
     @Column(precision = 10, scale = 2)
     BigDecimal price;
@@ -69,12 +69,11 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     List<CourseInstructor> courseInstructors;
 
-    // Computed fields - giữ nguyên theo ý bạn
     @Transient
     Integer totalLessons;
 
     @Transient
-    Integer totalDuration; // in seconds
+    Integer totalDuration;
 
     @Transient
     Double averageRating;

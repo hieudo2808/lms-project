@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+﻿package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.CreateReviewRequest;
 import com.seikyuuressha.lms.dto.request.UpdateReviewRequest;
@@ -20,8 +20,6 @@ public class ReviewResolver {
 
     private final ReviewService reviewService;
 
-    // ==================== PUBLIC QUERIES (Anyone can view reviews) ====================
-
     @QueryMapping
     public List<ReviewResponse> getReviewsByCourse(@Argument UUID courseId) {
         return reviewService.getReviewsByCourse(courseId);
@@ -31,8 +29,6 @@ public class ReviewResolver {
     public Double getCourseAverageRating(@Argument UUID courseId) {
         return reviewService.getCourseAverageRating(courseId);
     }
-
-    // ==================== AUTHENTICATED USER METHODS ====================
 
     @QueryMapping
     @PreAuthorize("isAuthenticated()")

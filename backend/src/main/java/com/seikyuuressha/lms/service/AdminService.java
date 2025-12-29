@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.entity.Categories;
@@ -17,11 +17,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Admin Service - Facade for admin operations.
- * Delegates to specialized services for SRP compliance.
- * Keeps category management as it's small and doesn't warrant a separate service.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,8 +27,6 @@ public class AdminService {
     private final StatisticsService statisticsService;
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
-
-    // ==================== USER MANAGEMENT (Delegated) ====================
 
     public List<UserResponse> getAllUsers(Integer page, Integer limit, String roleName) {
         return userManagementService.getAllUsers(page, limit, roleName);
@@ -63,8 +56,6 @@ public class AdminService {
         return userManagementService.updateUser(userId, fullName, email, password, roleId);
     }
 
-    // ==================== COURSE MODERATION (Delegated) ====================
-
     public List<CourseResponse> getAllCoursesAdmin(Boolean isPublished, Integer page, Integer limit) {
         return courseApprovalService.getAllCoursesAdmin(isPublished, page, limit);
     }
@@ -81,8 +72,6 @@ public class AdminService {
         return courseApprovalService.deleteCourseAdmin(courseId);
     }
 
-    // ==================== SYSTEM REPORTS (Delegated) ====================
-
     public SystemStatisticsResponse getSystemStatistics() {
         return statisticsService.getSystemStatistics();
     }
@@ -94,8 +83,6 @@ public class AdminService {
     public List<PaymentResponse> getAllPayments(Integer page, Integer limit, String status) {
         return statisticsService.getAllPayments(page, limit, status);
     }
-
-    // ==================== CATEGORY MANAGEMENT ====================
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {

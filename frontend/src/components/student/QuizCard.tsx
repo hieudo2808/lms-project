@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/client';
+﻿import { useQuery } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, ChevronRight, Clock, Trophy } from 'lucide-react';
 import { GET_MY_QUIZ_ATTEMPTS } from '../../graphql/queries/quiz';

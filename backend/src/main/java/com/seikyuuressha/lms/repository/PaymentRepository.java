@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.repository;
+﻿package com.seikyuuressha.lms.repository;
 
 import com.seikyuuressha.lms.entity.Payment;
 import com.seikyuuressha.lms.entity.Users;
@@ -20,14 +20,12 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     List<Payment> findByUserOrderByCreatedAtDesc(Users user);
     Optional<Payment> findByTransactionId(String transactionId);
     
-    // Using original DB column: paymentStatus (values: SUCCESS, PENDING, FAILED)
     List<Payment> findByPaymentStatus(String paymentStatus);
     List<Payment> findByCourse_CourseIdAndPaymentStatus(UUID courseId, String paymentStatus);
     Page<Payment> findByPaymentStatus(String paymentStatus, Pageable pageable);
     
     List<Payment> findByCreatedAtBetween(OffsetDateTime startDate, OffsetDateTime endDate);
     
-    // Check if enrollment has successful payment
     boolean existsByEnrollment_EnrollmentIdAndPaymentStatus(UUID enrollmentId, String paymentStatus);
     Optional<Payment> findByEnrollment_EnrollmentId(UUID enrollmentId);
 

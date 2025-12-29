@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 import { useAuthStore } from './store';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
@@ -10,7 +10,6 @@ export const api = axios.create({
   },
 });
 
-// Add token to all requests
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) {
@@ -19,7 +18,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {

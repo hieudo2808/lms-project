@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.mapper;
+﻿package com.seikyuuressha.lms.mapper;
 
 import com.seikyuuressha.lms.dto.response.VideoResponse;
 import com.seikyuuressha.lms.entity.Video;
@@ -10,6 +10,6 @@ public interface VideoMapper {
 
     @Mapping(target = "lessonId", source = "lesson.lessonId")
     @Mapping(target = "processingStatus", expression = "java(video.getProcessingStatus().name())")
-    @Mapping(target = "streamUrl", ignore = true) // Set manually after mapping
+    @Mapping(target = "streamUrl", ignore = true)
     VideoResponse toVideoResponse(Video video);
 }

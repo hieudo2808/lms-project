@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import {
     Users,
@@ -51,7 +51,6 @@ export const UsersPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    // Modal states
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -170,7 +169,7 @@ export const UsersPage = () => {
                     userId: editingUser.userId,
                     fullName: formData.fullName || null,
                     email: formData.email || null,
-                    password: formData.password || null, // null = no change, value = change password
+                    password: formData.password || null,
                     roleId: formData.roleId || null,
                 },
             });
@@ -204,7 +203,6 @@ export const UsersPage = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -222,7 +220,6 @@ export const UsersPage = () => {
                 </button>
             </div>
 
-            {/* Action Message */}
             {actionMessage && (
                 <div
                     className={`p-4 rounded-lg flex items-center gap-2 ${
@@ -238,7 +235,6 @@ export const UsersPage = () => {
                 </div>
             )}
 
-            {/* Filters */}
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-wrap gap-4 items-center">
                 <div className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[200px]">
                     <Search className="w-5 h-5 text-gray-400" />
@@ -266,7 +262,6 @@ export const UsersPage = () => {
                 </div>
             </div>
 
-            {/* Users Table */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 {loading ? (
                     <div className="flex items-center justify-center py-12">
@@ -309,7 +304,7 @@ export const UsersPage = () => {
                                                 <img
                                                     src={
                                                         user.avatarUrl ||
-                                                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                                        `https:
                                                             user.fullName,
                                                         )}&background=random`
                                                     }
@@ -404,14 +399,12 @@ export const UsersPage = () => {
                 )}
             </div>
 
-            {/* Summary */}
             {!loading && !error && (
                 <div className="text-sm text-gray-500 text-right">
                     Hiển thị {filteredUsers.length} / {users.length} người dùng
                 </div>
             )}
 
-            {/* Create User Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
@@ -489,7 +482,6 @@ export const UsersPage = () => {
                 </div>
             )}
 
-            {/* Edit User Modal */}
             {showEditModal && editingUser && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">

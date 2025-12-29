@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.repository;
+﻿package com.seikyuuressha.lms.repository;
 
 import com.seikyuuressha.lms.entity.Enrollment;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,7 +25,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, UUID> {
 
     long countByCourse_CourseId(UUID courseId);
 
-    // Helper methods with entity parameters
     default boolean existsByUserAndCourse(com.seikyuuressha.lms.entity.Users user,
             com.seikyuuressha.lms.entity.Course course) {
         return existsByUser_UserIdAndCourse_CourseId(user.getUserId(), course.getCourseId());

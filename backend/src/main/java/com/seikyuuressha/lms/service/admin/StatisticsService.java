@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.admin;
+﻿package com.seikyuuressha.lms.service.admin;
 
 import com.seikyuuressha.lms.dto.response.PaymentResponse;
 import com.seikyuuressha.lms.dto.response.RevenueReportResponse;
@@ -21,10 +21,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Service for admin statistics and revenue reports.
- * Extracted from AdminService for SRP compliance.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -36,9 +32,7 @@ public class StatisticsService {
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
 
-    /**
-     * Get system statistics
-     */
+    
     @Transactional(readOnly = true)
     public SystemStatisticsResponse getSystemStatistics() {
         long totalUsers = userRepository.count();
@@ -75,9 +69,7 @@ public class StatisticsService {
                 .build();
     }
 
-    /**
-     * Get revenue report
-     */
+    
     @Transactional(readOnly = true)
     public RevenueReportResponse getRevenueReport(OffsetDateTime startDate, OffsetDateTime endDate) {
         if (startDate == null) {
@@ -122,9 +114,7 @@ public class StatisticsService {
                 .build();
     }
 
-    /**
-     * Get all payments (admin view)
-     */
+    
     @Transactional(readOnly = true)
     public List<PaymentResponse> getAllPayments(Integer page, Integer limit, String status) {
         int pageIndex = (page != null && page > 0) ? page - 1 : 0;

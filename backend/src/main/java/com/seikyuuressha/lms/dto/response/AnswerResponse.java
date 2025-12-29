@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.response;
+﻿package com.seikyuuressha.lms.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -14,6 +14,6 @@ public class AnswerResponse {
     UUID answerId;
     UUID questionId;
     String answerText;
-    Boolean isCorrect; // Only show to instructor or after quiz submission
+    Boolean isCorrect;
     Integer orderIndex;
 }

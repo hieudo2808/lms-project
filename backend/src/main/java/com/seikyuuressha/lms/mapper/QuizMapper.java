@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.mapper;
+﻿package com.seikyuuressha.lms.mapper;
 
 import com.seikyuuressha.lms.dto.response.AnswerResponse;
 import com.seikyuuressha.lms.dto.response.QuestionResponse;
@@ -37,7 +37,7 @@ public interface QuizMapper {
     @Mapping(target = "quiz", source = "quiz")
     @Mapping(target = "startTime", source = "startedAt")
     @Mapping(target = "endTime", source = "submittedAt")
-    @Mapping(target = "userAnswers", ignore = true) // Set manually - needs repository query
+    @Mapping(target = "userAnswers", ignore = true)
     QuizAttemptResponse toQuizAttemptResponse(QuizAttempt attempt);
 
     @Mapping(target = "answerId", source = "quizAnswerId")

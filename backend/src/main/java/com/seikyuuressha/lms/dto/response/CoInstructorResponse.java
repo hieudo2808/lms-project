@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.response;
+﻿package com.seikyuuressha.lms.dto.response;
 
 import lombok.*;
 import java.time.OffsetDateTime;
@@ -13,6 +13,6 @@ public class CoInstructorResponse {
     private String fullName;
     private String email;
     private String avatarUrl;
-    private String role;    // OWNER or CO_INSTRUCTOR
+    private String role;
     private OffsetDateTime addedAt;
 }

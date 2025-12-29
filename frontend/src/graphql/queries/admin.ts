@@ -1,8 +1,5 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
-/**
- * Admin: Lấy thống kê hệ thống
- */
 export const GET_SYSTEM_STATISTICS = gql`
     query GetSystemStatistics {
         getSystemStatistics {
@@ -22,9 +19,6 @@ export const GET_SYSTEM_STATISTICS = gql`
     }
 `;
 
-/**
- * Admin: Lấy danh sách tất cả users
- */
 export const GET_ALL_USERS = gql`
     query GetAllUsers($page: Int, $limit: Int, $roleName: String) {
         getAllUsers(page: $page, limit: $limit, roleName: $roleName) {
@@ -39,9 +33,6 @@ export const GET_ALL_USERS = gql`
     }
 `;
 
-/**
- * Admin: Lấy danh sách vai trò
- */
 export const GET_ALL_ROLES = gql`
     query GetAllRoles {
         getAllRoles {
@@ -51,9 +42,6 @@ export const GET_ALL_ROLES = gql`
     }
 `;
 
-/**
- * Admin: Lấy tất cả khóa học (bao gồm cả unpublished)
- */
 export const GET_ALL_COURSES_ADMIN = gql`
     query GetAllCoursesAdmin($isPublished: Boolean, $page: Int, $limit: Int) {
         getAllCoursesAdmin(isPublished: $isPublished, page: $page, limit: $limit) {
@@ -74,9 +62,6 @@ export const GET_ALL_COURSES_ADMIN = gql`
     }
 `;
 
-/**
- * Admin: Lấy tất cả payments
- */
 export const GET_ALL_PAYMENTS = gql`
     query GetAllPayments($page: Int, $limit: Int, $status: String) {
         getAllPayments(page: $page, limit: $limit, status: $status) {
@@ -93,9 +78,6 @@ export const GET_ALL_PAYMENTS = gql`
     }
 `;
 
-/**
- * Admin: Lấy báo cáo doanh thu
- */
 export const GET_REVENUE_REPORT = gql`
     query GetRevenueReport($startDate: DateTime, $endDate: DateTime) {
         getRevenueReport(startDate: $startDate, endDate: $endDate) {

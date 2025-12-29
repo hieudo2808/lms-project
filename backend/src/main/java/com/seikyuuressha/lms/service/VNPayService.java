@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.entity.Course;
 import com.seikyuuressha.lms.entity.Enrollment;
@@ -65,7 +65,6 @@ public class VNPayService {
             String vnpExpireDate = formatter.format(cld.getTime());
             vnpParams.put("vnp_ExpireDate", vnpExpireDate);
 
-            // Build hash data
             List<String> fieldNames = new ArrayList<>(vnpParams.keySet());
             Collections.sort(fieldNames);
             
@@ -100,7 +99,6 @@ public class VNPayService {
             params.remove("vnp_SecureHash");
             params.remove("vnp_SecureHashType");
 
-            // Build hash data
             List<String> fieldNames = new ArrayList<>(params.keySet());
             Collections.sort(fieldNames);
             
@@ -125,7 +123,7 @@ public class VNPayService {
 
     public String getPaymentStatus(String vnpResponseCode) {
         return switch (vnpResponseCode) {
-            case "00" -> "SUCCESS";   // Original DB value
+            case "00" -> "SUCCESS";
             case "07" -> "PENDING";
             case "24" -> "FAILED";
             default -> "FAILED";

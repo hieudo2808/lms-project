@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const ADD_CO_INSTRUCTOR = gql`
     mutation AddCoInstructor($courseId: UUID!, $email: String!) {

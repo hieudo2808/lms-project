@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.request;
+﻿package com.seikyuuressha.lms.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,7 +26,7 @@ public class CreateCourseRequest {
 
     private String thumbnailUrl;
 
-    private String level; // BEGINNER, INTERMEDIATE, ADVANCED
+    private String level;
 
     private BigDecimal price;
 

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.mapper;
+﻿package com.seikyuuressha.lms.mapper;
 
 import com.seikyuuressha.lms.dto.response.CoInstructorResponse;
 import com.seikyuuressha.lms.dto.response.CourseResponse;
@@ -13,13 +13,12 @@ public interface CourseMapper {
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "instructor", source = "instructor")
     @Mapping(target = "isPublished", source = "published")
-    @Mapping(target = "modules", ignore = true) // Set manually for proper sorting
-    @Mapping(target = "coInstructors", ignore = true) // Set manually
-    @Mapping(target = "totalLessons", ignore = true) // Calculated
-    @Mapping(target = "totalDuration", ignore = true) // Calculated
+    @Mapping(target = "modules", ignore = true)
+    @Mapping(target = "coInstructors", ignore = true)
+    @Mapping(target = "totalLessons", ignore = true)
+    @Mapping(target = "totalDuration", ignore = true)
     CourseResponse toCourseResponse(Course course);
 
-    // Simple response without modules (for list views)
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "instructor", source = "instructor")
     @Mapping(target = "isPublished", source = "published")

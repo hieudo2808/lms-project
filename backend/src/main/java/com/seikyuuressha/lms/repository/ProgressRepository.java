@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.repository;
+﻿package com.seikyuuressha.lms.repository;
 
 import com.seikyuuressha.lms.entity.Progress;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,10 +15,8 @@ public interface ProgressRepository extends JpaRepository<Progress, UUID> {
     List<Progress> findByUser_UserIdAndLesson_Module_Course_CourseId(UUID userId, UUID courseId);
     boolean existsByLesson_LessonId(UUID lessonId);
     
-    // Delete progress by user and course
     void deleteByUser_UserIdAndLesson_Module_Course_CourseId(UUID userId, UUID courseId);
     
-    // Helper method for finding progress by course and user
     default List<Progress> findProgressByCourseAndUser(UUID courseId, UUID userId) {
         return findByUser_UserIdAndLesson_Module_Course_CourseId(userId, courseId);
     }

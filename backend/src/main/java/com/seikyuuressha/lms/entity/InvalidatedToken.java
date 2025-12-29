@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,13 +17,13 @@ import java.time.OffsetDateTime;
 public class InvalidatedToken {
     @Id
     @Column(length = 36)
-    String tokenId; // JWT ID (jti claim)
+    String tokenId;
     
     @Column(nullable = false)
-    OffsetDateTime expiryTime; // Token expiry để cleanup
+    OffsetDateTime expiryTime;
     
     @Column(nullable = false)
-    OffsetDateTime invalidatedAt; // Thời điểm bị invalidate
+    OffsetDateTime invalidatedAt;
     
     @PrePersist
     protected void onCreate() {

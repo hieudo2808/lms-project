@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.request;
+﻿package com.seikyuuressha.lms.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -15,7 +15,7 @@ public class SubmitQuizAnswerRequest {
     @NotNull(message = "Question ID is required")
     UUID questionId;
 
-    UUID answerId; // For multiple choice
+    UUID answerId;
 
-    String userAnswer; // For short answer
+    String userAnswer;
 }

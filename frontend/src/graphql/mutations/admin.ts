@@ -1,26 +1,17 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
-/**
- * Admin: Khóa user
- */
 export const LOCK_USER = gql`
     mutation LockUser($userId: UUID!, $reason: String!) {
         lockUser(userId: $userId, reason: $reason)
     }
 `;
 
-/**
- * Admin: Mở khóa user
- */
 export const UNLOCK_USER = gql`
     mutation UnlockUser($userId: UUID!) {
         unlockUser(userId: $userId)
     }
 `;
 
-/**
- * Admin: Cập nhật role của user
- */
 export const UPDATE_USER_ROLE = gql`
     mutation UpdateUserRole($userId: UUID!, $roleId: UUID!) {
         updateUserRole(userId: $userId, roleId: $roleId) {
@@ -31,18 +22,12 @@ export const UPDATE_USER_ROLE = gql`
     }
 `;
 
-/**
- * Admin: Xóa user
- */
 export const DELETE_USER = gql`
     mutation DeleteUser($userId: UUID!) {
         deleteUser(userId: $userId)
     }
 `;
 
-/**
- * Admin: Duyệt khóa học
- */
 export const APPROVE_COURSE = gql`
     mutation ApproveCourse($courseId: UUID!) {
         approveCourse(courseId: $courseId) {
@@ -53,9 +38,6 @@ export const APPROVE_COURSE = gql`
     }
 `;
 
-/**
- * Admin: Từ chối khóa học
- */
 export const REJECT_COURSE = gql`
     mutation RejectCourse($courseId: UUID!, $reason: String!) {
         rejectCourse(courseId: $courseId, reason: $reason) {
@@ -66,18 +48,12 @@ export const REJECT_COURSE = gql`
     }
 `;
 
-/**
- * Admin: Xóa khóa học
- */
 export const DELETE_COURSE_ADMIN = gql`
     mutation DeleteCourseAdmin($courseId: UUID!) {
         deleteCourseAdmin(courseId: $courseId)
     }
 `;
 
-/**
- * Admin: Tạo user mới
- */
 export const CREATE_USER = gql`
     mutation CreateUser($fullName: String!, $email: String!, $password: String!, $roleId: UUID!) {
         createUser(fullName: $fullName, email: $email, password: $password, roleId: $roleId) {
@@ -90,9 +66,6 @@ export const CREATE_USER = gql`
     }
 `;
 
-/**
- * Admin: Cập nhật thông tin user
- */
 export const UPDATE_USER = gql`
     mutation UpdateUser($userId: UUID!, $fullName: String, $email: String, $password: String, $roleId: UUID) {
         updateUser(userId: $userId, fullName: $fullName, email: $email, password: $password, roleId: $roleId) {

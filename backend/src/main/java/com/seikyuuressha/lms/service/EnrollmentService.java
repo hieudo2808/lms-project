@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.response.CourseResponse;
 import com.seikyuuressha.lms.dto.response.EnrollmentResponse;
@@ -69,7 +69,6 @@ public class EnrollmentService {
 
         List<Enrollment> enrollments = enrollmentRepository.findByUser_UserId(userId);
 
-        // Filter only paid or free enrollments
         return enrollments.stream()
                 .filter(enrollment -> {
                     Optional<Payment> payment = paymentRepository

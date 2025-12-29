@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,7 +31,7 @@ public class Review {
     Users user;
 
     @Column(nullable = false)
-    Integer rating; // 1-5 stars
+    Integer rating;
 
     @Column(columnDefinition = "TEXT")
     String comment;
@@ -55,7 +55,6 @@ public class Review {
         if (isActive == null) {
             isActive = true;
         }
-        // Validate rating
         if (rating != null && (rating < 1 || rating > 5)) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }

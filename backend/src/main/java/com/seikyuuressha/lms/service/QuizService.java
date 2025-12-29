@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.request.*;
 import com.seikyuuressha.lms.dto.response.*;
@@ -16,11 +16,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Service for Quiz management operations.
- * Question/Answer operations moved to QuestionService.
- * Quiz attempt operations moved to QuizAttemptService.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -35,9 +30,7 @@ public class QuizService {
     private final SecurityContextService securityContextService;
     private final QuizMapper quizMapper;
 
-    /**
-     * Create a new quiz
-     */
+    
     @Transactional
     public QuizResponse createQuiz(CreateQuizRequest request) {
         Course course;
@@ -81,9 +74,7 @@ public class QuizService {
         return quizMapper.toQuizResponse(quiz);
     }
 
-    /**
-     * Update an existing quiz
-     */
+    
     @Transactional
     public QuizResponse updateQuiz(UUID quizId, UpdateQuizRequest request) {
         Quiz quiz = quizRepository.findById(quizId)
@@ -99,9 +90,7 @@ public class QuizService {
         return quizMapper.toQuizResponse(quiz);
     }
 
-    /**
-     * Publish a quiz
-     */
+    
     @Transactional
     public QuizResponse publishQuiz(UUID quizId) {
         Quiz quiz = quizRepository.findById(quizId)
@@ -113,15 +102,12 @@ public class QuizService {
         return quizMapper.toQuizResponse(quiz);
     }
 
-    /**
-     * Delete a quiz
-     */
+    
     @Transactional
     public boolean deleteQuiz(UUID quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new RuntimeException("Quiz not found"));
 
-        // Delete answers -> questions -> quiz in proper order
         if (quiz.getQuestions() != null) {
             for (Question q : quiz.getQuestions()) {
                 if (q.getAnswers() != null && !q.getAnswers().isEmpty()) {
@@ -136,9 +122,7 @@ public class QuizService {
         return true;
     }
 
-    /**
-     * Get quizzes by lesson
-     */
+    
     @Transactional(readOnly = true)
     public List<QuizResponse> getQuizzesByLesson(UUID lessonId) {
         Lesson lesson = lessonRepository.findById(lessonId)
@@ -151,9 +135,7 @@ public class QuizService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get quiz by ID
-     */
+    
     @Transactional(readOnly = true)
     public QuizResponse getQuizById(UUID quizId) {
         Quiz quiz = quizRepository.findById(quizId)

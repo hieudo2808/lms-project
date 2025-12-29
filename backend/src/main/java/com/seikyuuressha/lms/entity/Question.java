@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,13 +36,13 @@ public class Question {
     QuestionType type;
 
     @Column(nullable = false)
-    Integer points; // Points for this question
+    Integer points;
 
     @Column(nullable = false)
     Integer orderIndex;
 
     @Column(columnDefinition = "TEXT")
-    String explanation; // Explanation shown after answer
+    String explanation;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -59,9 +59,9 @@ public class Question {
     }
 
     public enum QuestionType {
-        MULTIPLE_CHOICE,    // One correct answer
-        MULTIPLE_SELECT,    // Multiple correct answers
-        TRUE_FALSE,         // Boolean question
-        SHORT_ANSWER        // Text input (auto-graded by keywords)
+        MULTIPLE_CHOICE,
+        MULTIPLE_SELECT,
+        TRUE_FALSE,
+        SHORT_ANSWER
     }
 }

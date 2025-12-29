@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,7 +40,7 @@ public class QuizAnswer {
     List<Answer> selectedAnswers = new ArrayList<>();
 
     @Column(columnDefinition = "TEXT")
-    String textAnswer; // For short answer questions
+    String textAnswer;
 
     @Column(nullable = false)
     Boolean isCorrect;

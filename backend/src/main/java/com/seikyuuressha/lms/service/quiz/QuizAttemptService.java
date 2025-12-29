@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.quiz;
+﻿package com.seikyuuressha.lms.service.quiz;
 
 import com.seikyuuressha.lms.dto.request.SubmitQuizAnswerRequest;
 import com.seikyuuressha.lms.dto.response.QuizAnswerResponse;
@@ -19,10 +19,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Service for Quiz Attempt operations (student taking quizzes).
- * Extracted from QuizService to comply with Single Responsibility Principle.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -37,9 +33,7 @@ public class QuizAttemptService {
     private final SecurityContextService securityContextService;
     private final QuizMapper quizMapper;
 
-    /**
-     * Start a new quiz attempt.
-     */
+    
     @Transactional
     public QuizAttemptResponse startQuizAttempt(UUID quizId) {
         UUID userId = securityContextService.getCurrentUserId();
@@ -53,7 +47,6 @@ public class QuizAttemptService {
             throw new RuntimeException("Quiz is not published");
         }
 
-        // Check max attempts
         List<QuizAttempt> previousAttempts = quizAttemptRepository.findByUserAndQuizOrderByAttemptNumberDesc(user, quiz);
         if (quiz.getMaxAttempts() != null && previousAttempts.size() >= quiz.getMaxAttempts()) {
             throw new RuntimeException("Maximum attempts reached");
@@ -61,7 +54,6 @@ public class QuizAttemptService {
 
         int attemptNumber = previousAttempts.isEmpty() ? 1 : previousAttempts.get(0).getAttemptNumber() + 1;
 
-        // Calculate max score
         Integer maxScore = quiz.getQuestions().stream()
                 .map(Question::getPoints)
                 .reduce(0, Integer::sum);
@@ -84,9 +76,7 @@ public class QuizAttemptService {
         return mapToQuizAttemptResponseWithAnswers(attempt);
     }
 
-    /**
-     * Submit an answer for a quiz question.
-     */
+    
     @Transactional
     public QuizAnswerResponse submitQuizAnswer(UUID attemptId, SubmitQuizAnswerRequest request) {
         QuizAttempt attempt = quizAttemptRepository.findById(attemptId)
@@ -105,7 +95,6 @@ public class QuizAttemptService {
                     .orElseThrow(() -> new RuntimeException("Answer not found"));
         }
 
-        // Calculate correctness and points
         boolean isCorrect = false;
         Integer pointsAwarded = 0;
 
@@ -116,12 +105,10 @@ public class QuizAttemptService {
             pointsAwarded = isCorrect ? question.getPoints() : 0;
         }
 
-        // Find existing answer or create new one (prevent duplicates)
         QuizAnswer quizAnswer = quizAnswerRepository.findByAttemptAndQuestion(attempt, question)
                 .orElse(null);
         
         if (quizAnswer != null) {
-            // Update existing answer
             quizAnswer.getSelectedAnswers().clear();
             if (selectedAnswer != null) {
                 quizAnswer.getSelectedAnswers().add(selectedAnswer);
@@ -130,7 +117,6 @@ public class QuizAttemptService {
             quizAnswer.setIsCorrect(isCorrect);
             quizAnswer.setPointsEarned(pointsAwarded);
         } else {
-            // Create new answer
             List<Answer> answerList = new ArrayList<>();
             if (selectedAnswer != null) {
                 answerList.add(selectedAnswer);
@@ -147,7 +133,6 @@ public class QuizAttemptService {
 
         quizAnswer = quizAnswerRepository.save(quizAnswer);
         
-        // Return response WITHOUT isCorrect and pointsAwarded to prevent cheating
         return QuizAnswerResponse.builder()
                 .answerId(quizAnswer.getQuizAnswerId())
                 .attemptId(quizAnswer.getAttempt().getAttemptId())
@@ -159,9 +144,7 @@ public class QuizAttemptService {
                 .build();
     }
 
-    /**
-     * Finish a quiz attempt and calculate final score.
-     */
+    
     @Transactional
     public QuizAttemptResponse finishQuizAttempt(UUID attemptId) {
         QuizAttempt attempt = quizAttemptRepository.findById(attemptId)
@@ -171,7 +154,6 @@ public class QuizAttemptService {
             throw new RuntimeException("Quiz attempt is not in progress");
         }
 
-        // Calculate total score
         List<QuizAnswer> answers = quizAnswerRepository.findByAttempt(attempt);
         Integer totalScore = answers.stream()
                 .map(QuizAnswer::getPointsEarned)
@@ -193,9 +175,7 @@ public class QuizAttemptService {
         return mapToQuizAttemptResponseWithAnswers(attempt);
     }
 
-    /**
-     * Get all quiz attempts for the current user.
-     */
+    
     @Transactional(readOnly = true)
     public List<QuizAttemptResponse> getMyQuizAttempts(UUID quizId) {
         UUID userId = securityContextService.getCurrentUserId();
@@ -211,9 +191,7 @@ public class QuizAttemptService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Map QuizAttempt to QuizAttemptResponse with user answers populated
-     */
+    
     private QuizAttemptResponse mapToQuizAttemptResponseWithAnswers(QuizAttempt attempt) {
         List<QuizAnswerResponse> userAnswers = quizAnswerRepository.findByAttempt(attempt).stream()
                 .map(quizMapper::toQuizAnswerResponse)

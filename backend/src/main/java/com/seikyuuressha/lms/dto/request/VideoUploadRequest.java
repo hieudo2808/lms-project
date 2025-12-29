@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.request;
+﻿package com.seikyuuressha.lms.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.request;
+﻿package com.seikyuuressha.lms.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +17,7 @@ public class InitiatePaymentRequest {
     UUID courseId;
 
     @NotBlank(message = "Payment provider is required")
-    String paymentProvider;  // VNPAY, MOMO, ZALOPAY, BANK_TRANSFER
+    String paymentProvider;
 
     @NotBlank(message = "Return URL is required")
     String returnUrl;

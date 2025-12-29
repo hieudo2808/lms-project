@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+﻿package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.*;
 import com.seikyuuressha.lms.dto.response.*;
@@ -23,8 +23,6 @@ public class QuizResolver {
     private final QuestionService questionService;
     private final QuizAttemptService quizAttemptService;
 
-    // ==================== QUERY METHODS (Authenticated Users) ====================
-
     @QueryMapping
     @PreAuthorize("isAuthenticated()")
     public List<QuizResponse> getQuizzesByLesson(@Argument UUID lessonId) {
@@ -42,8 +40,6 @@ public class QuizResolver {
     public List<QuizAttemptResponse> getMyQuizAttempts(@Argument UUID quizId) {
         return quizAttemptService.getMyQuizAttempts(quizId);
     }
-
-    // ==================== INSTRUCTOR/ADMIN METHODS (Quiz Management) ====================
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
@@ -87,8 +83,6 @@ public class QuizResolver {
         return quizService.updateQuiz(quizId, input);
     }
 
-    // ==================== STUDENT METHODS (Quiz Taking - Delegated to QuizAttemptService) ====================
-
     @MutationMapping
     @PreAuthorize("isAuthenticated()")
     public QuizAttemptResponse startQuizAttempt(@Argument UUID quizId) {
@@ -107,7 +101,6 @@ public class QuizResolver {
         return quizAttemptService.finishQuizAttempt(attemptId);
     }
 
-    // ==================== INSTRUCTOR/ADMIN METHODS (Delete - Delegated to QuestionService) ====================
     
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import {
     BookOpen,
     Users,
@@ -16,18 +16,14 @@ import { Navbar } from '../../components/common/Navbar';
 export const LandingPage = () => {
     return (
         <div className="min-h-screen bg-white">
-            {/* ===== NAVBAR ===== */}
             <Navbar />
 
-            {/* ===== HERO SECTION ===== */}
             <section className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white py-20 lg:py-28 overflow-hidden">
-                {/* Background decoration */}
                 <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:32px_32px]"></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
 
                 <div className="relative max-w-7xl mx-auto px-4">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                        {/* Left Content */}
                         <div className="space-y-8">
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium border border-white/20">
                                 <Sparkles className="w-4 h-4 text-yellow-400" />
@@ -65,7 +61,6 @@ export const LandingPage = () => {
                                 </Link>
                             </div>
 
-                            {/* Stats */}
                             <div className="flex gap-8 pt-8 border-t border-white/20">
                                 <div>
                                     <div className="text-3xl font-bold text-blue-400">10,000+</div>
@@ -82,10 +77,8 @@ export const LandingPage = () => {
                             </div>
                         </div>
 
-                        {/* Right Content - Illustration */}
                         <div className="relative hidden lg:block">
                             <div className="relative w-full h-[500px] flex items-center justify-center">
-                                {/* Floating cards animation */}
                                 <div className="absolute inset-0">
                                     <div className="absolute top-10 right-10 w-64 h-40 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 animate-float">
                                         <div className="flex items-center gap-3 mb-3">
@@ -113,7 +106,6 @@ export const LandingPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Center icon */}
                                 <div className="relative z-10 w-48 h-48 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform">
                                     <BookOpen className="w-24 h-24 text-white" />
                                 </div>
@@ -123,7 +115,6 @@ export const LandingPage = () => {
                 </div>
             </section>
 
-            {/* ===== FEATURES SECTION ===== */}
             <section className="py-20 bg-gray-50">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-16">
@@ -136,7 +127,6 @@ export const LandingPage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {/* Feature 1 */}
                         <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-shadow border border-gray-100 group">
                             <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <BookOpen className="w-7 h-7 text-blue-600" />
@@ -147,7 +137,6 @@ export const LandingPage = () => {
                             </p>
                         </div>
 
-                        {/* Feature 2 */}
                         <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-shadow border border-gray-100 group">
                             <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <Users className="w-7 h-7 text-purple-600" />
@@ -158,7 +147,6 @@ export const LandingPage = () => {
                             </p>
                         </div>
 
-                        {/* Feature 3 */}
                         <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-shadow border border-gray-100 group">
                             <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <Award className="w-7 h-7 text-green-600" />
@@ -169,7 +157,6 @@ export const LandingPage = () => {
                             </p>
                         </div>
 
-                        {/* Feature 4 */}
                         <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-shadow border border-gray-100 group">
                             <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <TrendingUp className="w-7 h-7 text-orange-600" />
@@ -183,7 +170,6 @@ export const LandingPage = () => {
                 </div>
             </section>
 
-            {/* ===== HOW IT WORKS SECTION ===== */}
             <section className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-16">
@@ -194,7 +180,6 @@ export const LandingPage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                        {/* Step 1 */}
                         <div className="text-center">
                             <div className="relative inline-block mb-6">
                                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -210,7 +195,6 @@ export const LandingPage = () => {
                             </p>
                         </div>
 
-                        {/* Step 2 */}
                         <div className="text-center">
                             <div className="relative inline-block mb-6">
                                 <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -226,7 +210,6 @@ export const LandingPage = () => {
                             </p>
                         </div>
 
-                        {/* Step 3 */}
                         <div className="text-center">
                             <div className="relative inline-block mb-6">
                                 <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -245,7 +228,6 @@ export const LandingPage = () => {
                 </div>
             </section>
 
-            {/* ===== CTA SECTION ===== */}
             <section className="py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
                 <div className="max-w-4xl mx-auto px-4 text-center">
                     <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
@@ -273,11 +255,9 @@ export const LandingPage = () => {
                 </div>
             </section>
 
-            {/* ===== FOOTER ===== */}
             <footer className="bg-slate-900 text-white py-12">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                        {/* Brand */}
                         <div>
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -290,7 +270,6 @@ export const LandingPage = () => {
                             </p>
                         </div>
 
-                        {/* Links columns */}
                         <div>
                             <h3 className="font-bold mb-4">Về chúng tôi</h3>
                             <ul className="space-y-2 text-sm text-gray-400">
@@ -349,7 +328,6 @@ export const LandingPage = () => {
                 </div>
             </footer>
 
-            {/* ===== FLOATING ANIMATION STYLES ===== */}
             <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px); }

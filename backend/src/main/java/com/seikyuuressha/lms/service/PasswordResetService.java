@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.entity.PasswordResetToken;
 import com.seikyuuressha.lms.entity.Users;
@@ -30,13 +30,10 @@ public class PasswordResetService {
         Users user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email không tồn tại trong hệ thống"));
         
-        // Delete old tokens for this user
         tokenRepository.deleteByUser(user);
         
-        // Generate 6-digit code
         String resetCode = generateResetCode();
         
-        // Create new token
         PasswordResetToken token = PasswordResetToken.builder()
                 .user(user)
                 .resetCode(resetCode)
@@ -45,7 +42,6 @@ public class PasswordResetService {
         
         tokenRepository.save(token);
         
-        // Send email
         emailService.sendPasswordResetEmail(email, resetCode);
     }
     
@@ -55,11 +51,9 @@ public class PasswordResetService {
                 .findByResetCodeAndIsUsedFalseAndExpiresAtAfter(resetCode, OffsetDateTime.now())
                 .orElseThrow(() -> new RuntimeException("Mã xác nhận không hợp lệ hoặc đã hết hạn"));
         
-        // Mark token as used
         token.setUsed(true);
         tokenRepository.save(token);
         
-        // Update user password (will be encoded in AuthService)
         Users user = token.getUser();
         user.setPassword(newPassword);
         userRepository.save(user);
@@ -73,10 +67,8 @@ public class PasswordResetService {
         return code.toString();
     }
     
-    /**
-     * Cleanup expired tokens every hour.
-     */
-    @Scheduled(fixedRate = 3600000) // 1 hour in milliseconds
+    
+    @Scheduled(fixedRate = 3600000)
     @Transactional
     public void cleanupExpiredTokens() {
         tokenRepository.deleteByExpiresAtBefore(OffsetDateTime.now());

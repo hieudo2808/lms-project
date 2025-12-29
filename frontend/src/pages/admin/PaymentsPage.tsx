@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { CreditCard, Loader2, Search, Filter, DollarSign, CheckCircle, Clock, XCircle, TrendingUp } from 'lucide-react';
 import { GET_ALL_PAYMENTS, GET_REVENUE_REPORT } from '../../graphql/queries/admin';
@@ -78,13 +78,11 @@ export const PaymentsPage = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Quản lý thanh toán</h1>
                 <p className="text-gray-500 text-sm">Theo dõi và quản lý tất cả giao dịch trong hệ thống</p>
             </div>
 
-            {/* Revenue Summary */}
             {report && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-white p-5 rounded-xl border shadow-sm">
@@ -136,7 +134,6 @@ export const PaymentsPage = () => {
                 </div>
             )}
 
-            {/* Filters */}
             <div className="flex flex-wrap gap-4 items-center bg-white p-4 rounded-xl border">
                 <div className="relative flex-1 min-w-[200px]">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -163,7 +160,6 @@ export const PaymentsPage = () => {
                 </div>
             </div>
 
-            {/* Payments Table */}
             <div className="bg-white rounded-xl border overflow-hidden">
                 <table className="w-full">
                     <thead className="bg-gray-50 border-b">

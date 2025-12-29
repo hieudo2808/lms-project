@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.response;
+﻿package com.seikyuuressha.lms.dto.response;
 
 import lombok.*;
 import java.util.UUID;
@@ -10,9 +10,9 @@ import java.util.UUID;
 public class LessonResponse {
     private UUID lessonId;
     private String title;
-    private String videoUrl; // Will be null for non-enrolled users
+    private String videoUrl;
     private String content;
     private Integer durationSeconds;
     private int order;
-    private Double userProgress; // Progress percentage for current user
+    private Double userProgress;
 }

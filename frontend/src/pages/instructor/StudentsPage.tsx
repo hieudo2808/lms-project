@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { Users, Loader2, BookOpen, TrendingUp, Calendar, Mail, UserX } from 'lucide-react';
 import { GET_MY_COURSES_QUERY, GET_STUDENT_PROGRESS } from '../../graphql/queries/instructor';
@@ -23,11 +23,9 @@ interface StudentProgress {
 export const StudentsPage = () => {
     const [selectedCourseId, setSelectedCourseId] = useState<string>('');
 
-    // Lấy danh sách khóa học
     const { data: coursesData, loading: coursesLoading } = useQuery(GET_MY_COURSES_QUERY);
     const courses: Course[] = coursesData?.getMyCourses || [];
 
-    // Lấy tiến độ học viên khi chọn khóa học
     const {
         data: studentsData,
         loading: studentsLoading,
@@ -65,7 +63,6 @@ export const StudentsPage = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -76,7 +73,6 @@ export const StudentsPage = () => {
                 </div>
             </div>
 
-            {/* Course Selector */}
             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Chọn khóa học</label>
                 {coursesLoading ? (
@@ -100,7 +96,6 @@ export const StudentsPage = () => {
                 )}
             </div>
 
-            {/* Students Table */}
             {selectedCourseId && (
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                     {studentsLoading ? (
@@ -114,7 +109,6 @@ export const StudentsPage = () => {
                         </div>
                     ) : (
                         <>
-                            {/* Stats */}
                             <div className="grid grid-cols-3 gap-4 p-6 bg-gray-50 border-b">
                                 <div className="text-center">
                                     <p className="text-2xl font-bold text-purple-600">{students.length}</p>
@@ -138,7 +132,6 @@ export const StudentsPage = () => {
                                 </div>
                             </div>
 
-                            {/* Desktop Table */}
                             <div className="hidden md:block overflow-x-auto">
                                 <table className="w-full">
                                     <thead className="bg-gray-50 border-b">
@@ -228,11 +221,12 @@ export const StudentsPage = () => {
                                 </table>
                             </div>
 
-                            {/* Mobile Card Layout */}
                             <div className="md:hidden space-y-3 p-4">
                                 {students.map((student) => (
-                                    <div key={student.userId} className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-                                        {/* Student Info */}
+                                    <div
+                                        key={student.userId}
+                                        className="bg-white border border-gray-200 rounded-xl p-4 space-y-3"
+                                    >
                                         <div className="flex items-center gap-3">
                                             <div className="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                                                 <span className="text-purple-600 font-bold text-xl">
@@ -248,14 +242,15 @@ export const StudentsPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Stats */}
                                         <div className="grid grid-cols-2 gap-3 text-sm">
                                             <div className="bg-gray-50 rounded-lg p-2">
                                                 <div className="flex items-center gap-1 text-gray-500 mb-1">
                                                     <Calendar className="w-3 h-3" />
                                                     <span className="text-xs">Ngày đăng ký</span>
                                                 </div>
-                                                <p className="font-medium text-gray-800">{formatDate(student.enrolledAt)}</p>
+                                                <p className="font-medium text-gray-800">
+                                                    {formatDate(student.enrolledAt)}
+                                                </p>
                                             </div>
                                             <div className="bg-gray-50 rounded-lg p-2">
                                                 <div className="flex items-center gap-1 text-gray-500 mb-1">
@@ -268,7 +263,6 @@ export const StudentsPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Progress */}
                                         <div className="bg-gray-50 rounded-lg p-3">
                                             <div className="flex items-center justify-between mb-2">
                                                 <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -295,7 +289,6 @@ export const StudentsPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Action */}
                                         <button
                                             onClick={() => handleKickStudent(student.userId, student.fullName)}
                                             className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 py-2.5 rounded-lg font-medium hover:bg-red-100 transition-colors"
@@ -311,7 +304,6 @@ export const StudentsPage = () => {
                 </div>
             )}
 
-            {/* Empty state when no course selected */}
             {!selectedCourseId && (
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
                     <BookOpen className="w-16 h-16 mx-auto mb-4 text-gray-300" />

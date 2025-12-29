@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+﻿package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.response.CourseResponse;
 import com.seikyuuressha.lms.service.AdminService;
@@ -20,8 +20,6 @@ public class CourseResolver {
     private final CourseService courseService;
     private final AdminService adminService;
 
-    // ==================== PUBLIC QUERIES ====================
-
     @QueryMapping
     public List<CourseResponse> getAllCourses(@Argument UUID categoryId) {
         return courseService.getAllPublishedCourses(categoryId);
@@ -36,8 +34,6 @@ public class CourseResolver {
     public CourseResponse getCourseBySlug(@Argument String slug) {
         return courseService.getCourseBySlug(slug);
     }
-
-    // ==================== ADMIN: COURSE MODERATION ====================
 
     @QueryMapping
     @PreAuthorize("hasRole('ADMIN')")

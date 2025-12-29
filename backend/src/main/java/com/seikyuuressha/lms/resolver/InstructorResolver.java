@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+﻿package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.*;
 import com.seikyuuressha.lms.dto.response.*;
@@ -25,8 +25,6 @@ public class InstructorResolver {
     private final ModuleService moduleService;
     private final LessonService lessonService;
     private final RevenueService revenueService;
-
-    // ==================== COURSE MANAGEMENT ====================
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
@@ -64,8 +62,6 @@ public class InstructorResolver {
         return instructorService.getMyCourses();
     }
 
-    // ==================== CO-INSTRUCTOR MANAGEMENT ====================
-
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public CoInstructorResponse addCoInstructor(@Argument UUID courseId, @Argument String email) {
@@ -77,8 +73,6 @@ public class InstructorResolver {
     public Boolean removeCoInstructor(@Argument UUID courseId, @Argument UUID userId) {
         return instructorService.removeCoInstructor(courseId, userId);
     }
-
-    // ==================== MODULE MANAGEMENT (Delegated to ModuleService) ====================
 
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
@@ -104,8 +98,6 @@ public class InstructorResolver {
         return moduleService.reorderModules(courseId, moduleIds);
     }
 
-    // ==================== LESSON MANAGEMENT (Delegated to LessonService) ====================
-
     @MutationMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public LessonResponse createLesson(@Argument CreateLessonRequest input) {
@@ -129,8 +121,6 @@ public class InstructorResolver {
     public List<LessonResponse> reorderLessons(@Argument UUID moduleId, @Argument List<UUID> lessonIds) {
         return lessonService.reorderLessons(moduleId, lessonIds);
     }
-
-    // ==================== DASHBOARD QUERIES (Delegated to RevenueService) ====================
 
     @QueryMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")

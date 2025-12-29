@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useLazyQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
@@ -28,7 +28,6 @@ export const EditCoursePage = () => {
     const { slug } = useParams();
     const navigate = useNavigate();
 
-    // 1. QUERY: Lấy thông tin khóa học
     const {
         data: courseData,
         loading: courseLoading,
@@ -40,23 +39,17 @@ export const EditCoursePage = () => {
         notifyOnNetworkStatusChange: true,
     });
 
-    // 2. MUTATION: Xuất bản & Gỡ bỏ
     const [publishCourse, { loading: publishing }] = useMutation(PUBLISH_COURSE_MUTATION);
     const [unpublishCourse, { loading: unpublishing }] = useMutation(UNPUBLISH_COURSE_MUTATION);
 
-    // --- TÍNH TOÁN ID ĐỂ FETCH QUIZ (AN TOÀN) ---
     const course = courseData?.getCourseBySlug;
 
-    // Dùng useMemo hoặc optional chaining an toàn để lấy ID
     const firstLessonId = course?.modules?.find((m: any) => m.lessons?.length > 0)?.lessons[0]?.lessonId;
 
-    // 3. QUERY PHỤ: Lấy danh sách Quiz
-    // QUAN TRỌNG: Hook này PHẢI nằm trước mọi lệnh return
     const [getQuizzes, { data: quizData }] = useLazyQuery(GET_QUIZ_BY_LESSON, {
         fetchPolicy: 'network-only',
     });
 
-    // Gọi query khi firstLessonId có giá trị
     useEffect(() => {
         if (firstLessonId) {
             getQuizzes({ variables: { lessonId: firstLessonId } });
@@ -65,8 +58,6 @@ export const EditCoursePage = () => {
 
     const quizzes = quizData?.getQuizzesByLesson || [];
     const isBusy = publishing || unpublishing;
-
-    // --- BÂY GIỜ MỚI ĐƯỢC PHÉP RETURN GIAO DIỆN LOADING/ERROR ---
 
     if (courseLoading)
         return (
@@ -89,7 +80,6 @@ export const EditCoursePage = () => {
             </div>
         );
 
-    // --- LOGIC XỬ LÝ SỰ KIỆN ---
     const handleTogglePublish = async () => {
         try {
             if (course.isPublished) {
@@ -114,7 +104,6 @@ export const EditCoursePage = () => {
 
     return (
         <div className="w-full max-w-6xl mx-auto pb-20 px-4 sm:px-6 lg:px-8">
-            {/* --- HEADER BAR --- */}
             <div className="bg-white border-b border-gray-200 sticky top-0 z-10 px-4 sm:px-6 py-3 sm:py-4 -mx-4 sm:-mx-6 lg:-mx-8 mb-6 sm:mb-8 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     <div className="flex items-center gap-3 sm:gap-4">
@@ -182,7 +171,6 @@ export const EditCoursePage = () => {
                 </div>
             </div>
 
-            {/* --- MAIN CONTENT AREA --- */}
             <div className="w-full overflow-x-hidden">
                 {!course.isPublished && (
                     <div className="mb-6 bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-start gap-3">
@@ -202,12 +190,10 @@ export const EditCoursePage = () => {
                     <CourseInfoForm course={course} />
                 </div>
 
-                {/* ===== CO-INSTRUCTOR SECTION ===== */}
                 <div className="mb-6">
                     <CoInstructorManagerSection course={course} refetch={refetchCourse} />
                 </div>
 
-                {/* ===== QUIZ SECTION ===== */}
                 <div className="bg-white border rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
                         <h2 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
@@ -260,18 +246,15 @@ export const EditCoursePage = () => {
                     )}
                 </div>
 
-                {/* Curriculum Editor Component */}
                 <CurriculumEditor courseId={course.courseId} modules={course.modules || []} refetch={refetchCourse} />
             </div>
         </div>
     );
 };
 
-// Helper component to integrate CoInstructorManager with auth store
 const CoInstructorManagerSection = ({ course, refetch }: { course: any; refetch: () => void }) => {
     const { user } = useAuthStore();
 
-    // Build co-instructors list including owner
     const allInstructors = [
         {
             userId: course.instructor?.userId,
@@ -284,7 +267,6 @@ const CoInstructorManagerSection = ({ course, refetch }: { course: any; refetch:
         ...(course.coInstructors || []),
     ];
 
-    // Check if current user is the owner
     const isOwner = user?.userId === course.instructor?.userId;
 
     return (

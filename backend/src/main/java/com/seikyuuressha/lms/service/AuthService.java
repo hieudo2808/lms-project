@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -44,6 +44,8 @@ public class AuthService {
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String googleClientId;
+
+    private volatile GoogleIdTokenVerifier googleVerifier;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -94,7 +96,6 @@ public class AuthService {
                     )
             );
 
-            // Reset failed attempts on successful login
             if (user.getFailedLoginAttempts() > 0) {
                 user.setFailedLoginAttempts(0);
                 user.setBlockUntil(null);
@@ -102,10 +103,8 @@ public class AuthService {
             }
 
         } catch (org.springframework.security.authentication.BadCredentialsException e) {
-            // Increment failed attempts
             user.setFailedLoginAttempts(user.getFailedLoginAttempts() + 1);
 
-            // Lock account after 5 failed attempts
             if (user.getFailedLoginAttempts() >= 5) {
                 user.setBlockUntil(OffsetDateTime.now().plusMinutes(15));
             }
@@ -131,13 +130,7 @@ public class AuthService {
     @Transactional
     public AuthResponse googleLogin(String idToken) {
         try {
-            // Verify Google ID Token
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
-                    new NetHttpTransport(), new GsonFactory())
-                    .setAudience(Collections.singletonList(googleClientId))
-                    .build();
-
-            GoogleIdToken googleIdToken = verifier.verify(idToken);
+            GoogleIdToken googleIdToken = getGoogleVerifier().verify(idToken);
             if (googleIdToken == null) {
                 throw new RuntimeException("Invalid ID token");
             }
@@ -152,7 +145,6 @@ public class AuthService {
                 throw new RuntimeException("Email not verified");
             }
 
-            // Check if user exists
             Optional<Users> existingUser = userRepository.findByEmail(email);
             Users user;
 
@@ -164,7 +156,6 @@ public class AuthService {
                     user = userRepository.save(user);
                 }
             } else {
-                // Create new user
                 Roles studentRole = roleRepository.findByRoleName("STUDENT")
                         .orElseThrow(() -> new RuntimeException("Student role not found"));
 
@@ -172,7 +163,7 @@ public class AuthService {
                         .fullName(name)
                         .email(email)
                         .avatarUrl(pictureUrl)
-                        .password(passwordEncoder.encode(java.util.UUID.randomUUID().toString())) // Random password
+                        .password(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
                         .role(studentRole)
                         .createdAt(OffsetDateTime.now())
                         .isActive(true)
@@ -202,28 +193,22 @@ public class AuthService {
     
     @Transactional
     public void resetPassword(String resetCode, String newPassword) {
-        // Encode password before passing to service
         String encodedPassword = passwordEncoder.encode(newPassword);
         passwordResetService.resetPassword(resetCode, encodedPassword);
     }
 
-    /**
-     * Refresh access token using refresh token (with rotation)
-     */
+    
     @Transactional
     public AuthResponse refreshAccessToken(String refreshToken) {
         try {
-            // Extract info from refresh token
             String tokenId = jwtUtil.extractTokenId(refreshToken);
             String email = jwtUtil.extractUsername(refreshToken);
             Date expiration = jwtUtil.extractExpiration(refreshToken);
 
-            // Check if token has been invalidated
             if (tokenId != null && invalidatedTokenRepository.existsByTokenId(tokenId)) {
                 throw new RuntimeException("Refresh token has been revoked");
             }
 
-            // Find user
             Users user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -231,7 +216,6 @@ public class AuthService {
                 throw new RuntimeException("User account is inactive");
             }
 
-            // Invalidate old refresh token (rotation)
             if (tokenId != null) {
                 com.seikyuuressha.lms.entity.InvalidatedToken invalidated =
                         com.seikyuuressha.lms.entity.InvalidatedToken.builder()
@@ -242,7 +226,6 @@ public class AuthService {
                 invalidatedTokenRepository.save(invalidated);
             }
 
-            // Generate new tokens
             String newAccessToken = jwtUtil.generateToken(user);
             String newRefreshToken = jwtUtil.generateRefreshToken(user);
 
@@ -257,9 +240,7 @@ public class AuthService {
         }
     }
 
-    /**
-     * Logout - invalidate refresh token
-     */
+    
     @Transactional
     public boolean logout(String refreshToken) {
         try {
@@ -279,5 +260,20 @@ public class AuthService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    
+    private GoogleIdTokenVerifier getGoogleVerifier() {
+        if (googleVerifier == null) {
+            synchronized (this) {
+                if (googleVerifier == null) {
+                    googleVerifier = new GoogleIdTokenVerifier.Builder(
+                            new NetHttpTransport(), new GsonFactory())
+                            .setAudience(Collections.singletonList(googleClientId))
+                            .build();
+                }
+            }
+        }
+        return googleVerifier;
     }
 }

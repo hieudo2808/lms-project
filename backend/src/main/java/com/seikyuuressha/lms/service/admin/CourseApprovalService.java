@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.admin;
+﻿package com.seikyuuressha.lms.service.admin;
 
 import com.seikyuuressha.lms.dto.response.CourseResponse;
 import com.seikyuuressha.lms.entity.Course;
@@ -18,10 +18,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Service for admin course moderation operations.
- * Extracted from AdminService for SRP compliance.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,9 +26,7 @@ public class CourseApprovalService {
     private final CourseRepository courseRepository;
     private final CourseMapper courseMapper;
 
-    /**
-     * Get all courses (admin view)
-     */
+    
     @Transactional(readOnly = true)
     public List<CourseResponse> getAllCoursesAdmin(Boolean isPublished, Integer page, Integer limit) {
         int pageIndex = (page != null && page > 0) ? page - 1 : 0;
@@ -52,9 +46,7 @@ public class CourseApprovalService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Approve course (publish)
-     */
+    
     @Transactional
     public CourseResponse approveCourse(UUID courseId) {
         Course course = courseRepository.findById(courseId)
@@ -68,9 +60,7 @@ public class CourseApprovalService {
         return courseMapper.toCourseResponse(course);
     }
 
-    /**
-     * Reject course (unpublish)
-     */
+    
     @Transactional
     public CourseResponse rejectCourse(UUID courseId, String reason) {
         Course course = courseRepository.findById(courseId)
@@ -84,9 +74,7 @@ public class CourseApprovalService {
         return courseMapper.toCourseResponse(course);
     }
 
-    /**
-     * Delete course (admin override)
-     */
+    
     @Transactional
     public Boolean deleteCourseAdmin(UUID courseId) {
         Course course = courseRepository.findById(courseId)

@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const GET_MY_PROGRESS = gql`
   query GetMyProgress($courseId: UUID) {

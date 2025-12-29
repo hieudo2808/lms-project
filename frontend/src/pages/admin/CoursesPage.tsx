@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { BookOpen, Loader2, CheckCircle, XCircle, Trash2, Search, Filter, AlertCircle, Eye } from 'lucide-react';
 import { GET_ALL_COURSES_ADMIN } from '../../graphql/queries/admin';
@@ -129,7 +129,6 @@ export const CoursesPage = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -140,7 +139,6 @@ export const CoursesPage = () => {
                 </div>
             </div>
 
-            {/* Action Message */}
             {actionMessage && (
                 <div
                     className={`p-4 rounded-lg flex items-center gap-2 ${
@@ -156,7 +154,6 @@ export const CoursesPage = () => {
                 </div>
             )}
 
-            {/* Filters */}
             <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-wrap gap-4 items-center">
                 <div className="flex items-center gap-2 flex-1 min-w-0 sm:min-w-[200px]">
                     <Search className="w-5 h-5 text-gray-400" />
@@ -183,7 +180,6 @@ export const CoursesPage = () => {
                 </div>
             </div>
 
-            {/* Courses Table */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                 {loading ? (
                     <div className="flex items-center justify-center py-12">
@@ -198,7 +194,6 @@ export const CoursesPage = () => {
                     </div>
                 ) : (
                     <>
-                        {/* Desktop Table */}
                         <div className="hidden md:block overflow-x-auto">
                             <table className="w-full">
                                 <thead className="bg-gray-50 border-b">
@@ -318,7 +313,6 @@ export const CoursesPage = () => {
                             </table>
                         </div>
 
-                        {/* Mobile Card View */}
                         <div className="md:hidden space-y-3 p-4">
                             {filteredCourses.map((course) => (
                                 <div
@@ -404,7 +398,6 @@ export const CoursesPage = () => {
                 )}
             </div>
 
-            {/* Summary */}
             {!loading && !error && (
                 <div className="text-sm text-gray-500 text-right">
                     Hiển thị {filteredCourses.length} / {courses.length} khóa học

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
 import { User, Mail, Shield } from 'lucide-react';
@@ -8,24 +8,20 @@ import { UPDATE_PROFILE_MUTATION } from '../../graphql/mutations/user';
 import { AvatarUploader } from '../../components/common/AvatarUploader';
 
 export default function AccountSettingsPage() {
-    /* ================= QUERY ================= */
     const { data, loading, error } = useQuery(GET_ME_QUERY, {
         fetchPolicy: 'network-only',
     });
 
-    /* ================= MUTATION ================= */
     const [updateProfile, { loading: saving }] = useMutation(UPDATE_PROFILE_MUTATION, {
         refetchQueries: [{ query: GET_ME_QUERY }],
     });
 
-    /* ================= STATE ================= */
     const [form, setForm] = useState({
         fullName: '',
         bio: '',
         avatarUrl: '',
     });
 
-    /* ================= SYNC DATA ================= */
     useEffect(() => {
         if (data?.me) {
             setForm({
@@ -36,7 +32,6 @@ export default function AccountSettingsPage() {
         }
     }, [data]);
 
-    /* ================= HANDLERS ================= */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
@@ -64,7 +59,6 @@ export default function AccountSettingsPage() {
         }
     };
 
-    /* ================= STATES ================= */
     if (loading) {
         return <div className="p-8 text-gray-500">Đang tải thông tin tài khoản...</div>;
     }
@@ -75,21 +69,18 @@ export default function AccountSettingsPage() {
 
     const me = data.me;
 
-    /* ================= UI ================= */
     return (
         <div className="max-w-5xl space-y-10">
-            {/* ===== HEADER ===== */}
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Cài đặt tài khoản</h1>
                 <p className="text-gray-500 text-sm">Quản lý thông tin cá nhân và hồ sơ giảng viên</p>
             </div>
 
-            {/* ===== PROFILE OVERVIEW ===== */}
             <div className="bg-white border rounded-2xl p-6 flex items-center gap-6">
                 <img
                     src={
                         me.avatarUrl ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        `https:
                             me.fullName,
                         )}&background=0D8ABC&color=fff`
                     }
@@ -108,13 +99,11 @@ export default function AccountSettingsPage() {
                 </div>
             </div>
 
-            {/* ===== EDIT PROFILE ===== */}
             <div className="bg-white border rounded-2xl p-6 space-y-6">
                 <h2 className="font-semibold flex items-center gap-2 text-gray-800">
                     <User size={18} /> Thông tin cá nhân
                 </h2>
 
-                {/* Avatar Upload */}
                 <div>
                     <label className="text-sm font-medium block mb-2">Ảnh đại diện</label>
                     <AvatarUploader
@@ -124,7 +113,6 @@ export default function AccountSettingsPage() {
                     />
                 </div>
 
-                {/* Full name */}
                 <div>
                     <label className="text-sm font-medium text-gray-700">Họ và tên</label>
                     <input
@@ -135,7 +123,6 @@ export default function AccountSettingsPage() {
                     />
                 </div>
 
-                {/* Bio */}
                 <div>
                     <label className="text-sm font-medium text-gray-700">Giới thiệu</label>
                     <textarea
@@ -147,7 +134,6 @@ export default function AccountSettingsPage() {
                     />
                 </div>
 
-                {/* Action */}
                 <div className="flex justify-end">
                     <button
                         onClick={handleSave}
@@ -159,7 +145,6 @@ export default function AccountSettingsPage() {
                 </div>
             </div>
 
-            {/* ===== ACCOUNT INFO (READ ONLY) ===== */}
             <div className="bg-white border rounded-2xl p-6 space-y-4">
                 <h2 className="font-semibold flex items-center gap-2 text-gray-800">
                     <Shield size={18} /> Thông tin tài khoản

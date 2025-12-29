@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const CREATE_QUIZ = gql`
   mutation CreateQuiz($input: CreateQuizInput!) {
@@ -39,7 +39,6 @@ export const PUBLISH_QUIZ = gql`
   }
 `;
 
-// Student Quiz Mutations
 export const START_QUIZ_ATTEMPT = gql`
   mutation StartQuizAttempt($quizId: UUID!) {
     startQuizAttempt(quizId: $quizId) {

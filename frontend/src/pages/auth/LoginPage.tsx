@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMutation, useApolloClient } from '@apollo/client';
 import { toast } from 'react-toastify';
@@ -29,10 +29,7 @@ export const LoginPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    const [login] = useMutation<LoginMutationData, LoginMutationVariables>(LOGIN_MUTATION);
     const [googleLogin] = useMutation(GOOGLE_LOGIN_MUTATION);
-
-    const [loginMutation] = useMutation<LoginMutationData, LoginMutationVariables>(LOGIN_MUTATION);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
@@ -155,7 +152,7 @@ export const LoginPage = () => {
                             Đăng nhập
                         </h1>
 
-                        {/* Hiển thị lỗi form tổng quát */}
+                        {}
                         {errors.form && (
                             <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
                                 {errors.form}

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.security;
+﻿package com.seikyuuressha.lms.security;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
@@ -21,17 +21,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    // Store buckets per IP address
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
-    // GraphQL API rate limit: 60 requests per minute per IP
     private Bucket createGraphQLBucket() {
         return Bucket.builder()
                 .addLimit(Bandwidth.classic(60, Refill.greedy(60, Duration.ofMinutes(1))))
                 .build();
     }
 
-    // General API rate limit: 200 requests per minute per IP
     private Bucket createGeneralBucket() {
         return Bucket.builder()
                 .addLimit(Bandwidth.classic(200, Refill.greedy(200, Duration.ofMinutes(1))))
@@ -48,7 +45,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String clientIp = getClientIP(request);
         String path = request.getRequestURI();
 
-        // Apply stricter rate limit for GraphQL endpoint
         boolean isGraphQL = path.contains("/graphql");
 
         String bucketKey = clientIp + (isGraphQL ? ":graphql" : ":general");

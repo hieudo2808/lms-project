@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User } from '../types';
 
@@ -35,7 +35,6 @@ export const useAuthStore = create<AuthStore>()(
             },
 
             logout: async () => {
-                // Call REST endpoint to clear HTTP-only cookie
                 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
                 try {
                     await fetch(`${API_URL}/auth/logout`, {

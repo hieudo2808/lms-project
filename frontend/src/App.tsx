@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 
 import {
@@ -69,7 +69,6 @@ function App() {
                     <Route path="/student/quizzes/:quizId" element={<QuizTakingPage />} />
                     <Route path="/student/quizzes/:quizId/history" element={<QuizHistoryPage />} />
 
-                    {/* Payment Routes */}
                     <Route path="/payment/:courseId" element={<PaymentPage />} />
                     <Route path="/payment/callback" element={<PaymentCallbackPage />} />
 
@@ -91,7 +90,6 @@ function App() {
                             <Route path="lessons/:lessonId/quizzes/:quizId/edit" element={<EditQuizPage />} />
                             <Route path="settings" element={<AccountSettingsPage />} />
 
-                            {/* Instructor Modules */}
                             <Route path="students" element={<StudentsPage />} />
                             <Route path="analytics" element={<AnalyticsPage />} />
                             <Route path="reviews" element={<ReviewsPage />} />

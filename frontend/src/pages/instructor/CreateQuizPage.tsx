@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
@@ -13,7 +13,6 @@ export default function CreateQuizPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Lấy courseId từ state
   const courseId = location.state?.courseId;
 
   const [createQuiz, { loading }] = useMutation(CREATE_QUIZ, {
@@ -28,7 +27,6 @@ export default function CreateQuizPage() {
   }
 
   const handleSubmit = async (form: any) => {
-    // 1. CHẶN LỖI NULL COURSE ID NGAY TẠI ĐÂY
     if (!courseId) {
       toast.error("Lỗi: Mất kết nối dữ liệu khóa học. Vui lòng quay lại trang chỉnh sửa khóa học và thử lại.");
       return;
@@ -39,7 +37,7 @@ export default function CreateQuizPage() {
         variables: {
           input: {
             lessonId,
-            courseId, // Đảm bảo trường này có giá trị
+            courseId,
             title: form.title,
             description: form.description,
             timeLimit: form.timeLimit,
@@ -51,7 +49,6 @@ export default function CreateQuizPage() {
 
       toast.success('Tạo quiz thành công');
 
-      // Chuyển hướng sang trang Edit của Quiz vừa tạo
       const newQuizId = res.data.createQuiz.quizId;
       navigate(`/instructor/lessons/${lessonId}/quizzes/${newQuizId}/edit`, { replace: true });
 
@@ -60,7 +57,6 @@ export default function CreateQuizPage() {
     }
   };
 
-  // NẾU KHÔNG CÓ COURSE ID (Do F5 trang), HIỆN CẢNH BÁO
   if (!courseId) {
     return (
         <div className="flex flex-col items-center justify-center h-[50vh] text-center px-4">

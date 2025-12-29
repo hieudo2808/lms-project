@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const GENERATE_RESOURCE_UPLOAD_URL = gql`
     mutation GenerateResourceUploadUrl($lessonId: UUID!, $fileName: String!, $contentType: String!) {

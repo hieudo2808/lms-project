@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,13 +44,13 @@ public class Quiz {
     String description;
 
     @Column(nullable = false)
-    Integer passingScore; // Minimum score to pass (e.g., 70)
+    Integer passingScore;
 
     @Column(nullable = false)
-    Integer timeLimit; // Time limit in minutes (0 = unlimited)
+    Integer timeLimit;
 
     @Column(nullable = false)
-    Integer maxAttempts; // Maximum attempts allowed (0 = unlimited)
+    Integer maxAttempts;
 
     @Column(nullable = false)
     Boolean isPublished;

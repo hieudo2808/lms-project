@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
@@ -31,7 +31,7 @@ interface QuizData {
 }
 
 interface UserAnswer {
-    [questionId: string]: string; // ✅ Chỉ lưu 1 answerId (string), không phải mảng
+    [questionId: string]: string;
 }
 
 interface QuizResult {
@@ -46,7 +46,6 @@ export const QuizTakingPage = () => {
     const { quizId } = useParams<{ quizId: string }>();
     const navigate = useNavigate();
 
-    // State
     const [userAnswers, setUserAnswers] = useState<UserAnswer>({});
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
@@ -56,7 +55,6 @@ export const QuizTakingPage = () => {
     const [quizCompleted, setQuizCompleted] = useState(false);
     const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
 
-    // GraphQL Queries & Mutations
     const { data, loading, error } = useQuery(GET_QUIZ_BY_ID, {
         variables: { quizId: quizId || '' },
         skip: !quizId,
@@ -70,7 +68,6 @@ export const QuizTakingPage = () => {
     const currentQuestion = quiz?.questions[currentQuestionIndex];
     const totalQuestions = quiz?.questions.length || 0;
 
-    // Fetch attempts history
     const { data: attemptsData, refetch: refetchAttempts } = useQuery(GET_MY_QUIZ_ATTEMPTS, {
         variables: { quizId: quizId || '' },
         skip: !quizId,
@@ -84,7 +81,6 @@ export const QuizTakingPage = () => {
         attemptCount > 0 ? Math.max(...attempts.map((a: { percentage: number }) => a.percentage || 0)) : 0;
     const maxAttemptsReached = quiz?.maxAttempts && quiz.maxAttempts > 0 && attemptCount >= quiz.maxAttempts;
 
-    // Timer effect
     useEffect(() => {
         if (!attemptStarted || !quiz || timeRemaining === null) return;
 
@@ -104,7 +100,6 @@ export const QuizTakingPage = () => {
         return () => clearInterval(timer);
     }, [timeRemaining, attemptStarted, quiz]);
 
-    // Start Quiz
     const handleStartQuiz = async () => {
         if (!quizId) return;
 
@@ -123,23 +118,19 @@ export const QuizTakingPage = () => {
         }
     };
 
-    // After quiz completed, refetch attempts
     useEffect(() => {
         if (quizCompleted) {
             refetchAttempts();
         }
     }, [quizCompleted, refetchAttempts]);
 
-    // Handle Answer Selection
     const handleAnswerSelect = (questionId: string, answerId: string) => {
-        // ✅ LUÔN GHI ĐÈ - chỉ lưu 1 answerId duy nhất (Radio behavior)
         setUserAnswers({
             ...userAnswers,
             [questionId]: answerId,
         });
     };
 
-    // Handle Text Answer
     const handleTextAnswerChange = (questionId: string, text: string) => {
         setUserAnswers({
             ...userAnswers,
@@ -147,7 +138,6 @@ export const QuizTakingPage = () => {
         });
     };
 
-    // Submit Single Answer
     const handleSubmitAnswer = async (questionId: string) => {
         if (!attemptId || !userAnswers[questionId]) {
             toast.warning('Vui lòng chọn câu trả lời');
@@ -156,7 +146,6 @@ export const QuizTakingPage = () => {
 
         setIsSubmitting(true);
         try {
-            // ✅ Gửi answerId đơn lẻ (Khớp với Backend hiện tại)
             const selectedAnswerId = userAnswers[questionId];
 
             await submitAnswer({
@@ -169,7 +158,6 @@ export const QuizTakingPage = () => {
                 },
             });
 
-            // Move to next question
             if (currentQuestionIndex < totalQuestions - 1) {
                 setCurrentQuestionIndex(currentQuestionIndex + 1);
             }
@@ -181,7 +169,6 @@ export const QuizTakingPage = () => {
         }
     };
 
-    // Finish Quiz
     const handleFinishQuiz = async () => {
         if (!attemptId) return;
 
@@ -194,7 +181,6 @@ export const QuizTakingPage = () => {
 
         setIsSubmitting(true);
         try {
-            // ✅ BƯỚC 1: LƯU ĐÁP ÁN CÂU HIỆN TẠI TRƯỚC (QUAN TRỌNG!)
             const currentQuestion = quiz?.questions[currentQuestionIndex];
             if (currentQuestion && userAnswers[currentQuestion.questionId]) {
                 const selectedAnswerId = userAnswers[currentQuestion.questionId];
@@ -210,7 +196,6 @@ export const QuizTakingPage = () => {
                 });
             }
 
-            // ✅ BƯỚC 2: SAU KHI LƯU XONG MỚI KẾT THÚC BÀI THI
             const res = await finishAttempt({ variables: { attemptId } });
             const result = res.data.finishQuizAttempt;
 
@@ -231,7 +216,6 @@ export const QuizTakingPage = () => {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    // Loading State
     if (loading) {
         return (
             <Layout>
@@ -246,7 +230,6 @@ export const QuizTakingPage = () => {
         );
     }
 
-    // Error State
     if (error || !quiz) {
         return (
             <Layout>
@@ -265,7 +248,6 @@ export const QuizTakingPage = () => {
         );
     }
 
-    // Not Published
     if (!quiz.isPublished) {
         return (
             <Layout>
@@ -284,7 +266,6 @@ export const QuizTakingPage = () => {
         );
     }
 
-    // Completed
     if (quizCompleted && quizResult) {
         const passed = quizResult.passed;
         const percentage = Math.round(quizResult.percentage || 0);
@@ -309,7 +290,6 @@ export const QuizTakingPage = () => {
                                 : `Bạn cần ${quiz.passingScore} điểm để đạt. Bạn nhận được ${quizResult.totalScore}/${quizResult.maxScore}`}
                         </p>
 
-                        {/* Score Display */}
                         <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-8">
                             <div className="grid grid-cols-2 gap-4 mb-4">
                                 <div>
@@ -333,7 +313,6 @@ export const QuizTakingPage = () => {
                             </div>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex gap-4 justify-center">
                             <button
                                 onClick={() => navigate(-1)}
@@ -369,12 +348,10 @@ export const QuizTakingPage = () => {
         );
     }
 
-    // Quiz Taking
     if (attemptStarted && currentQuestion) {
         return (
             <Layout>
                 <div className="max-w-4xl mx-auto py-8 px-4 pb-20">
-                    {/* Header */}
                     <div className="bg-white rounded-lg shadow p-4 mb-6 sticky top-0 z-10">
                         <div className="flex items-center justify-between mb-4">
                             <h1 className="text-2xl font-bold text-gray-800">{quiz.title}</h1>
@@ -387,7 +364,6 @@ export const QuizTakingPage = () => {
                             </div>
                         </div>
 
-                        {/* Progress Bar */}
                         <div className="flex items-center gap-4">
                             <div className="flex-1 bg-gray-200 rounded-full h-2">
                                 <div
@@ -403,11 +379,9 @@ export const QuizTakingPage = () => {
                         </div>
                     </div>
 
-                    {/* Question */}
                     <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
                         <h2 className="text-xl font-bold text-gray-800 mb-6">{currentQuestion.questionText}</h2>
 
-                        {/* Answers */}
                         <div className="space-y-3">
                             {currentQuestion.questionType === 'SHORT_ANSWER' ? (
                                 <textarea
@@ -419,7 +393,6 @@ export const QuizTakingPage = () => {
                                 />
                             ) : (
                                 currentQuestion.answers.map((answer) => {
-                                    // ✅ So sánh trực tiếp với string (không phải array)
                                     const isSelected = userAnswers[currentQuestion.questionId] === answer.answerId;
 
                                     return (
@@ -431,7 +404,6 @@ export const QuizTakingPage = () => {
                                                     : 'border-gray-300 hover:border-blue-400'
                                             }`}
                                         >
-                                            {/* ✅ LUÔN LUÔN LÀ RADIO */}
                                             <input
                                                 type="radio"
                                                 name={currentQuestion.questionId}
@@ -449,7 +421,6 @@ export const QuizTakingPage = () => {
                         </div>
                     </div>
 
-                    {/* Navigation */}
                     <div className="flex gap-4">
                         <button
                             onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
@@ -478,7 +449,6 @@ export const QuizTakingPage = () => {
                         )}
                     </div>
 
-                    {/* Question Map */}
                     <div className="mt-8 bg-white rounded-lg shadow p-6">
                         <h3 className="font-bold text-gray-800 mb-4">Danh sách câu hỏi</h3>
                         <div className="grid grid-cols-6 gap-2">
@@ -504,7 +474,6 @@ export const QuizTakingPage = () => {
         );
     }
 
-    // Start Screen
     return (
         <Layout>
             <div className="max-w-2xl mx-auto py-12 px-4">
@@ -520,7 +489,6 @@ export const QuizTakingPage = () => {
 
                     <p className="text-gray-600 mb-6 text-lg">{quiz.description}</p>
 
-                    {/* Quiz Info */}
                     <div className="grid grid-cols-2 gap-4 mb-8 p-6 bg-gray-50 rounded-lg">
                         <div>
                             <p className="text-gray-600 text-sm">Số câu hỏi</p>
@@ -542,7 +510,6 @@ export const QuizTakingPage = () => {
                         </div>
                     </div>
 
-                    {/* Attempt Status Banner */}
                     {attemptCount > 0 && (
                         <div
                             className={`mb-6 p-4 rounded-lg border-2 ${
@@ -575,7 +542,6 @@ export const QuizTakingPage = () => {
                         </div>
                     )}
 
-                    {/* Instructions */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
                         <h3 className="font-bold text-blue-900 mb-3">Hướng dẫn</h3>
                         <ul className="text-blue-800 space-y-2 text-sm">
@@ -587,7 +553,6 @@ export const QuizTakingPage = () => {
                         </ul>
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="space-y-3">
                         {maxAttemptsReached ? (
                             <div className="w-full py-3 px-6 bg-gray-200 text-gray-600 rounded-lg font-bold text-lg text-center flex items-center justify-center gap-2">

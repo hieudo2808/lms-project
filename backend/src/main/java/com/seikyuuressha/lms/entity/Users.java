@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -39,7 +39,6 @@ public class Users {
 
     boolean isActive;
 
-    // Account lockout fields
     @Column(nullable = false)
     @Builder.Default
     int failedLoginAttempts = 0;

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.quiz;
+﻿package com.seikyuuressha.lms.service.quiz;
 
 import com.seikyuuressha.lms.dto.request.CreateAnswerRequest;
 import com.seikyuuressha.lms.dto.request.CreateQuestionRequest;
@@ -22,10 +22,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Service for Question and Answer CRUD operations.
- * Extracted from QuizService to comply with Single Responsibility Principle.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -36,9 +32,7 @@ public class QuestionService {
     private final QuizRepository quizRepository;
     private final QuizMapper quizMapper;
 
-    /**
-     * Create a new question for a quiz.
-     */
+    
     @Transactional
     public QuestionResponse createQuestion(CreateQuestionRequest request) {
         Quiz quiz = quizRepository.findById(request.getQuizId())
@@ -60,9 +54,7 @@ public class QuestionService {
         return quizMapper.toQuestionResponse(question);
     }
 
-    /**
-     * Update an existing question.
-     */
+    
     @Transactional
     public QuestionResponse updateQuestion(UUID questionId, UpdateQuestionRequest request) {
         Question question = questionRepository.findById(questionId)
@@ -77,9 +69,7 @@ public class QuestionService {
         return quizMapper.toQuestionResponse(question);
     }
 
-    /**
-     * Delete a question.
-     */
+    
     @Transactional
     public boolean deleteQuestion(UUID questionId) {
         if (!questionRepository.existsById(questionId)) {
@@ -90,9 +80,7 @@ public class QuestionService {
         return true;
     }
 
-    /**
-     * Get a question by ID.
-     */
+    
     @Transactional(readOnly = true)
     public QuestionResponse getQuestionById(UUID questionId) {
         Question question = questionRepository.findById(questionId)
@@ -105,9 +93,7 @@ public class QuestionService {
         return quizMapper.toQuestionResponse(question);
     }
 
-    /**
-     * Create a new answer for a question.
-     */
+    
     @Transactional
     public AnswerResponse createAnswer(CreateAnswerRequest request) {
         Question question = questionRepository.findById(request.getQuestionId())
@@ -127,9 +113,7 @@ public class QuestionService {
         return quizMapper.toAnswerResponse(answer);
     }
 
-    /**
-     * Update an existing answer.
-     */
+    
     @Transactional
     public AnswerResponse updateAnswer(UUID answerId, UpdateAnswerRequest request) {
         Answer answer = answerRepository.findById(answerId)

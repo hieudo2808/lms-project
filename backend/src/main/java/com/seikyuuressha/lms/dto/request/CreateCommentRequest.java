@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.request;
+﻿package com.seikyuuressha.lms.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,5 +19,5 @@ public class CreateCommentRequest {
     @NotBlank(message = "Content cannot be empty")
     String content;
 
-    UUID parentCommentId; // Optional for replies
+    UUID parentCommentId;
 }

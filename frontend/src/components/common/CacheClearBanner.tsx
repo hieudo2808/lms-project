@@ -1,21 +1,19 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 export const CacheClearBanner = () => {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Check nếu có token trong localStorage
     const authStore = localStorage.getItem('auth-store');
     
     if (authStore) {
       try {
         const parsed = JSON.parse(authStore);
-        // Nếu có token nhưng không ở trang đăng nhập/đăng ký
         if (parsed.state?.token && !window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
-          setShow(false); // Không hiển thị nếu đang login
+          setShow(false);
         } else if (parsed.state?.token) {
-          setShow(true); // Hiển thị nếu có token nhưng ở trang login/register
+          setShow(true);
         }
       } catch (e) {
         console.error('Failed to parse auth-store', e);

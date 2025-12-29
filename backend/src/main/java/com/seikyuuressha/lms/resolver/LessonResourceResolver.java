@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+﻿package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.entity.LessonResource;
 import com.seikyuuressha.lms.service.LessonResourceService;

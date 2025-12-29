@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
 export const GET_LESSON_RESOURCES = gql`
     query GetLessonResources($lessonId: UUID!) {

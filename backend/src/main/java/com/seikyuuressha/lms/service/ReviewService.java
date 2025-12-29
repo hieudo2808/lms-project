@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.request.CreateReviewRequest;
 import com.seikyuuressha.lms.dto.request.UpdateReviewRequest;
@@ -40,13 +40,11 @@ public class ReviewService {
         Course course = courseRepository.findById(request.getCourseId())
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Check if user already reviewed this course
         Optional<Review> existingReview = reviewRepository.findByUserAndCourse(user, course);
         if (existingReview.isPresent() && existingReview.get().getIsActive()) {
             throw new RuntimeException("You have already reviewed this course");
         }
 
-        // Create new review - let Hibernate generate ID
         Review review = Review.builder()
                 .course(course)
                 .user(user)
@@ -75,7 +73,7 @@ public class ReviewService {
 
         review.setRating(request.getRating());
         review.setComment(request.getComment());
-        review.setUpdatedAt(OffsetDateTime.now()); // Explicitly set updatedAt
+        review.setUpdatedAt(OffsetDateTime.now());
 
         review = reviewRepository.save(review);
         return reviewMapper.toReviewResponse(review);

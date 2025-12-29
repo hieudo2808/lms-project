@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
 import { FileText, Upload, Trash2, X, Download } from 'lucide-react';
@@ -71,7 +71,6 @@ export const ResourceUploader = ({ lessonId, onClose }: ResourceUploaderProps) =
 
         setUploading(true);
         try {
-            // 1. Get presigned URL
             const { data: urlData } = await generateUploadUrl({
                 variables: {
                     lessonId,
@@ -82,7 +81,6 @@ export const ResourceUploader = ({ lessonId, onClose }: ResourceUploaderProps) =
 
             const { uploadUrl, s3Key } = urlData.generateResourceUploadUrl;
 
-            // 2. Upload to S3
             await fetch(uploadUrl, {
                 method: 'PUT',
                 body: selectedFile,
@@ -91,7 +89,6 @@ export const ResourceUploader = ({ lessonId, onClose }: ResourceUploaderProps) =
                 },
             });
 
-            // 3. Confirm upload
             await confirmUpload({
                 variables: {
                     lessonId,
@@ -138,7 +135,6 @@ export const ResourceUploader = ({ lessonId, onClose }: ResourceUploaderProps) =
                 )}
             </div>
 
-            {/* Upload Section */}
             <div className="mb-4">
                 <div className="flex items-center gap-3">
                     <input
@@ -181,7 +177,6 @@ export const ResourceUploader = ({ lessonId, onClose }: ResourceUploaderProps) =
                 </p>
             </div>
 
-            {/* Resources List */}
             {resources.length > 0 && (
                 <div className="space-y-2">
                     {resources.map((resource: any) => (

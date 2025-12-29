@@ -1,4 +1,4 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+﻿import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@apollo/client';
 import { useAuthStore } from '../../lib/store';
@@ -67,8 +67,12 @@ export const Navbar = () => {
             if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
                 try {
                     (window as any).google.accounts.id.disableAutoSelect();
-                    (window as any).google.accounts.id.revoke(user?.email || '', () => {});
-                } catch (e) {}
+                    (window as any).google.accounts.id.revoke(user?.email || '', () => {
+                        console.log('Google revoke success');
+                    });
+                } catch (e) {
+                    console.error('Google revo', e);
+                }
             }
 
             await client.clearStore();
@@ -97,16 +101,13 @@ export const Navbar = () => {
         <nav className="bg-white shadow-lg sticky top-0 z-50 w-full">
             <div className="max-w-7xl mx-auto px-4 py-3 w-full">
                 <div className="flex items-center justify-between gap-2 sm:gap-4 min-w-0">
-                    {/* Logo */}
                     <Link to="/" className="flex items-center gap-2">
                         <div className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                             EduNova
                         </div>
                     </Link>
 
-                    {/* Desktop Navigation */}
                     <div className="hidden lg:flex items-center gap-6 xl:gap-8 min-w-0">
-                        {/* Explore Dropdown */}
                         <div className="relative" ref={exploreMenuRef}>
                             <button
                                 onClick={() => setShowExploreMenu(!showExploreMenu)}
@@ -165,7 +166,6 @@ export const Navbar = () => {
                             </>
                         )}
 
-                        {/* Auth Section */}
                         {isAuthenticated ? (
                             <div className="relative pl-4 border-l border-gray-200" ref={userMenuRef}>
                                 <button
@@ -236,7 +236,6 @@ export const Navbar = () => {
                         )}
                     </div>
 
-                    {/* Mobile Menu Button */}
                     <button
                         onClick={() => setShowMobileMenu(!showMobileMenu)}
                         className="lg:hidden p-2 text-gray-700 hover:text-blue-600"
@@ -261,7 +260,6 @@ export const Navbar = () => {
                     </button>
                 </div>
 
-                {/* Mobile Navigation */}
                 {showMobileMenu && (
                     <div className="lg:hidden mt-4 pt-4 border-t border-gray-200">
                         <div className="space-y-2">

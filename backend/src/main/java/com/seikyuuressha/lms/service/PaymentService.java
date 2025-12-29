@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+﻿package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.request.InitiatePaymentRequest;
 import com.seikyuuressha.lms.dto.response.PaymentResponse;
@@ -31,8 +31,26 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
     private final SecurityContextService securityContextService;
 
-    @Transactional
+    
     public PaymentResponse initiatePayment(InitiatePaymentRequest request, String ipAddress) {
+        Payment payment = createPaymentRecord(request);
+        Course course = payment.getCourse();
+        
+        String paymentUrl;
+        if ("VNPAY".equals(request.getPaymentProvider())) {
+            paymentUrl = vnPayService.createPaymentUrl(payment, course, ipAddress);
+        } else {
+            throw new RuntimeException("Payment provider not supported yet");
+        }
+
+        PaymentResponse response = paymentMapper.toPaymentResponse(payment);
+        response.setPaymentUrl(paymentUrl);
+        return response;
+    }
+
+    
+    @Transactional
+    protected Payment createPaymentRecord(InitiatePaymentRequest request) {
         UUID userId = securityContextService.getCurrentUserId();
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -40,7 +58,6 @@ public class PaymentService {
         Course course = courseRepository.findById(request.getCourseId())
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Check if already enrolled with successful payment
         Optional<Enrollment> existingEnrollment = enrollmentRepository.findByUserAndCourse(user, course);
         Enrollment enrollment;
         
@@ -52,12 +69,10 @@ public class PaymentService {
                 throw new RuntimeException("Already enrolled in this course");
             }
             
-            // If payment is PENDING or FAILED, delete old payment and create new one
             if (existingPayment.isPresent()) {
                 paymentRepository.delete(existingPayment.get());
             }
         } else {
-            // Create new enrollment
             enrollment = Enrollment.builder()
                     .enrollmentId(UUID.randomUUID())
                     .user(user)
@@ -67,32 +82,19 @@ public class PaymentService {
             enrollment = enrollmentRepository.save(enrollment);
         }
 
-        // Generate transaction ID
         String transactionId = vnPayService.generateTransactionId();
 
-        // Create payment record
         Payment payment = Payment.builder()
                 .user(user)
                 .course(course)
                 .enrollment(enrollment)
                 .amount(course.getPrice())
-                .paymentMethod(request.getPaymentProvider())  // Original column name
+                .paymentMethod(request.getPaymentProvider())
                 .transactionId(transactionId)
-                .paymentStatus("PENDING")  // Original values: SUCCESS, PENDING, FAILED
+                .paymentStatus("PENDING")
                 .build();
-        payment = paymentRepository.save(payment);
-
-        // Generate payment URL based on provider
-        String paymentUrl;
-        if ("VNPAY".equals(request.getPaymentProvider())) {
-            paymentUrl = vnPayService.createPaymentUrl(payment, course, ipAddress);
-        } else {
-            throw new RuntimeException("Payment provider not supported yet");
-        }
-
-        PaymentResponse response = paymentMapper.toPaymentResponse(payment);
-        response.setPaymentUrl(paymentUrl);
-        return response;
+        
+        return paymentRepository.save(payment);
     }
 
     @Transactional

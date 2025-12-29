@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+﻿package com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,18 +34,18 @@ public class Certificate {
     String certificateCode; // e.g., "LMS-2025-001234"
 
     @Column(nullable = false)
-    String pdfUrl; // S3 or local path to PDF file
+    String pdfUrl;
 
     @Column(nullable = false)
     OffsetDateTime issuedAt;
 
-    Double finalScore; // Final quiz score or course completion score
+    Double finalScore;
 
     @Column(columnDefinition = "TEXT")
-    String completionNote; // Additional notes
+    String completionNote;
 
     @Column(nullable = false)
-    Boolean isValid; // Can be revoked
+    Boolean isValid;
 
     OffsetDateTime revokedAt;
     String revokedReason;
@@ -67,7 +67,6 @@ public class Certificate {
     }
 
     private String generateCertificateCode() {
-        // Format: LMS-YYYY-XXXXXX
         return "LMS-" + 
                OffsetDateTime.now().getYear() + "-" + 
                String.format("%06d", (int)(Math.random() * 1000000));

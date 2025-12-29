@@ -1,4 +1,4 @@
-import { Outlet, Navigate, useNavigate } from 'react-router-dom';
+﻿import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { InstructorSidebar } from '../components/instructor/InstructorSidebar';
 import { Bell, Loader2, LogOut, Menu } from 'lucide-react';
@@ -11,24 +11,19 @@ export const InstructorLayout = () => {
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // ===== AUTH STORE =====
     const { token, user: storeUser, logout } = useAuthStore();
 
-    // ===== FETCH USER FROM BACKEND =====
     const { data, loading, error } = useQuery(INSTRUCTOR_DASHBOARD_QUERY, {
         fetchPolicy: 'cache-and-network',
         skip: !token,
     });
 
-    // ===== ROUTE GUARD =====
     if (!token) {
         return <Navigate to="/login" replace />;
     }
 
-    // Ưu tiên dữ liệu backend
     const user = data?.me || storeUser;
 
-    // ===== LOGOUT HANDLER =====
     const handleLogout = async () => {
         try {
             await client.clearStore();
@@ -44,13 +39,10 @@ export const InstructorLayout = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex overflow-x-hidden">
-            {/* SIDEBAR */}
             <InstructorSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="flex-1 lg:ml-64 w-full min-w-0">
-                {/* HEADER */}
                 <header className="bg-white h-14 sm:h-16 border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm">
-                    {/* Hamburger Menu for mobile */}
                     <button
                         onClick={() => setSidebarOpen(true)}
                         className="lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600"
@@ -58,22 +50,19 @@ export const InstructorLayout = () => {
                         <Menu className="w-5 h-5" />
                     </button>
 
-                    {/* Right actions */}
                     <div className="flex items-center gap-3 sm:gap-6 ml-auto">
-                        {/* Notification */}
                         <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
                             <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                             <span className="absolute top-1 right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>
 
-                        {/* USER PROFILE + LOGOUT */}
                         <div className="relative group">
                             <div className="flex items-center gap-2 sm:gap-3 cursor-pointer">
                                 <div className="relative">
                                     <img
                                         src={
                                             user?.avatarUrl ||
-                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                            `https:
                                                 user?.fullName || 'U',
                                             )}&background=0D8ABC&color=fff`
                                         }
@@ -95,7 +84,6 @@ export const InstructorLayout = () => {
                                 </div>
                             </div>
 
-                            {/* DROPDOWN */}
                             <div className="absolute right-0 mt-3 w-44 bg-white border rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                                 <button
                                     onClick={handleLogout}
@@ -109,7 +97,6 @@ export const InstructorLayout = () => {
                     </div>
                 </header>
 
-                {/* CONTENT */}
                 <main className="p-4 sm:p-6 lg:p-8 w-full overflow-x-hidden min-w-0">
                     {error && (
                         <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">

@@ -1,8 +1,7 @@
-import { useQuery } from '@apollo/client';
+﻿import { useQuery } from '@apollo/client';
 import { GET_COURSE_RATING } from '../../graphql/queries/course';
 import { gql } from '@apollo/client';
 
-// Query to get reviews count
 const GET_COURSE_REVIEWS = gql`
   query GetCourseReviews($courseId: UUID!) {
     getReviewsByCourse(courseId: $courseId) {
@@ -29,7 +28,6 @@ export const CourseRatingBadge = ({ courseId }: CourseRatingBadgeProps) => {
   const rating = ratingData?.getCourseAverageRating || 0;
   const reviewCount = reviewsData?.getReviewsByCourse?.length || 0;
 
-  // Don't show if no rating
   if (!rating || rating === 0) return null;
 
   return (

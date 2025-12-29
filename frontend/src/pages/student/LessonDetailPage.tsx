@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+﻿import { useState, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@apollo/client';
 import { toast } from 'react-toastify';
@@ -31,15 +31,9 @@ export const LessonDetailPage = () => {
     const { slug, lessonId } = useParams<{ slug: string; lessonId: string }>();
     const navigate = useNavigate();
 
-    /* =====================
-        STATE
-    ====================== */
     const [isCompleted, setIsCompleted] = useState(false);
     const lastUpdateCall = useRef(0);
 
-    /* =====================
-        QUERIES
-    ====================== */
     const {
         data: courseData,
         loading: courseLoading,
@@ -63,9 +57,6 @@ export const LessonDetailPage = () => {
 
     const [updateProgress] = useMutation(UPDATE_PROGRESS_MUTATION);
 
-    /* =====================
-        DERIVED DATA (THAY useEffect + useState)
-    ====================== */
     const lessons = useMemo<Lesson[]>(() => {
         if (!courseData?.getCourseBySlug?.modules) return [];
 
@@ -100,16 +91,12 @@ export const LessonDetailPage = () => {
     const nextLesson = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;
     const previousLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null;
 
-    /* =====================
-        PROGRESS LOGIC
-    ====================== */
     const handleWatchedUpdate = useCallback(
         async (watchedSeconds: number, totalDuration: number) => {
             if (!currentLesson || totalDuration === 0) return;
 
             const watchedPercent = Math.round((watchedSeconds / totalDuration) * 100);
 
-            // Mark complete when user has watched 80% of total duration
             if (watchedPercent >= 80 && !isCompleted) {
                 setIsCompleted(true);
                 try {
@@ -129,7 +116,6 @@ export const LessonDetailPage = () => {
                 return;
             }
 
-            // Background update every 30 seconds
             const now = Date.now();
             if (!isCompleted && now - lastUpdateCall.current > 30000) {
                 lastUpdateCall.current = now;
@@ -141,7 +127,9 @@ export const LessonDetailPage = () => {
                             progressPercent: watchedPercent,
                         },
                     },
-                }).catch(() => {});
+                }).catch(() => {
+                    console.error('Progress update error');
+                });
             }
         },
         [currentLesson, isCompleted, updateProgress],
@@ -159,9 +147,6 @@ export const LessonDetailPage = () => {
         }
     }, [previousLesson, slug, navigate]);
 
-    /* =====================
-        LOADING / ERROR (GIỮ NGUYÊN UI)
-    ====================== */
     if (courseLoading) {
         return (
             <Layout>
@@ -193,13 +178,9 @@ export const LessonDetailPage = () => {
         );
     }
 
-    /* =====================
-        JSX — GIỮ NGUYÊN 100%
-    ====================== */
     return (
         <Layout>
             <div className="max-w-6xl mx-auto px-4 py-8 pb-20">
-                {/* Back Button */}
                 <button
                     onClick={() => navigate(`/courses/${slug}`)}
                     className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 font-medium"
@@ -208,9 +189,7 @@ export const LessonDetailPage = () => {
                 </button>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content */}
                     <div className="lg:col-span-2">
-                        {/* Video Player */}
                         {currentLesson.videoUrl ? (
                             <VideoPlayer
                                 videoUrl={currentLesson.videoUrl}
@@ -226,7 +205,6 @@ export const LessonDetailPage = () => {
                             </div>
                         )}
 
-                        {/* Lesson Info */}
                         <div className="mt-8">
                             <div className="flex items-start justify-between mb-4">
                                 <div>
@@ -243,7 +221,6 @@ export const LessonDetailPage = () => {
                                 )}
                             </div>
 
-                            {/* Description */}
                             {currentLesson.description && (
                                 <div className="mb-8 p-4 bg-gray-50 rounded-lg">
                                     <h3 className="font-bold text-gray-800 mb-2">Mô tả</h3>
@@ -252,7 +229,6 @@ export const LessonDetailPage = () => {
                             )}
                         </div>
 
-                        {/* Quizzes Section */}
                         {quizzes.length > 0 && (
                             <div className="mt-8 bg-white border-2 border-purple-200 rounded-lg p-6">
                                 <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -273,7 +249,6 @@ export const LessonDetailPage = () => {
                             </div>
                         )}
 
-                        {/* Resources Section */}
                         {resources.length > 0 && (
                             <div className="mt-8 bg-white border-2 border-blue-200 rounded-lg p-6">
                                 <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -312,7 +287,6 @@ export const LessonDetailPage = () => {
                             </div>
                         )}
 
-                        {/* Navigation */}
                         <div className="mt-8 flex gap-4">
                             {previousLesson ? (
                                 <button
@@ -336,7 +310,6 @@ export const LessonDetailPage = () => {
                         </div>
                     </div>
 
-                    {/* Sidebar - Lessons List */}
                     <div className="lg:col-span-1">
                         <div className="bg-white rounded-lg shadow p-4 sticky top-4">
                             <h3 className="font-bold text-lg text-gray-800 mb-4">Bài học ({lessons.length})</h3>

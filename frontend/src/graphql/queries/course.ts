@@ -1,6 +1,5 @@
-import { gql } from '@apollo/client';
+﻿import { gql } from '@apollo/client';
 
-// Lấy danh sách khóa học (cho Home Page)
 export const GET_ALL_COURSES = gql`
     query GetAllCourses {
         getAllCourses {
@@ -21,14 +20,12 @@ export const GET_ALL_COURSES = gql`
     }
 `;
 
-// Lấy rating cho một khóa học
 export const GET_COURSE_RATING = gql`
     query GetCourseRating($courseId: UUID!) {
         getCourseAverageRating(courseId: $courseId)
     }
 `;
 
-// Lấy khóa học theo ID (cho Payment Page)
 export const GET_COURSE_BY_ID = gql`
     query GetCourseById($courseId: UUID!) {
         getCourseById(courseId: $courseId) {
@@ -44,8 +41,6 @@ export const GET_COURSE_BY_ID = gql`
         }
     }
 `;
-
-// Lấy chi tiết khóa học + Modules + Lessons (cho Detail & Lesson Page)
 
 export const GET_COURSE_BY_SLUG = gql`
     query GetCourseBySlug($slug: String!) {
@@ -92,7 +87,6 @@ export const GET_COURSE_BY_SLUG = gql`
     }
 `;
 
-// Lấy khóa học đã đăng ký (cho My Courses)
 export const GET_MY_ENROLLMENTS = gql`
     query GetMyEnrollments {
         myEnrollments {
