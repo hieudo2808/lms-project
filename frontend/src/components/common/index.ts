@@ -8,3 +8,4 @@ export { Footer } from './Footer';
 export { Layout } from './Layout';
 export { CacheClearBanner } from './CacheClearBanner';
 export { CourseRatingBadge } from './CourseRatingBadge';
+export { UserAvatar } from './UserAvatar';

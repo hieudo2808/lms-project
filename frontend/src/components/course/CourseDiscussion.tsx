@@ -1,4 +1,5 @@
 ﻿import { formatShortDate } from '../../utils';
+import { UserAvatar } from '../common/UserAvatar';
 
 interface Comment {
     commentId: string;
@@ -111,10 +112,10 @@ export const CourseDiscussion = ({
                         {comments.map((comment) => (
                             <div key={comment.commentId} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <img
-                                        src={comment.user?.avatarUrl || 'https://via.placeholder.com/40'}
-                                        alt={comment.user?.fullName}
-                                        className="w-10 h-10 rounded-full object-cover"
+                                    <UserAvatar
+                                        avatarUrl={comment.user?.avatarUrl}
+                                        fullName={comment.user?.fullName || 'User'}
+                                        size="md"
                                     />
                                     <div>
                                         <div className="font-semibold text-gray-800">{comment.user?.fullName}</div>
@@ -157,10 +158,10 @@ export const CourseDiscussion = ({
                                     <div className="mt-3 pl-4 border-l-2 border-gray-300 space-y-2">
                                         {comment.replies.map((reply) => (
                                             <div key={reply.commentId} className="flex gap-3">
-                                                <img
-                                                    src={reply.user?.avatarUrl || 'https://via.placeholder.com/32'}
-                                                    alt={reply.user?.fullName}
-                                                    className="w-8 h-8 rounded-full object-cover"
+                                                <UserAvatar
+                                                    avatarUrl={reply.user?.avatarUrl}
+                                                    fullName={reply.user?.fullName || 'User'}
+                                                    size="sm"
                                                 />
                                                 <div>
                                                     <div className="text-sm font-semibold text-gray-800">

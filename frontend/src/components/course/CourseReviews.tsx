@@ -1,4 +1,5 @@
 ﻿import { formatShortDate } from '../../utils';
+import { UserAvatar } from '../common/UserAvatar';
 
 interface Review {
     reviewId: string;
@@ -96,10 +97,10 @@ export const CourseReviews = ({
                 {reviews.map((review) => (
                     <div key={review.reviewId} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex items-center gap-3 mb-2">
-                            <img
-                                src={review.user?.avatarUrl || 'https://via.placeholder.com/40'}
-                                alt={review.user?.fullName}
-                                className="w-10 h-10 rounded-full object-cover"
+                            <UserAvatar
+                                avatarUrl={review.user?.avatarUrl}
+                                fullName={review.user?.fullName || 'User'}
+                                size="md"
                             />
                             <div className="flex-1">
                                 <div className="font-semibold text-gray-900">{review.user?.fullName}</div>

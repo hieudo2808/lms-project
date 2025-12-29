@@ -30,7 +30,7 @@ public class AdminInitializer implements CommandLineRunner {
             return;
         }
 
-        Roles adminRole = roleRepository.findByRoleName("ADMIN");
+        Roles adminRole = roleRepository.findByRoleName("ADMIN").orElseThrow();
 
         Users admin = Users.builder()
                 .fullName("Do Hieu")

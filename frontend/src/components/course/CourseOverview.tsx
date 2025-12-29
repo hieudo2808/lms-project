@@ -1,4 +1,6 @@
-﻿interface CourseOverviewProps {
+﻿import { UserAvatar } from '../common/UserAvatar';
+
+interface CourseOverviewProps {
     description?: string;
     instructor?: {
         fullName: string;
@@ -17,11 +19,7 @@ export const CourseOverview = ({ description, instructor }: CourseOverviewProps)
 
             {instructor && (
                 <div className="mt-8 border-t border-gray-100 pt-6 flex items-center gap-4">
-                    <img
-                        src={instructor.avatarUrl || 'https://via.placeholder.com/80'}
-                        alt={instructor.fullName}
-                        className="w-14 h-14 rounded-full object-cover"
-                    />
+                    <UserAvatar avatarUrl={instructor.avatarUrl} fullName={instructor.fullName} size="lg" />
                     <div>
                         <div className="font-semibold text-gray-900">{instructor.fullName}</div>
                         <div className="text-gray-500 text-sm">{instructor.bio || 'Giảng viên uy tín tại LMS'}</div>

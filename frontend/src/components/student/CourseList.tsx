@@ -1,6 +1,7 @@
 ﻿import { Link } from 'react-router-dom';
 import type { Course } from '../../types';
 import { CourseRating } from './CourseRating';
+import { UserAvatar } from '../common/UserAvatar';
 
 interface CourseListProps {
     courses: Course[];
@@ -58,10 +59,10 @@ export const CourseList = ({ courses, isLoading }: CourseListProps) => {
 
                         {course.instructor && (
                             <div className="flex items-center gap-2 mb-3">
-                                <img
-                                    src={course.instructor.avatarUrl || 'https://via.placeholder.com/32'}
-                                    alt={course.instructor.fullName}
-                                    className="w-6 h-6 rounded-full object-cover"
+                                <UserAvatar
+                                    avatarUrl={course.instructor.avatarUrl}
+                                    fullName={course.instructor.fullName}
+                                    size="sm"
                                 />
                                 <span className="text-sm text-gray-500 truncate">{course.instructor.fullName}</span>
                             </div>

@@ -159,7 +159,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
 
     return (
         <div className="w-full">
-            
             {!file && (
                 <div
                     onDragOver={handleDragOver}
@@ -177,7 +176,18 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                 >
                     <input
                         type="file"
-                        accept="video}
+                        accept="video/*"
+                        ref={fileInputRef}
+                        onChange={handleInputChange}
+                        className="hidden"
+                    />
+                    <UploadCloud className="w-10 h-10 text-gray-400 mb-3" />
+                    <p className="text-gray-600 font-semibold mb-1">
+                        Kéo thả video vào đây hoặc <span className="text-blue-600">click để chọn</span>
+                    </p>
+                    <p className="text-xs text-gray-400">Hỗ trợ MP4, MOV, WebM (Tối đa 2GB)</p>
+                </div>
+            )}
             {file && (
                 <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm animate-in slide-in-from-bottom-2">
                     <div className="flex items-start justify-between mb-4">
@@ -196,7 +206,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                             </div>
                         </div>
 
-                        
                         {(status === 'idle' || status === 'error') && (
                             <button
                                 onClick={() => setFile(null)}
@@ -207,7 +216,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                         )}
                     </div>
 
-                    
                     {status === 'idle' && (
                         <button
                             onClick={handleUpload}
@@ -217,7 +225,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                         </button>
                     )}
 
-                    
                     {status === 'uploading' && (
                         <div>
                             <div className="flex justify-between text-xs text-blue-600 font-semibold mb-1">
@@ -233,7 +240,6 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({ lessonId, onUpload
                         </div>
                     )}
 
-                    
                     {status === 'error' && (
                         <div className="mt-3 bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-start gap-2">
                             <AlertCircle size={16} className="mt-0.5 shrink-0" />
