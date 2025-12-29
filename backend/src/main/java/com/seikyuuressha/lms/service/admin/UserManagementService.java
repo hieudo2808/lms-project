@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.admin;
+ackage com.seikyuuressha.lms.service.admin;
 
 import com.seikyuuressha.lms.dto.response.UserResponse;
 import com.seikyuuressha.lms.entity.Roles;

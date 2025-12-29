@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms;
+ackage com.seikyuuressha.lms;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

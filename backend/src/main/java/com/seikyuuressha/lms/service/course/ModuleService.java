@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service.course;
+ackage com.seikyuuressha.lms.service.course;
 
 import com.seikyuuressha.lms.dto.request.CreateModuleRequest;
 import com.seikyuuressha.lms.dto.request.UpdateModuleRequest;

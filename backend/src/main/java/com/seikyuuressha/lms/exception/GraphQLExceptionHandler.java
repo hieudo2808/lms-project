@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.exception;
+ackage com.seikyuuressha.lms.exception;
 
 import graphql.GraphQLError;
 import graphql.GraphqlErrorBuilder;

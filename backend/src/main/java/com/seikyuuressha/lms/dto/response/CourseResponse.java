@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.response;
+ackage com.seikyuuressha.lms.dto.response;
 
 import lombok.*;
 import java.math.BigDecimal;

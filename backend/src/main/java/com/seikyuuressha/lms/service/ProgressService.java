@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+ackage com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.request.UpdateProgressRequest;
 import com.seikyuuressha.lms.dto.response.ProgressResponse;

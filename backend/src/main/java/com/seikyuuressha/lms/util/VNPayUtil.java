@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.util;
+ackage com.seikyuuressha.lms.util;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

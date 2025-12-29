@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+ackage com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.entity.PasswordResetToken;
 import com.seikyuuressha.lms.entity.Users;

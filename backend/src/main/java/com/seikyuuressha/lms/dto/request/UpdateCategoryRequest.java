@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.request;
+ackage com.seikyuuressha.lms.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

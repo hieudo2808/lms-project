@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.configuration;
+ackage com.seikyuuressha.lms.configuration;
 
 import com.seikyuuressha.lms.entity.Roles;
 import com.seikyuuressha.lms.entity.Users;

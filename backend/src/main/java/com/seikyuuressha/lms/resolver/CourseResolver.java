@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+ackage com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.response.CourseResponse;
 import com.seikyuuressha.lms.service.AdminService;

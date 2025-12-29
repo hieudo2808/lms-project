@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.repository;
+ackage com.seikyuuressha.lms.repository;
 
 import com.seikyuuressha.lms.entity.InvalidatedToken;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.entity;
+ackage com.seikyuuressha.lms.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

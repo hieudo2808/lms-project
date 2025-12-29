@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.security;
+ackage com.seikyuuressha.lms.security;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.dto.request;
+ackage com.seikyuuressha.lms.dto.request;
 
 import com.seikyuuressha.lms.entity.Question;
 import jakarta.validation.constraints.NotBlank;

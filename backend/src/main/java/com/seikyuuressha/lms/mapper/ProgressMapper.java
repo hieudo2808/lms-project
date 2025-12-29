@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.mapper;
+ackage com.seikyuuressha.lms.mapper;
 
 import com.seikyuuressha.lms.dto.response.ProgressResponse;
 import com.seikyuuressha.lms.entity.Progress;

@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.resolver;
+ackage com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.LoginRequest;
 import com.seikyuuressha.lms.dto.request.RegisterRequest;

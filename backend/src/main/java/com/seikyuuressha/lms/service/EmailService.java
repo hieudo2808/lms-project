@@ -1,4 +1,4 @@
-package com.seikyuuressha.lms.service;
+ackage com.seikyuuressha.lms.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
