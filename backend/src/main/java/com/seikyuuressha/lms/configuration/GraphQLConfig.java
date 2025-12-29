@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.configuration;
+package com.seikyuuressha.lms.configuration;
 
 import graphql.analysis.MaxQueryComplexityInstrumentation;
 import graphql.analysis.MaxQueryDepthInstrumentation;

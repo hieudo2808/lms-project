@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.service;
+package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.request.CreateReviewRequest;
 import com.seikyuuressha.lms.dto.request.UpdateReviewRequest;

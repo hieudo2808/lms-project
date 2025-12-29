@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.service;
+package com.seikyuuressha.lms.service;
 
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.colors.DeviceRgb;

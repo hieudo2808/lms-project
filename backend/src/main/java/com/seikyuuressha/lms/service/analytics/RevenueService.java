@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.service.analytics;
+package com.seikyuuressha.lms.service.analytics;
 
 import com.seikyuuressha.lms.entity.*;
 import com.seikyuuressha.lms.entity.Module;

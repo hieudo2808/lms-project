@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.mapper;
+package com.seikyuuressha.lms.mapper;
 
 import com.seikyuuressha.lms.dto.response.CertificateResponse;
 import com.seikyuuressha.lms.entity.Certificate;

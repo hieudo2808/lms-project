@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.service;
+package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.dto.response.CourseResponse;
 import com.seikyuuressha.lms.dto.response.EnrollmentResponse;

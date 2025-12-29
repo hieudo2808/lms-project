@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.entity;
+package com.seikyuuressha.lms.entity;
 
 import java.io.Serializable;
 import java.util.Objects;

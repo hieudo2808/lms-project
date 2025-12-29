@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.controller;
+package com.seikyuuressha.lms.controller;
 
 import com.seikyuuressha.lms.dto.request.LoginRequest;
 import com.seikyuuressha.lms.dto.response.AuthResponse;

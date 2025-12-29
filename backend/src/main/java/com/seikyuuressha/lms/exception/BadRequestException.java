@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.exception;
+package com.seikyuuressha.lms.exception;
 
 public class BadRequestException extends RuntimeException {
     public BadRequestException(String message) {

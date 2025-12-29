@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.configuration;
+package com.seikyuuressha.lms.configuration;
 
 import com.seikyuuressha.lms.repository.InvalidatedTokenRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.resolver;
+package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.UpdateProfileRequest;
 import com.seikyuuressha.lms.dto.response.RoleResponse;

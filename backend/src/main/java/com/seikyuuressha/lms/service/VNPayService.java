@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.service;
+package com.seikyuuressha.lms.service;
 
 import com.seikyuuressha.lms.entity.Course;
 import com.seikyuuressha.lms.entity.Enrollment;

@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.service.common;
+package com.seikyuuressha.lms.service.common;
 
 import com.seikyuuressha.lms.dto.response.*;
 import com.seikyuuressha.lms.entity.*;

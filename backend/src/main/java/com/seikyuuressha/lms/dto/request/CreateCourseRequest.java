@@ -1,4 +1,4 @@
-ackage com.seikyuuressha.lms.dto.request;
+package com.seikyuuressha.lms.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
