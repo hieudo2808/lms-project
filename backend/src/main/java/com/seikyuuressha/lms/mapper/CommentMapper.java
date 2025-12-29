@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.mapper;
+package com.seikyuuressha.lms.mapper;
 
 import com.seikyuuressha.lms.dto.response.CommentResponse;
 import com.seikyuuressha.lms.entity.Comment;

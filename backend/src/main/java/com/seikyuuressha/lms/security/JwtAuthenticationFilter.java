@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.security;
+package com.seikyuuressha.lms.security;
 
 import com.seikyuuressha.lms.security.JwtUtil;
 import jakarta.servlet.FilterChain;

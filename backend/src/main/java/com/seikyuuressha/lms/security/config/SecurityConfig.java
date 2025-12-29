@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.security.config;
+package com.seikyuuressha.lms.security.config;
 
 import com.seikyuuressha.lms.configuration.PepperBCryptEncoder;
 import com.seikyuuressha.lms.security.JwtAuthenticationFilter;

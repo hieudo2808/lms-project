@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.resolver;
+package com.seikyuuressha.lms.resolver;
 
 import com.seikyuuressha.lms.dto.request.CreateCategoryRequest;
 import com.seikyuuressha.lms.dto.request.UpdateCategoryRequest;

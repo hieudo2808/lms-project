@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.dto.response;
+package com.seikyuuressha.lms.dto.response;
 
 import com.seikyuuressha.lms.entity.QuizAttempt;
 import lombok.*;

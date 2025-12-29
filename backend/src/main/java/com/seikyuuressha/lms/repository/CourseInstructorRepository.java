@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.repository;
+package com.seikyuuressha.lms.repository;
 
 import com.seikyuuressha.lms.entity.CourseInstructor;
 import com.seikyuuressha.lms.entity.CourseInstructorId;

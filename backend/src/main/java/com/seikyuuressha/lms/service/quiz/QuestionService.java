@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.service.quiz;
+package com.seikyuuressha.lms.service.quiz;
 
 import com.seikyuuressha.lms.dto.request.CreateAnswerRequest;
 import com.seikyuuressha.lms.dto.request.CreateQuestionRequest;

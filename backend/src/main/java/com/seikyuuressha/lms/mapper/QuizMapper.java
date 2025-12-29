@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.mapper;
+package com.seikyuuressha.lms.mapper;
 
 import com.seikyuuressha.lms.dto.response.AnswerResponse;
 import com.seikyuuressha.lms.dto.response.QuestionResponse;

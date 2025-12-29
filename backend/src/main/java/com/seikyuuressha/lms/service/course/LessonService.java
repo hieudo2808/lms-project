@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.service.course;
+package com.seikyuuressha.lms.service.course;
 
 import com.seikyuuressha.lms.dto.request.CreateLessonRequest;
 import com.seikyuuressha.lms.dto.request.UpdateLessonRequest;

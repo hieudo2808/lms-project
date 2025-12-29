@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.service.common;
+package com.seikyuuressha.lms.service.common;
 
 import com.seikyuuressha.lms.entity.Users;
 import com.seikyuuressha.lms.repository.UserRepository;

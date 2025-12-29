@@ -1,4 +1,4 @@
-﻿package com.seikyuuressha.lms.service.admin;
+package com.seikyuuressha.lms.service.admin;
 
 import com.seikyuuressha.lms.dto.response.PaymentResponse;
 import com.seikyuuressha.lms.dto.response.RevenueReportResponse;
