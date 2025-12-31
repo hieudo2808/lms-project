@@ -85,6 +85,7 @@ public class QuizService {
         quiz.setPassingScore(request.getPassingScore());
         quiz.setTimeLimit(request.getTimeLimit() != null ? request.getTimeLimit() : 0);
         quiz.setMaxAttempts(request.getMaxAttempts());
+        quiz.setIsPublished(request.getIsPublished());
 
         quiz = quizRepository.save(quiz);
         return quizMapper.toQuizResponse(quiz);

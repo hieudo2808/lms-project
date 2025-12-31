@@ -118,6 +118,12 @@ export const client = new ApolloClient({
             User: {
                 keyFields: ['userId'],
             },
+            Review: {
+                keyFields: ['reviewId'],
+            },
+            Comment: {
+                keyFields: ['commentId'],
+            },
         },
     }),
     defaultOptions: {

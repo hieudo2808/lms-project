@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { User, Mail, Shield } from 'lucide-react';
 
 import { GET_ME_QUERY } from '../../graphql/queries/user';
+import { INSTRUCTOR_DASHBOARD_QUERY } from '../../graphql/queries/dashboard';
 import { UPDATE_PROFILE_MUTATION } from '../../graphql/mutations/user';
 import { AvatarUploader } from '../../components/common/AvatarUploader';
 
@@ -13,7 +14,7 @@ export default function AccountSettingsPage() {
     });
 
     const [updateProfile, { loading: saving }] = useMutation(UPDATE_PROFILE_MUTATION, {
-        refetchQueries: [{ query: GET_ME_QUERY }],
+        refetchQueries: [{ query: GET_ME_QUERY }, { query: INSTRUCTOR_DASHBOARD_QUERY }],
     });
 
     const [form, setForm] = useState({
